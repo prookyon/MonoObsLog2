@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1024</width>
+    <height>768</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MGW Observation Log</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <widget class="QTabWidget" name="tabWidget">
+      <property name="currentIndex">
+       <number>0</number>
+      </property>
+      <widget class="QWidget" name="objectsTab">
+       <attribute name="title">
+        <string>Objects</string>
+       </attribute>
+      </widget>
+      <widget class="QWidget" name="sessionsTab">
+       <attribute name="title">
+        <string>Sessions</string>
+       </attribute>
+      </widget>
+      <widget class="QWidget" name="camerasTab">
+       <attribute name="title">
+        <string>Cameras</string>
+       </attribute>
+      </widget>
+      <widget class="QWidget" name="filterTypesTab">
+       <attribute name="title">
+        <string>Filter Types</string>
+       </attribute>
+      </widget>
+      <widget class="QWidget" name="filtersTab">
+       <attribute name="title">
+        <string>Filters</string>
+       </attribute>
+      </widget>
+      <widget class="QWidget" name="telescopesTab">
+       <attribute name="title">
+        <string>Telescopes</string>
+       </attribute>
+      </widget>
+      <widget class="QWidget" name="observationsTab">
+       <attribute name="title">
+        <string>Observations</string>
+       </attribute>
+      </widget>
+      <widget class="QWidget" name="objectStatsTab">
+       <attribute name="title">
+        <string>Object Stats</string>
+       </attribute>
+      </widget>
+      <widget class="QWidget" name="monthlyStatsTab">
+       <attribute name="title">
+        <string>Monthly Stats</string>
+       </attribute>
+      </widget>
+      <widget class="QWidget" name="settingsTab">
+       <attribute name="title">
+        <string>Settings</string>
+       </attribute>
+      </widget>
+      <widget class="QWidget" name="aboutTab">
+       <attribute name="title">
+        <string>About</string>
+       </attribute>
+      </widget>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1024</width>
+     <height>21</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
