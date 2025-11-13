@@ -13,6 +13,7 @@
 #include "settingstab.h"
 #include "abouttab.h"
 #include <QMessageBox>
+#include <QVBoxLayout>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow), m_dbManager(std::make_unique<DatabaseManager>(this))
@@ -42,50 +43,93 @@ void MainWindow::initializeTabs()
 {
     // Create tab widgets and add them to tabWidget
     QWidget *objectsTabWidget = new QWidget();
+    QVBoxLayout *objectsLayout = new QVBoxLayout(objectsTabWidget);
+    objectsLayout->setContentsMargins(0, 0, 0, 0);
     ui->tabWidget->addTab(objectsTabWidget, "Objects");
 
     QWidget *sessionsTabWidget = new QWidget();
+    QVBoxLayout *sessionsLayout = new QVBoxLayout(sessionsTabWidget);
+    sessionsLayout->setContentsMargins(0, 0, 0, 0);
     ui->tabWidget->addTab(sessionsTabWidget, "Sessions");
 
     QWidget *camerasTabWidget = new QWidget();
+    QVBoxLayout *camerasLayout = new QVBoxLayout(camerasTabWidget);
+    camerasLayout->setContentsMargins(0, 0, 0, 0);
     ui->tabWidget->addTab(camerasTabWidget, "Cameras");
 
     QWidget *filterTypesTabWidget = new QWidget();
+    QVBoxLayout *filterTypesLayout = new QVBoxLayout(filterTypesTabWidget);
+    filterTypesLayout->setContentsMargins(0, 0, 0, 0);
     ui->tabWidget->addTab(filterTypesTabWidget, "Filter Types");
 
     QWidget *filtersTabWidget = new QWidget();
+    QVBoxLayout *filtersLayout = new QVBoxLayout(filtersTabWidget);
+    filtersLayout->setContentsMargins(0, 0, 0, 0);
     ui->tabWidget->addTab(filtersTabWidget, "Filters");
 
     QWidget *telescopesTabWidget = new QWidget();
+    QVBoxLayout *telescopesLayout = new QVBoxLayout(telescopesTabWidget);
+    telescopesLayout->setContentsMargins(0, 0, 0, 0);
     ui->tabWidget->addTab(telescopesTabWidget, "Telescopes");
 
     QWidget *observationsTabWidget = new QWidget();
+    QVBoxLayout *observationsLayout = new QVBoxLayout(observationsTabWidget);
+    observationsLayout->setContentsMargins(0, 0, 0, 0);
     ui->tabWidget->addTab(observationsTabWidget, "Observations");
 
     QWidget *objectStatsTabWidget = new QWidget();
+    QVBoxLayout *objectStatsLayout = new QVBoxLayout(objectStatsTabWidget);
+    objectStatsLayout->setContentsMargins(0, 0, 0, 0);
     ui->tabWidget->addTab(objectStatsTabWidget, "Object Stats");
 
     QWidget *monthlyStatsTabWidget = new QWidget();
+    QVBoxLayout *monthlyStatsLayout = new QVBoxLayout(monthlyStatsTabWidget);
+    monthlyStatsLayout->setContentsMargins(0, 0, 0, 0);
     ui->tabWidget->addTab(monthlyStatsTabWidget, "Monthly Stats");
 
     QWidget *settingsTabWidget = new QWidget();
+    QVBoxLayout *settingsLayout = new QVBoxLayout(settingsTabWidget);
+    settingsLayout->setContentsMargins(0, 0, 0, 0);
     ui->tabWidget->addTab(settingsTabWidget, "Settings");
 
     QWidget *aboutTabWidget = new QWidget();
+    QVBoxLayout *aboutLayout = new QVBoxLayout(aboutTabWidget);
+    aboutLayout->setContentsMargins(0, 0, 0, 0);
     ui->tabWidget->addTab(aboutTabWidget, "About");
 
     // Create tab instances with the newly created widgets
     m_objectsTab = std::make_unique<ObjectsTab>(m_dbManager.get(), objectsTabWidget);
+    objectsLayout->addWidget(m_objectsTab.get());
+
     m_sessionsTab = std::make_unique<SessionsTab>(m_dbManager.get(), sessionsTabWidget);
+    sessionsLayout->addWidget(m_sessionsTab.get());
+
     m_camerasTab = std::make_unique<CamerasTab>(m_dbManager.get(), camerasTabWidget);
+    camerasLayout->addWidget(m_camerasTab.get());
+
     m_filterTypesTab = std::make_unique<FilterTypesTab>(m_dbManager.get(), filterTypesTabWidget);
+    filterTypesLayout->addWidget(m_filterTypesTab.get());
+
     m_filtersTab = std::make_unique<FiltersTab>(m_dbManager.get(), filtersTabWidget);
+    filtersLayout->addWidget(m_filtersTab.get());
+
     m_telescopesTab = std::make_unique<TelescopesTab>(m_dbManager.get(), telescopesTabWidget);
+    telescopesLayout->addWidget(m_telescopesTab.get());
+
     m_observationsTab = std::make_unique<ObservationsTab>(m_dbManager.get(), observationsTabWidget);
+    observationsLayout->addWidget(m_observationsTab.get());
+
     m_objectStatsTab = std::make_unique<ObjectStatsTab>(m_dbManager.get(), objectStatsTabWidget);
+    objectStatsLayout->addWidget(m_objectStatsTab.get());
+
     m_monthlyStatsTab = std::make_unique<MonthlyStatsTab>(m_dbManager.get(), monthlyStatsTabWidget);
+    monthlyStatsLayout->addWidget(m_monthlyStatsTab.get());
+
     m_settingsTab = std::make_unique<SettingsTab>(m_dbManager.get(), settingsTabWidget);
+    settingsLayout->addWidget(m_settingsTab.get());
+
     m_aboutTab = std::make_unique<AboutTab>(m_dbManager.get(), aboutTabWidget);
+    aboutLayout->addWidget(m_aboutTab.get());
 
     // Initialize each tab
     m_objectsTab->initialize();
