@@ -23,7 +23,15 @@ public:
     void initialize();
     void refreshData();
 
+private slots:
+    void onAddButtonClicked();
+    void onEditButtonClicked();
+    void onDeleteButtonClicked();
+
 private:
+    void populateTable();
+    bool showObjectDialog(const QString &title, QString &name, QString &ra, QString &dec);
+
     Ui::ObjectsTab *ui;
     DatabaseManager *m_dbManager;
 };

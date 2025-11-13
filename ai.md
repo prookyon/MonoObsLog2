@@ -79,6 +79,28 @@ private:
    }
    ```
 
+### CRUD Operations Pattern (see [`ObjectsTab`](src/objectstab.cpp:1))
+
+**UI Layout**: QTableWidget + Add/Edit/Delete buttons
+- Hide ID column, store in Qt::UserRole: `item->setData(Qt::UserRole, id)`
+- Retrieve ID: `item->data(Qt::UserRole).toInt()`
+
+**Custom Dialog**: Create helper method for unified Add/Edit form
+```cpp
+bool showObjectDialog(QString &name, QString &field1, QString &field2) {
+   QDialog dialog(this);
+   QFormLayout *layout = new QFormLayout(&dialog);
+   // Add QLineEdit fields for each property
+   // Return true if OK clicked, false if cancelled
+}
+```
+
+**Operations**:
+- **Add**: Show dialog, INSERT with parameterized query, `refreshData()`
+- **Edit**: Get selected row ID, pre-fill dialog, UPDATE, `refreshData()`
+- **Delete**: Show `QMessageBox::question()` confirmation, DELETE, `refreshData()`
+- No success popups (silent operations), show errors only
+
 ### Database Operations
 
 ```cpp
