@@ -1,5 +1,5 @@
 #include "observationstab.h"
-#include "ui_observationstab.h"
+#include "ui_observations_tab.h"
 #include "databasemanager.h"
 
 ObservationsTab::ObservationsTab(DatabaseManager *dbManager, QWidget *parent)

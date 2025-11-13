@@ -1,5 +1,5 @@
 #include "settingstab.h"
-#include "ui_settingstab.h"
+#include "ui_settings_tab.h"
 #include "databasemanager.h"
 
 SettingsTab::SettingsTab(DatabaseManager *dbManager, QWidget *parent)

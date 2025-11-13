@@ -1,5 +1,5 @@
 #include "sessionstab.h"
-#include "ui_sessionstab.h"
+#include "ui_sessions_tab.h"
 #include "databasemanager.h"
 
 SessionsTab::SessionsTab(DatabaseManager *dbManager, QWidget *parent)

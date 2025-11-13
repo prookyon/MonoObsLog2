@@ -1,5 +1,5 @@
 #include "monthlystatstab.h"
-#include "ui_monthlystatstab.h"
+#include "ui_monthlystats_tab.h"
 #include "databasemanager.h"
 
 MonthlyStatsTab::MonthlyStatsTab(DatabaseManager *dbManager, QWidget *parent)

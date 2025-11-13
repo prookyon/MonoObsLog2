@@ -1,5 +1,5 @@
 #include "filterstab.h"
-#include "ui_filterstab.h"
+#include "ui_filters_tab.h"
 #include "databasemanager.h"
 
 FiltersTab::FiltersTab(DatabaseManager *dbManager, QWidget *parent)

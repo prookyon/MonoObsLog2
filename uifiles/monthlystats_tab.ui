@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MonthlyStatsTab</class>
+ <widget class="QWidget" name="MonthlyStatsTab">
+  <attribute name="title">
+   <string>Monthly Stats</string>
+  </attribute>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QWidget" name="chartWidget" native="true">
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>400</height>
+      </size>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

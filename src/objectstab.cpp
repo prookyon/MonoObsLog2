@@ -1,5 +1,5 @@
 #include "objectstab.h"
-#include "ui_objectstab.h"
+#include "ui_objects_tab.h"
 #include "databasemanager.h"
 #include <QSqlQuery>
 #include <QSqlError>

@@ -1,5 +1,5 @@
 #include "abouttab.h"
-#include "ui_abouttab.h"
+#include "ui_about_tab.h"
 #include "databasemanager.h"
 
 AboutTab::AboutTab(DatabaseManager *dbManager, QWidget *parent)

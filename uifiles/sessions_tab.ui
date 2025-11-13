@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>SessionsTab</class>
+ <widget class="QWidget" name="SessionTab">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>935</width>
+    <height>300</height>
+   </rect>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <layout class="QGridLayout" name="gridLayout">
+     <item row="0" column="0">
+      <widget class="QLabel" name="sessionNameLabel">
+       <property name="text">
+        <string>Session Name:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QLineEdit" name="sessionNameLineEdit">
+       <property name="placeholderText">
+        <string>Enter session name (unique)</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="startDateLabel">
+       <property name="text">
+        <string>Start Date:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QDateEdit" name="startDateEdit">
+       <property name="calendarPopup">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="sessionCommentLabel">
+       <property name="text">
+        <string>Comments:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QLineEdit" name="sessionCommentsLineEdit">
+       <property name="placeholderText">
+        <string>Enter comments (optional)</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="2" rowspan="3">
+      <widget class="QPushButton" name="addSessionButton">
+       <property name="text">
+        <string>Add Session</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QTableWidget" name="sessionsTable">
+     <property name="editTriggers">
+      <set>QAbstractItemView::EditTrigger::NoEditTriggers</set>
+     </property>
+     <property name="alternatingRowColors">
+      <bool>true</bool>
+     </property>
+     <property name="selectionMode">
+      <enum>QAbstractItemView::SelectionMode::SingleSelection</enum>
+     </property>
+     <property name="selectionBehavior">
+      <enum>QAbstractItemView::SelectionBehavior::SelectRows</enum>
+     </property>
+     <property name="sortingEnabled">
+      <bool>true</bool>
+     </property>
+     <attribute name="verticalHeaderVisible">
+      <bool>false</bool>
+     </attribute>
+     <column>
+      <property name="text">
+       <string>ID</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Session Name</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Start Date</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Moon Illumination</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Moon RA</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Moon Dec</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Exposure Total (h)</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Comments</string>
+      </property>
+     </column>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Orientation::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="editSessionButton">
+       <property name="text">
+        <string>Edit Selected</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="deleteSessionButton">
+       <property name="text">
+        <string>Delete Selected</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

@@ -40,18 +40,52 @@ MainWindow::~MainWindow()
 
 void MainWindow::initializeTabs()
 {
-    // Create tab instances
-    m_objectsTab = std::make_unique<ObjectsTab>(m_dbManager.get(), ui->objectsTab);
-    m_sessionsTab = std::make_unique<SessionsTab>(m_dbManager.get(), ui->sessionsTab);
-    m_camerasTab = std::make_unique<CamerasTab>(m_dbManager.get(), ui->camerasTab);
-    m_filterTypesTab = std::make_unique<FilterTypesTab>(m_dbManager.get(), ui->filterTypesTab);
-    m_filtersTab = std::make_unique<FiltersTab>(m_dbManager.get(), ui->filtersTab);
-    m_telescopesTab = std::make_unique<TelescopesTab>(m_dbManager.get(), ui->telescopesTab);
-    m_observationsTab = std::make_unique<ObservationsTab>(m_dbManager.get(), ui->observationsTab);
-    m_objectStatsTab = std::make_unique<ObjectStatsTab>(m_dbManager.get(), ui->objectStatsTab);
-    m_monthlyStatsTab = std::make_unique<MonthlyStatsTab>(m_dbManager.get(), ui->monthlyStatsTab);
-    m_settingsTab = std::make_unique<SettingsTab>(m_dbManager.get(), ui->settingsTab);
-    m_aboutTab = std::make_unique<AboutTab>(m_dbManager.get(), ui->aboutTab);
+    // Create tab widgets and add them to tabWidget
+    QWidget *objectsTabWidget = new QWidget();
+    ui->tabWidget->addTab(objectsTabWidget, "Objects");
+
+    QWidget *sessionsTabWidget = new QWidget();
+    ui->tabWidget->addTab(sessionsTabWidget, "Sessions");
+
+    QWidget *camerasTabWidget = new QWidget();
+    ui->tabWidget->addTab(camerasTabWidget, "Cameras");
+
+    QWidget *filterTypesTabWidget = new QWidget();
+    ui->tabWidget->addTab(filterTypesTabWidget, "Filter Types");
+
+    QWidget *filtersTabWidget = new QWidget();
+    ui->tabWidget->addTab(filtersTabWidget, "Filters");
+
+    QWidget *telescopesTabWidget = new QWidget();
+    ui->tabWidget->addTab(telescopesTabWidget, "Telescopes");
+
+    QWidget *observationsTabWidget = new QWidget();
+    ui->tabWidget->addTab(observationsTabWidget, "Observations");
+
+    QWidget *objectStatsTabWidget = new QWidget();
+    ui->tabWidget->addTab(objectStatsTabWidget, "Object Stats");
+
+    QWidget *monthlyStatsTabWidget = new QWidget();
+    ui->tabWidget->addTab(monthlyStatsTabWidget, "Monthly Stats");
+
+    QWidget *settingsTabWidget = new QWidget();
+    ui->tabWidget->addTab(settingsTabWidget, "Settings");
+
+    QWidget *aboutTabWidget = new QWidget();
+    ui->tabWidget->addTab(aboutTabWidget, "About");
+
+    // Create tab instances with the newly created widgets
+    m_objectsTab = std::make_unique<ObjectsTab>(m_dbManager.get(), objectsTabWidget);
+    m_sessionsTab = std::make_unique<SessionsTab>(m_dbManager.get(), sessionsTabWidget);
+    m_camerasTab = std::make_unique<CamerasTab>(m_dbManager.get(), camerasTabWidget);
+    m_filterTypesTab = std::make_unique<FilterTypesTab>(m_dbManager.get(), filterTypesTabWidget);
+    m_filtersTab = std::make_unique<FiltersTab>(m_dbManager.get(), filtersTabWidget);
+    m_telescopesTab = std::make_unique<TelescopesTab>(m_dbManager.get(), telescopesTabWidget);
+    m_observationsTab = std::make_unique<ObservationsTab>(m_dbManager.get(), observationsTabWidget);
+    m_objectStatsTab = std::make_unique<ObjectStatsTab>(m_dbManager.get(), objectStatsTabWidget);
+    m_monthlyStatsTab = std::make_unique<MonthlyStatsTab>(m_dbManager.get(), monthlyStatsTabWidget);
+    m_settingsTab = std::make_unique<SettingsTab>(m_dbManager.get(), settingsTabWidget);
+    m_aboutTab = std::make_unique<AboutTab>(m_dbManager.get(), aboutTabWidget);
 
     // Initialize each tab
     m_objectsTab->initialize();

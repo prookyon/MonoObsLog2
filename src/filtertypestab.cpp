@@ -1,5 +1,5 @@
 #include "filtertypestab.h"
-#include "ui_filtertypestab.h"
+#include "ui_filtertypes_tab.h"
 #include "databasemanager.h"
 
 FilterTypesTab::FilterTypesTab(DatabaseManager *dbManager, QWidget *parent)
