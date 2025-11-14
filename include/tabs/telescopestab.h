@@ -28,6 +28,7 @@ private slots:
     void onAddTelescopeButtonClicked();
     void onEditTelescopeButtonClicked();
     void onDeleteTelescopeButtonClicked();
+    void onApertureOrFocalLengthChanged();
 
 private:
     void populateTable();

@@ -32,6 +32,10 @@ void TelescopesTab::initialize()
     connect(ui->editTelescopeButton, &QPushButton::clicked, this, &TelescopesTab::onEditTelescopeButtonClicked);
     connect(ui->deleteTelescopeButton, &QPushButton::clicked, this, &TelescopesTab::onDeleteTelescopeButtonClicked);
 
+    // Connect spin boxes for auto-calculation of f-ratio
+    connect(ui->apertureSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &TelescopesTab::onApertureOrFocalLengthChanged);
+    connect(ui->focalLengthSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &TelescopesTab::onApertureOrFocalLengthChanged);
+
     // Configure table columns (without ID column)
     ui->telescopesTable->setColumnWidth(0, 150); // Name
     ui->telescopesTable->setColumnWidth(1, 100); // Aperture
@@ -268,4 +272,16 @@ void TelescopesTab::onDeleteTelescopeButtonClicked()
     }
 
     refreshData();
+}
+
+void TelescopesTab::onApertureOrFocalLengthChanged()
+{
+    int aperture = ui->apertureSpinBox->value();
+    int focalLength = ui->focalLengthSpinBox->value();
+
+    if (aperture > 0 && focalLength > 0)
+    {
+        double fRatio = static_cast<double>(focalLength) / aperture;
+        ui->fRatioSpinBox->setValue(fRatio);
+    }
 }
