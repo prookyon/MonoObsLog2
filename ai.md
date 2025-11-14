@@ -101,7 +101,57 @@ bool showObjectDialog(QString &name, QString &field1, QString &field2) {
 - **Delete**: Show `QMessageBox::question()` confirmation, DELETE, `refreshData()`
 - No success popups (silent operations), show errors only
 
-### Database Operations
+### Repository Pattern (see [`ObjectsRepository`](src/objectsrepository.cpp:1))
+
+**Purpose**: Separate database queries from UI logic for better maintainability and testability.
+
+**Structure**:
+- Data struct for table row representation
+- Repository class with CRUD methods
+- Returns data structs or error messages via reference parameters
+
+**Example** ([`ObjectsRepository`](include/objectsrepository.h:19)):
+```cpp
+// Data struct
+struct ObjectData {
+    int id;
+    QString name;
+    QVariant ra, dec;  // Can be null
+};
+
+// Repository class
+class ObjectsRepository : public QObject {
+    Q_OBJECT
+public:
+    explicit ObjectsRepository(DatabaseManager *dbManager, QObject *parent = nullptr);
+    QVector<ObjectData> getAllObjects(QString &errorMessage);
+    bool addObject(const QString &name, const QVariant &ra, const QVariant &dec, QString &errorMessage);
+    bool updateObject(int id, const QString &name, const QVariant &ra, const QVariant &dec, QString &errorMessage);
+    bool deleteObject(int id, QString &errorMessage);
+};
+```
+
+**Usage in Tab** ([`ObjectsTab`](src/objectstab.cpp:18)):
+```cpp
+// Constructor: create repository
+m_repository = new ObjectsRepository(m_dbManager, this);
+
+// Query data
+QString errorMessage;
+QVector<ObjectData> objects = m_repository->getAllObjects(errorMessage);
+if (!errorMessage.isEmpty()) {
+    QMessageBox::warning(this, "Error", errorMessage);
+}
+
+// Insert/Update/Delete
+if (!m_repository->addObject(name, ra, dec, errorMessage)) {
+    QMessageBox::warning(this, "Error", errorMessage);
+}
+```
+
+**When to Use**: For tabs with complex queries or when multiple tabs need the same data access.
+
+### Database Operations (Direct Access)
 
 ```cpp
 // Access database through manager

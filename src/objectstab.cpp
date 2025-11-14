@@ -1,9 +1,8 @@
 #include "objectstab.h"
 #include "ui_objects_tab.h"
 #include "databasemanager.h"
+#include "objectsrepository.h"
 #include "simbadquery.h"
-#include <QSqlQuery>
-#include <QSqlError>
 #include <QDebug>
 #include <QMessageBox>
 #include <QDialog>
@@ -15,9 +14,10 @@
 #include <QPointer>
 
 ObjectsTab::ObjectsTab(DatabaseManager *dbManager, QWidget *parent)
-    : QWidget(parent), ui(new Ui::ObjectsTab), m_dbManager(dbManager), m_simbadQuery(nullptr), m_dialogRaEdit(nullptr), m_dialogDecEdit(nullptr)
+    : QWidget(parent), ui(new Ui::ObjectsTab), m_dbManager(dbManager), m_repository(nullptr), m_simbadQuery(nullptr), m_dialogRaEdit(nullptr), m_dialogDecEdit(nullptr)
 {
     ui->setupUi(this);
+    m_repository = new ObjectsRepository(m_dbManager, this);
 }
 
 ObjectsTab::~ObjectsTab()
@@ -52,37 +52,34 @@ void ObjectsTab::populateTable()
     ui->objectsTable->setSortingEnabled(false);
     ui->objectsTable->setRowCount(0);
 
-    QSqlQuery query(m_dbManager->database());
-    query.prepare("SELECT id, name, ra, dec FROM objects ORDER BY name");
+    QString errorMessage;
+    QVector<ObjectData> objects = m_repository->getAllObjects(errorMessage);
 
-    if (!query.exec())
+    if (!errorMessage.isEmpty())
     {
-        qDebug() << "Failed to query objects:" << query.lastError().text();
         QMessageBox::warning(this, "Database Error",
-                             QString("Failed to load objects: %1").arg(query.lastError().text()));
+                             QString("Failed to load objects: %1").arg(errorMessage));
         return;
     }
 
     int row = 0;
-    while (query.next())
+    for (const ObjectData &obj : objects)
     {
         ui->objectsTable->insertRow(row);
 
-        int objectId = query.value(0).toInt();
-
         // Name column
-        QTableWidgetItem *nameItem = new QTableWidgetItem(query.value(1).toString());
-        nameItem->setData(Qt::UserRole, objectId); // Store ID as hidden data
+        QTableWidgetItem *nameItem = new QTableWidgetItem(obj.name);
+        nameItem->setData(Qt::UserRole, obj.id); // Store ID as hidden data
         ui->objectsTable->setItem(row, 0, nameItem);
 
         // RA column
-        QString raText = query.value(2).isNull() ? "" : QString::number(query.value(2).toDouble(), 'f', 6);
+        QString raText = obj.ra.isNull() ? "" : QString::number(obj.ra.toDouble(), 'f', 6);
         QTableWidgetItem *raItem = new QTableWidgetItem(raText);
         raItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
         ui->objectsTable->setItem(row, 1, raItem);
 
         // Dec column
-        QString decText = query.value(3).isNull() ? "" : QString::number(query.value(3).toDouble(), 'f', 6);
+        QString decText = obj.dec.isNull() ? "" : QString::number(obj.dec.toDouble(), 'f', 6);
         QTableWidgetItem *decItem = new QTableWidgetItem(decText);
         decItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
         ui->objectsTable->setItem(row, 2, decItem);
@@ -219,26 +216,21 @@ void ObjectsTab::onAddButtonClicked()
         return;
     }
 
-    // Insert into database
-    QSqlQuery query(m_dbManager->database());
-    query.prepare("INSERT INTO objects (name, ra, dec) VALUES (:name, :ra, :dec)");
-    query.bindValue(":name", name);
-
-    // Handle RA
+    // Convert string values to QVariant
     bool raOk = false;
     double raValue = ra.toDouble(&raOk);
-    query.bindValue(":ra", raOk ? QVariant(raValue) : QVariant());
+    QVariant raVariant = raOk ? QVariant(raValue) : QVariant();
 
-    // Handle Dec
     bool decOk = false;
     double decValue = dec.toDouble(&decOk);
-    query.bindValue(":dec", decOk ? QVariant(decValue) : QVariant());
+    QVariant decVariant = decOk ? QVariant(decValue) : QVariant();
 
-    if (!query.exec())
+    // Insert into database using repository
+    QString errorMessage;
+    if (!m_repository->addObject(name, raVariant, decVariant, errorMessage))
     {
-        qDebug() << "Failed to insert object:" << query.lastError().text();
         QMessageBox::warning(this, "Database Error",
-                             QString("Failed to add object: %1").arg(query.lastError().text()));
+                             QString("Failed to add object: %1").arg(errorMessage));
         return;
     }
 
@@ -272,28 +264,21 @@ void ObjectsTab::onEditButtonClicked()
         return;
     }
 
-    // Update in database
-    QSqlQuery query(m_dbManager->database());
-    query.prepare("UPDATE objects SET name = :name, ra = :ra, dec = :dec WHERE id = :id");
-    query.bindValue(":name", name);
-
-    // Handle RA
+    // Convert string values to QVariant
     bool raOk = false;
     double raValue = ra.toDouble(&raOk);
-    query.bindValue(":ra", raOk ? QVariant(raValue) : QVariant());
+    QVariant raVariant = raOk ? QVariant(raValue) : QVariant();
 
-    // Handle Dec
     bool decOk = false;
     double decValue = dec.toDouble(&decOk);
-    query.bindValue(":dec", decOk ? QVariant(decValue) : QVariant());
+    QVariant decVariant = decOk ? QVariant(decValue) : QVariant();
 
-    query.bindValue(":id", objectId);
-
-    if (!query.exec())
+    // Update in database using repository
+    QString errorMessage;
+    if (!m_repository->updateObject(objectId, name, raVariant, decVariant, errorMessage))
     {
-        qDebug() << "Failed to update object:" << query.lastError().text();
         QMessageBox::warning(this, "Database Error",
-                             QString("Failed to update object: %1").arg(query.lastError().text()));
+                             QString("Failed to update object: %1").arg(errorMessage));
         return;
     }
 
@@ -328,16 +313,12 @@ void ObjectsTab::onDeleteButtonClicked()
         return;
     }
 
-    // Delete from database
-    QSqlQuery query(m_dbManager->database());
-    query.prepare("DELETE FROM objects WHERE id = :id");
-    query.bindValue(":id", objectId);
-
-    if (!query.exec())
+    // Delete from database using repository
+    QString errorMessage;
+    if (!m_repository->deleteObject(objectId, errorMessage))
     {
-        qDebug() << "Failed to delete object:" << query.lastError().text();
         QMessageBox::warning(this, "Database Error",
-                             QString("Failed to delete object: %1").arg(query.lastError().text()));
+                             QString("Failed to delete object: %1").arg(errorMessage));
         return;
     }
 

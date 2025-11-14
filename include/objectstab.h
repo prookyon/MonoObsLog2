@@ -13,6 +13,7 @@ QT_END_NAMESPACE
 
 class DatabaseManager;
 class SimbadQuery;
+class ObjectsRepository;
 
 class ObjectsTab : public QWidget
 {
@@ -38,6 +39,7 @@ private:
 
     Ui::ObjectsTab *ui;
     DatabaseManager *m_dbManager;
+    ObjectsRepository *m_repository;
     SimbadQuery *m_simbadQuery;
     QLineEdit *m_dialogRaEdit;
     QLineEdit *m_dialogDecEdit;

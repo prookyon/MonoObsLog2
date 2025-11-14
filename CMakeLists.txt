@@ -16,6 +16,7 @@ set(PROJECT_SOURCES
     src/main.cpp
     src/mainwindow.cpp
     src/databasemanager.cpp
+    src/objectsrepository.cpp
     src/simbadquery.cpp
     src/objectstab.cpp
     src/sessionstab.cpp
@@ -33,6 +34,7 @@ set(PROJECT_SOURCES
 set(PROJECT_HEADERS
     include/mainwindow.h
     include/databasemanager.h
+    include/objectsrepository.h
     include/simbadquery.h
     include/objectstab.h
     include/sessionstab.h
