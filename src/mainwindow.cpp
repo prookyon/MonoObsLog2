@@ -150,4 +150,13 @@ void MainWindow::setupConnections()
     // Connect database signals if needed
     connect(m_dbManager.get(), &DatabaseManager::errorOccurred, this, [this](const QString &error)
             { QMessageBox::warning(this, "Database Error", error); });
+
+    // Connect tab switching to refresh data
+    connect(ui->tabWidget, QOverload<int>::of(&QTabWidget::currentChanged), this, [this](int index)
+            {
+        // Refresh Filters tab when it's activated (index 4)
+        if (index == 4 && m_filtersTab)
+        {
+            m_filtersTab->refreshData();
+        } });
 }

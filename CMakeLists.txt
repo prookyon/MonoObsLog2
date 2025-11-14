@@ -20,6 +20,7 @@ set(PROJECT_SOURCES
     src/db/sessionsrepository.cpp
     src/db/camerasrepository.cpp
     src/db/filtertypesrepository.cpp
+    src/db/filtersrepository.cpp
     src/simbadquery.cpp
     src/tabs/objectstab.cpp
     src/tabs/sessionstab.cpp
@@ -41,6 +42,7 @@ set(PROJECT_HEADERS
     include/db/sessionsrepository.h
     include/db/camerasrepository.h
     include/db/filtertypesrepository.h
+    include/db/filtersrepository.h
     include/simbadquery.h
     include/tabs/objectstab.h
     include/tabs/sessionstab.h

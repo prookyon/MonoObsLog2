@@ -11,6 +11,8 @@ namespace Ui
 QT_END_NAMESPACE
 
 class DatabaseManager;
+class FiltersRepository;
+class FilterTypesRepository;
 
 class FiltersTab : public QWidget
 {
@@ -23,9 +25,20 @@ public:
     void initialize();
     void refreshData();
 
+private slots:
+    void onAddFilterButtonClicked();
+    void onEditFilterButtonClicked();
+    void onDeleteFilterButtonClicked();
+
 private:
+    void populateTable();
+    void populateFilterTypeComboBox();
+    bool showFilterDialog(const QString &title, QString &name, int &filterTypeId);
+
     Ui::FiltersTab *ui;
     DatabaseManager *m_dbManager;
+    FiltersRepository *m_repository;
+    FilterTypesRepository *m_filterTypesRepository;
 };
 
 #endif // FILTERSTAB_H
