@@ -92,7 +92,7 @@ void ObservationsTab::populateComboBoxes()
     QSqlQuery query(m_dbManager->database());
 
     // Populate Sessions
-    if (query.exec("SELECT id, name FROM sessions ORDER BY name"))
+    if (query.exec("SELECT id, name FROM sessions ORDER BY start_date DESC"))
     {
         while (query.next())
         {
@@ -136,7 +136,7 @@ void ObservationsTab::populateComboBoxes()
     }
 
     // Populate Filters
-    if (query.exec("SELECT id, name FROM filters ORDER BY name"))
+    if (query.exec("SELECT f.id, f.name FROM filters f LEFT JOIN filter_types ft on f.filter_type_id = ft.id ORDER BY ft.priority ASC, f.name ASC"))
     {
         while (query.next())
         {
