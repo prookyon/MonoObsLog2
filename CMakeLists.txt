@@ -47,17 +47,17 @@ set(PROJECT_HEADERS
 
 set(PROJECT_UI
     uifiles/mainwindow.ui
-    uifiles/objectstab.ui
-    uifiles/sessionstab.ui
-    uifiles/camerastab.ui
-    uifiles/filtertypestab.ui
-    uifiles/filterstab.ui
-    uifiles/telescopestab.ui
-    uifiles/observationstab.ui
-    uifiles/objectstatstab.ui
-    uifiles/monthlystatstab.ui
-    uifiles/settingstab.ui
-    uifiles/abouttab.ui
+    uifiles/objects_tab.ui
+    uifiles/sessions_tab.ui
+    uifiles/cameras_tab.ui
+    uifiles/filtertypes_tab.ui
+    uifiles/filters_tab.ui
+    uifiles/telescopes_tab.ui
+    uifiles/observations_tab.ui
+    uifiles/objectstats_tab.ui
+    uifiles/monthlystats_tab.ui
+    uifiles/settings_tab.ui
+    uifiles/about_tab.ui
 )
 
 include_directories(include)
