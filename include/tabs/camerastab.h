@@ -11,6 +11,7 @@ namespace Ui
 QT_END_NAMESPACE
 
 class DatabaseManager;
+class CamerasRepository;
 
 class CamerasTab : public QWidget
 {
@@ -23,9 +24,18 @@ public:
     void initialize();
     void refreshData();
 
+private slots:
+    void onAddCameraButtonClicked();
+    void onEditCameraButtonClicked();
+    void onDeleteCameraButtonClicked();
+
 private:
+    void populateTable();
+    bool showCameraDialog(const QString &title, QString &name, QString &sensor, double &pixelSize, int &width, int &height);
+
     Ui::CamerasTab *ui;
     DatabaseManager *m_dbManager;
+    CamerasRepository *m_repository;
 };
 
 #endif // CAMERASTAB_H
