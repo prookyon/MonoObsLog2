@@ -2,6 +2,7 @@
 #include "ui_sessions_tab.h"
 #include "db/databasemanager.h"
 #include "db/sessionsrepository.h"
+#include "numerictablewidgetitem.h"
 #include <QDebug>
 #include <QMessageBox>
 #include <QDialog>
@@ -82,26 +83,26 @@ void SessionsTab::populateTable()
         ui->sessionsTable->setItem(row, 1, dateItem);
 
         // Moon Illumination column
-        QString moonIllumText = session.moonIllumination.isNull() ? "" : QString::number(session.moonIllumination.toDouble(), 'f', 2);
-        QTableWidgetItem *moonIllumItem = new QTableWidgetItem(moonIllumText);
+        QString moonIllumText = session.moonIllumination.isNull() ? "" : QString::number(session.moonIllumination.toDouble(), 'f', 0);
+        NumericTableWidgetItem *moonIllumItem = new NumericTableWidgetItem(moonIllumText);
         moonIllumItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
         ui->sessionsTable->setItem(row, 2, moonIllumItem);
 
         // Moon RA column
         QString moonRaText = session.moonRa.isNull() ? "" : QString::number(session.moonRa.toDouble(), 'f', 2);
-        QTableWidgetItem *moonRaItem = new QTableWidgetItem(moonRaText);
+        NumericTableWidgetItem *moonRaItem = new NumericTableWidgetItem(moonRaText);
         moonRaItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
         ui->sessionsTable->setItem(row, 3, moonRaItem);
 
         // Moon Dec column
         QString moonDecText = session.moonDec.isNull() ? "" : QString::number(session.moonDec.toDouble(), 'f', 2);
-        QTableWidgetItem *moonDecItem = new QTableWidgetItem(moonDecText);
+        NumericTableWidgetItem *moonDecItem = new NumericTableWidgetItem(moonDecText);
         moonDecItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
         ui->sessionsTable->setItem(row, 4, moonDecItem);
 
         // Exposure Total (h) column
         QString exposureText = session.exposureTotal.isNull() ? "0" : QString::number(session.exposureTotal.toDouble(), 'f', 1);
-        QTableWidgetItem *exposureItem = new QTableWidgetItem(exposureText);
+        NumericTableWidgetItem *exposureItem = new NumericTableWidgetItem(exposureText);
         exposureItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
         ui->sessionsTable->setItem(row, 5, exposureItem);
 

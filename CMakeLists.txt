@@ -51,6 +51,7 @@ set(PROJECT_HEADERS
     include/tabs/monthlystatstab.h
     include/tabs/settingstab.h
     include/tabs/abouttab.h
+    include/numerictablewidgetitem.h
 )
 
 set(PROJECT_UI

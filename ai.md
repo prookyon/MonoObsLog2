@@ -240,7 +240,7 @@ qDebug() << query.executedQuery();
 qDebug() << query.lastError().text();
 ```
 
-## External Integrations
+## Utility classes
 
 ### SIMBAD Query (Network Operations)
 
@@ -280,6 +280,10 @@ void onCoordinatesReceived(double ra, double dec, const QString &name) {
 - SIMBAD returns: RA in degrees (0-360), DEC in degrees (-90 to +90)
 - Database stores: RA in hours (0-24), DEC in degrees
 - Conversion: `raHours = raDegrees / 15.0`
+
+### NumericTableWidgetItem class (subclassed QTableWidgetItem)
+
+- should be used for all numeric data columns for proper sorting
 
 ## Dependencies
 

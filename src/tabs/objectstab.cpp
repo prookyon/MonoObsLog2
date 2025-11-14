@@ -3,6 +3,7 @@
 #include "db/databasemanager.h"
 #include "db/objectsrepository.h"
 #include "simbadquery.h"
+#include "numerictablewidgetitem.h"
 #include <QDebug>
 #include <QMessageBox>
 #include <QDialog>
@@ -74,13 +75,13 @@ void ObjectsTab::populateTable()
 
         // RA column
         QString raText = obj.ra.isNull() ? "" : QString::number(obj.ra.toDouble(), 'f', 6);
-        QTableWidgetItem *raItem = new QTableWidgetItem(raText);
+        NumericTableWidgetItem *raItem = new NumericTableWidgetItem(raText);
         raItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
         ui->objectsTable->setItem(row, 1, raItem);
 
         // Dec column
         QString decText = obj.dec.isNull() ? "" : QString::number(obj.dec.toDouble(), 'f', 6);
-        QTableWidgetItem *decItem = new QTableWidgetItem(decText);
+        NumericTableWidgetItem *decItem = new NumericTableWidgetItem(decText);
         decItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
         ui->objectsTable->setItem(row, 2, decItem);
 
