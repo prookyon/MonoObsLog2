@@ -1,6 +1,6 @@
-#include "telescopestab.h"
+#include "tabs/telescopestab.h"
 #include "ui_telescopes_tab.h"
-#include "databasemanager.h"
+#include "db/databasemanager.h"
 
 TelescopesTab::TelescopesTab(DatabaseManager *dbManager, QWidget *parent)
     : QWidget(parent), ui(new Ui::TelescopesTab), m_dbManager(dbManager)

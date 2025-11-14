@@ -15,38 +15,38 @@ find_package(Qt6 REQUIRED COMPONENTS Core Widgets Sql Network)
 set(PROJECT_SOURCES
     src/main.cpp
     src/mainwindow.cpp
-    src/databasemanager.cpp
-    src/objectsrepository.cpp
+    src/db/databasemanager.cpp
+    src/db/objectsrepository.cpp
     src/simbadquery.cpp
-    src/objectstab.cpp
-    src/sessionstab.cpp
-    src/camerastab.cpp
-    src/filtertypestab.cpp
-    src/filterstab.cpp
-    src/telescopestab.cpp
-    src/observationstab.cpp
-    src/objectstatstab.cpp
-    src/monthlystatstab.cpp
-    src/settingstab.cpp
-    src/abouttab.cpp
+    src/tabs/objectstab.cpp
+    src/tabs/sessionstab.cpp
+    src/tabs/camerastab.cpp
+    src/tabs/filtertypestab.cpp
+    src/tabs/filterstab.cpp
+    src/tabs/telescopestab.cpp
+    src/tabs/observationstab.cpp
+    src/tabs/objectstatstab.cpp
+    src/tabs/monthlystatstab.cpp
+    src/tabs/settingstab.cpp
+    src/tabs/abouttab.cpp
 )
 
 set(PROJECT_HEADERS
     include/mainwindow.h
-    include/databasemanager.h
-    include/objectsrepository.h
+    include/db/databasemanager.h
+    include/db/objectsrepository.h
     include/simbadquery.h
-    include/objectstab.h
-    include/sessionstab.h
-    include/camerastab.h
-    include/filtertypestab.h
-    include/filterstab.h
-    include/telescopestab.h
-    include/observationstab.h
-    include/objectstatstab.h
-    include/monthlystatstab.h
-    include/settingstab.h
-    include/abouttab.h
+    include/tabs/objectstab.h
+    include/tabs/sessionstab.h
+    include/tabs/camerastab.h
+    include/tabs/filtertypestab.h
+    include/tabs/filterstab.h
+    include/tabs/telescopestab.h
+    include/tabs/observationstab.h
+    include/tabs/objectstatstab.h
+    include/tabs/monthlystatstab.h
+    include/tabs/settingstab.h
+    include/tabs/abouttab.h
 )
 
 set(PROJECT_UI

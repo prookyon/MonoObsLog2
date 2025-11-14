@@ -1,5 +1,5 @@
-#include "objectsrepository.h"
-#include "databasemanager.h"
+#include "db/objectsrepository.h"
+#include "db/databasemanager.h"
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QDebug>

@@ -1,6 +1,6 @@
-#include "objectstatstab.h"
+#include "tabs/objectstatstab.h"
 #include "ui_objectstats_tab.h"
-#include "databasemanager.h"
+#include "db/databasemanager.h"
 
 ObjectStatsTab::ObjectStatsTab(DatabaseManager *dbManager, QWidget *parent)
     : QWidget(parent), ui(new Ui::ObjectStatsTab), m_dbManager(dbManager)

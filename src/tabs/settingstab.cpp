@@ -1,6 +1,6 @@
-#include "settingstab.h"
+#include "tabs/settingstab.h"
 #include "ui_settings_tab.h"
-#include "databasemanager.h"
+#include "db/databasemanager.h"
 
 SettingsTab::SettingsTab(DatabaseManager *dbManager, QWidget *parent)
     : QWidget(parent), ui(new Ui::SettingsTab), m_dbManager(dbManager)

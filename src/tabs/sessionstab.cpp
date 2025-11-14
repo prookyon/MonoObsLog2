@@ -1,6 +1,6 @@
-#include "sessionstab.h"
+#include "tabs/sessionstab.h"
 #include "ui_sessions_tab.h"
-#include "databasemanager.h"
+#include "db/databasemanager.h"
 
 SessionsTab::SessionsTab(DatabaseManager *dbManager, QWidget *parent)
     : QWidget(parent), ui(new Ui::SessionsTab), m_dbManager(dbManager)

@@ -1,6 +1,6 @@
-#include "camerastab.h"
+#include "tabs/camerastab.h"
 #include "ui_cameras_tab.h"
-#include "databasemanager.h"
+#include "db/databasemanager.h"
 
 CamerasTab::CamerasTab(DatabaseManager *dbManager, QWidget *parent)
     : QWidget(parent), ui(new Ui::CamerasTab), m_dbManager(dbManager)

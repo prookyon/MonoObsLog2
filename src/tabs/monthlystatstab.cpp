@@ -1,6 +1,6 @@
-#include "monthlystatstab.h"
+#include "tabs/monthlystatstab.h"
 #include "ui_monthlystats_tab.h"
-#include "databasemanager.h"
+#include "db/databasemanager.h"
 
 MonthlyStatsTab::MonthlyStatsTab(DatabaseManager *dbManager, QWidget *parent)
     : QWidget(parent), ui(new Ui::MonthlyStatsTab), m_dbManager(dbManager)

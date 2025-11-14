@@ -1,7 +1,7 @@
-#include "objectstab.h"
+#include "tabs/objectstab.h"
 #include "ui_objects_tab.h"
-#include "databasemanager.h"
-#include "objectsrepository.h"
+#include "db/databasemanager.h"
+#include "db/objectsrepository.h"
 #include "simbadquery.h"
 #include <QDebug>
 #include <QMessageBox>
