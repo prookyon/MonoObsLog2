@@ -2,6 +2,7 @@
 #define OBJECTSTAB_H
 
 #include <QWidget>
+#include <QLineEdit>
 
 QT_BEGIN_NAMESPACE
 namespace Ui
@@ -11,6 +12,7 @@ namespace Ui
 QT_END_NAMESPACE
 
 class DatabaseManager;
+class SimbadQuery;
 
 class ObjectsTab : public QWidget
 {
@@ -27,6 +29,8 @@ private slots:
     void onAddButtonClicked();
     void onEditButtonClicked();
     void onDeleteButtonClicked();
+    void onCoordinatesReceived(double ra, double dec, const QString &objectName);
+    void onSimbadError(const QString &error);
 
 private:
     void populateTable();
@@ -34,6 +38,9 @@ private:
 
     Ui::ObjectsTab *ui;
     DatabaseManager *m_dbManager;
+    SimbadQuery *m_simbadQuery;
+    QLineEdit *m_dialogRaEdit;
+    QLineEdit *m_dialogDecEdit;
 };
 
 #endif // OBJECTSTAB_H

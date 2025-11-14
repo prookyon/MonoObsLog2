@@ -10,12 +10,13 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOUIC_SEARCH_PATHS uifiles)
 
-find_package(Qt6 REQUIRED COMPONENTS Core Widgets Sql)
+find_package(Qt6 REQUIRED COMPONENTS Core Widgets Sql Network)
 
 set(PROJECT_SOURCES
     src/main.cpp
     src/mainwindow.cpp
     src/databasemanager.cpp
+    src/simbadquery.cpp
     src/objectstab.cpp
     src/sessionstab.cpp
     src/camerastab.cpp
@@ -32,6 +33,7 @@ set(PROJECT_SOURCES
 set(PROJECT_HEADERS
     include/mainwindow.h
     include/databasemanager.h
+    include/simbadquery.h
     include/objectstab.h
     include/sessionstab.h
     include/camerastab.h
@@ -72,6 +74,7 @@ target_link_libraries(${PROJECT_NAME}
     Qt6::Core
     Qt6::Widgets
     Qt6::Sql
+    Qt6::Network
 )
 
 # Set Windows subsystem to Windows (not console)

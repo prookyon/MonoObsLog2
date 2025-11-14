@@ -186,11 +186,53 @@ qDebug() << query.executedQuery();
 qDebug() << query.lastError().text();
 ```
 
+## External Integrations
+
+### SIMBAD Query (Network Operations)
+
+**Pattern**: Asynchronous HTTP requests with signal-based callbacks
+
+**Classes**:
+- [`SimbadQuery`](include/simbadquery.h:27) - Queries SIMBAD astronomical database for coordinates
+- Uses Qt's `QNetworkAccessManager` for async HTTP GET requests
+- Parses VOTable XML responses
+
+**Usage in [`ObjectsTab`](src/objectstab.cpp:95)** (Add/Edit dialog):
+```cpp
+// Create query object (reusable, one per tab)
+m_simbadQuery = new SimbadQuery(this);
+connect(m_simbadQuery, &SimbadQuery::coordinatesReceived,
+        this, &ObjectsTab::onCoordinatesReceived);
+connect(m_simbadQuery, &SimbadQuery::errorOccurred,
+        this, &ObjectsTab::onSimbadError);
+
+// Query object by name
+m_simbadQuery->queryObject("M31");
+
+// Handle results
+void onCoordinatesReceived(double ra, double dec, const QString &name) {
+    double raHours = ra / 15.0;  // Convert degrees to hours
+    m_dialogRaEdit->setText(QString::number(raHours, 'f', 6));
+    m_dialogDecEdit->setText(QString::number(dec, 'f', 6));
+}
+```
+
+**Dialog Safety Pattern** (prevent segfaults with destroyed widgets):
+- Use `QPointer<Widget>` in lambdas to safely track dialog widgets
+- Store `QMetaObject::Connection` objects and disconnect on dialog destruction
+- Check `if (safePtr)` before accessing widget in async callbacks
+
+**Coordinate Format**:
+- SIMBAD returns: RA in degrees (0-360), DEC in degrees (-90 to +90)
+- Database stores: RA in hours (0-24), DEC in degrees
+- Conversion: `raHours = raDegrees / 15.0`
+
 ## Dependencies
 
 - Qt6Core - Core functionality
-- Qt6Widgets - GUI components  
+- Qt6Widgets - GUI components
 - Qt6Sql - Database (includes SQLite driver)
+- Qt6Network - HTTP requests (SIMBAD integration)
 - Standard C++17 - smart pointers, std::make_unique
 
 ## Generated Files (Do Not Edit)

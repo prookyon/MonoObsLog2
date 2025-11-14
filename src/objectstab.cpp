@@ -1,6 +1,7 @@
 #include "objectstab.h"
 #include "ui_objects_tab.h"
 #include "databasemanager.h"
+#include "simbadquery.h"
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QDebug>
@@ -10,9 +11,11 @@
 #include <QLineEdit>
 #include <QDialogButtonBox>
 #include <QTableWidgetItem>
+#include <QPushButton>
+#include <QPointer>
 
 ObjectsTab::ObjectsTab(DatabaseManager *dbManager, QWidget *parent)
-    : QWidget(parent), ui(new Ui::ObjectsTab), m_dbManager(dbManager)
+    : QWidget(parent), ui(new Ui::ObjectsTab), m_dbManager(dbManager), m_simbadQuery(nullptr), m_dialogRaEdit(nullptr), m_dialogDecEdit(nullptr)
 {
     ui->setupUi(this);
 }
@@ -94,7 +97,7 @@ bool ObjectsTab::showObjectDialog(const QString &title, QString &name, QString &
 {
     QDialog dialog(this);
     dialog.setWindowTitle(title);
-    dialog.setMinimumWidth(400);
+    dialog.setMinimumWidth(500);
 
     QFormLayout *formLayout = new QFormLayout(&dialog);
 
@@ -105,16 +108,48 @@ bool ObjectsTab::showObjectDialog(const QString &title, QString &name, QString &
     formLayout->addRow("Name:", nameEdit);
 
     // RA field
-    QLineEdit *raEdit = new QLineEdit(&dialog);
-    raEdit->setText(ra);
-    raEdit->setPlaceholderText("Enter RA in degrees (optional)");
-    formLayout->addRow("RA (degrees):", raEdit);
+    m_dialogRaEdit = new QLineEdit(&dialog);
+    m_dialogRaEdit->setText(ra);
+    m_dialogRaEdit->setPlaceholderText("Enter RA in hours (optional, decimal format only)");
+    formLayout->addRow("RA (hours):", m_dialogRaEdit);
 
     // Dec field
-    QLineEdit *decEdit = new QLineEdit(&dialog);
-    decEdit->setText(dec);
-    decEdit->setPlaceholderText("Enter Dec in degrees (optional)");
-    formLayout->addRow("Dec (degrees):", decEdit);
+    m_dialogDecEdit = new QLineEdit(&dialog);
+    m_dialogDecEdit->setText(dec);
+    m_dialogDecEdit->setPlaceholderText("Enter Dec in degrees (optional)");
+    formLayout->addRow("Dec (degrees):", m_dialogDecEdit);
+
+    // Coordinates Lookup button
+    QPushButton *lookupButton = new QPushButton("Coordinates Lookup", &dialog);
+    lookupButton->setToolTip("Query SIMBAD database for coordinates based on object name");
+    formLayout->addRow("", lookupButton);
+
+    // Create SIMBAD query object if not exists
+    if (!m_simbadQuery)
+    {
+        m_simbadQuery = new SimbadQuery(this);
+        connect(m_simbadQuery, &SimbadQuery::coordinatesReceived,
+                this, &ObjectsTab::onCoordinatesReceived);
+        connect(m_simbadQuery, &SimbadQuery::errorOccurred,
+                this, &ObjectsTab::onSimbadError);
+    }
+
+    // Use QPointer to safely track the button
+    QPointer<QPushButton> safeButtonPtr(lookupButton);
+
+    // Connect lookup button
+    connect(lookupButton, &QPushButton::clicked, [&, nameEdit, safeButtonPtr]()
+            {
+        QString objectName = nameEdit->text().trimmed();
+        if (objectName.isEmpty()) {
+            QMessageBox::warning(&dialog, "Input Error", "Please enter an object name first.");
+            return;
+        }
+        if (safeButtonPtr) {
+            safeButtonPtr->setEnabled(false);
+            safeButtonPtr->setText("Querying SIMBAD...");
+        }
+        m_simbadQuery->queryObject(objectName); });
 
     // Buttons
     QDialogButtonBox *buttonBox = new QDialogButtonBox(
@@ -132,13 +167,45 @@ bool ObjectsTab::showObjectDialog(const QString &title, QString &name, QString &
             dialog.done(QDialog::Rejected);
         } });
 
+    // Re-enable lookup button when query completes (use QPointer for safety)
+    QMetaObject::Connection conn1 = connect(m_simbadQuery, &SimbadQuery::coordinatesReceived,
+                                            [safeButtonPtr](double, double, const QString &)
+                                            {
+        if (safeButtonPtr) {
+            safeButtonPtr->setEnabled(true);
+            safeButtonPtr->setText("Coordinates Lookup");
+        } });
+
+    QMetaObject::Connection conn2 = connect(m_simbadQuery, &SimbadQuery::errorOccurred,
+                                            [safeButtonPtr](const QString &)
+                                            {
+        if (safeButtonPtr) {
+            safeButtonPtr->setEnabled(true);
+            safeButtonPtr->setText("Coordinates Lookup");
+        } });
+
+    // Disconnect these specific connections when dialog is destroyed
+    connect(&dialog, &QDialog::destroyed, [conn1, conn2, this]()
+            {
+        disconnect(conn1);
+        disconnect(conn2); });
+
     if (dialog.exec() == QDialog::Accepted)
     {
         name = nameEdit->text().trimmed();
-        ra = raEdit->text().trimmed();
-        dec = decEdit->text().trimmed();
+        ra = m_dialogRaEdit->text().trimmed();
+        dec = m_dialogDecEdit->text().trimmed();
+
+        // Clear the dialog pointers
+        m_dialogRaEdit = nullptr;
+        m_dialogDecEdit = nullptr;
+
         return name.isEmpty() ? false : true;
     }
+
+    // Clear the dialog pointers
+    m_dialogRaEdit = nullptr;
+    m_dialogDecEdit = nullptr;
 
     return false;
 }
@@ -275,4 +342,31 @@ void ObjectsTab::onDeleteButtonClicked()
     }
 
     refreshData();
+}
+
+void ObjectsTab::onCoordinatesReceived(double ra, double dec, const QString &objectName)
+{
+    // Convert RA from degrees to hours (RA in degrees / 15 = RA in hours)
+    double raHours = ra / 15.0;
+
+    qDebug() << "Received coordinates for" << objectName;
+    qDebug() << "RA:" << ra << "degrees =" << raHours << "hours";
+    qDebug() << "DEC:" << dec << "degrees";
+
+    // Update the dialog fields if they exist
+    if (m_dialogRaEdit)
+    {
+        m_dialogRaEdit->setText(QString::number(raHours, 'f', 6));
+    }
+    if (m_dialogDecEdit)
+    {
+        m_dialogDecEdit->setText(QString::number(dec, 'f', 6));
+    }
+}
+
+void ObjectsTab::onSimbadError(const QString &error)
+{
+    qDebug() << "SIMBAD error:" << error;
+    QMessageBox::warning(nullptr, "SIMBAD Query Error",
+                         QString("Failed to retrieve coordinates:\n\n%1").arg(error));
 }

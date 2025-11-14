@@ -39,6 +39,7 @@ mgwObsLog/
 
 - **SQLite Database** with automatic initialization
 - **Automatic Table Creation** on first run
+- **SIMBAD Integration** - Query astronomical object coordinates from SIMBAD database
 
 ## Database Schema
 
@@ -55,9 +56,10 @@ The application creates the following tables on first run:
 ## Prerequisites
 
 - CMake 3.16 or higher
-- Qt6 (Core, Widgets, Sql modules)
+- Qt6 (Core, Widgets, Sql, Network modules)
 - MinGW compiler (or other C++ compiler)
 - SQLite3 (included with Qt6 Sql module)
+- Internet connection (for SIMBAD queries)
 
 ## Building
 
@@ -114,6 +116,10 @@ The application creates a SQLite database file `mgw_observations.db` in the appl
   - Initialize UI from .ui files
   - Access database through DatabaseManager
   - Implement tab-specific functionality
+- **SimbadQuery**: Asynchronous SIMBAD database query handler
+  - Queries astronomical object coordinates (RA, DEC)
+  - Signal-based asynchronous interface
+  - Parses VOTable XML responses
 
 ## Development
 

@@ -34,6 +34,7 @@ compile_commands.json
 .idea/
 *.user
 *.pro.user
+.qtcreator/
 
 # OS specific
 .DS_Store
