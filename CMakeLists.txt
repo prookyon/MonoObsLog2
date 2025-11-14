@@ -75,10 +75,14 @@ set(PROJECT_UI
 
 include_directories(include)
 
+set(app_icon_resource_windows "${CMAKE_CURRENT_SOURCE_DIR}/images/resources.rc")
+
 add_executable(${PROJECT_NAME}
     ${PROJECT_SOURCES}
     ${PROJECT_HEADERS}
     ${PROJECT_UI}
+    resources.qrc
+    ${app_icon_resource_windows}
 )
 
 target_link_libraries(${PROJECT_NAME}
