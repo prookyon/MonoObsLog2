@@ -11,6 +11,7 @@ namespace Ui
 QT_END_NAMESPACE
 
 class DatabaseManager;
+class TelescopesRepository;
 
 class TelescopesTab : public QWidget
 {
@@ -23,9 +24,18 @@ public:
     void initialize();
     void refreshData();
 
+private slots:
+    void onAddTelescopeButtonClicked();
+    void onEditTelescopeButtonClicked();
+    void onDeleteTelescopeButtonClicked();
+
 private:
+    void populateTable();
+    bool showTelescopeDialog(const QString &title, QString &name, int &aperture, double &fRatio, int &focalLength);
+
     Ui::TelescopesTab *ui;
     DatabaseManager *m_dbManager;
+    TelescopesRepository *m_repository;
 };
 
 #endif // TELESCOPESTAB_H
