@@ -11,6 +11,7 @@ namespace Ui
 QT_END_NAMESPACE
 
 class DatabaseManager;
+class SessionsRepository;
 
 class SessionsTab : public QWidget
 {
@@ -23,9 +24,18 @@ public:
     void initialize();
     void refreshData();
 
+private slots:
+    void onAddButtonClicked();
+    void onEditButtonClicked();
+    void onDeleteButtonClicked();
+
 private:
+    void populateTable();
+    bool showSessionDialog(const QString &title, QString &name, QString &startDate, QString &comments);
+
     Ui::SessionsTab *ui;
     DatabaseManager *m_dbManager;
+    SessionsRepository *m_repository;
 };
 
 #endif // SESSIONSTAB_H
