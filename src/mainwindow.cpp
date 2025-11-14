@@ -158,5 +158,10 @@ void MainWindow::setupConnections()
         if (index == 4 && m_filtersTab)
         {
             m_filtersTab->refreshData();
+        }
+        // Refresh Observations tab when it's activated (index 6)
+        else if (index == 6 && m_observationsTab)
+        {
+            m_observationsTab->refreshData();
         } });
 }

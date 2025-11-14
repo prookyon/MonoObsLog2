@@ -22,6 +22,7 @@ set(PROJECT_SOURCES
     src/db/filtertypesrepository.cpp
     src/db/filtersrepository.cpp
     src/db/telescopesrepository.cpp
+    src/db/observationsrepository.cpp
     src/simbadquery.cpp
     src/tabs/objectstab.cpp
     src/tabs/sessionstab.cpp
@@ -45,6 +46,7 @@ set(PROJECT_HEADERS
     include/db/filtertypesrepository.h
     include/db/filtersrepository.h
     include/db/telescopesrepository.h
+    include/db/observationsrepository.h
     include/simbadquery.h
     include/tabs/objectstab.h
     include/tabs/sessionstab.h
