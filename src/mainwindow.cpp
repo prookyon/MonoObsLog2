@@ -163,5 +163,10 @@ void MainWindow::setupConnections()
         else if (index == 6 && m_observationsTab)
         {
             m_observationsTab->refreshData();
+        }
+        // Refresh Object Stats tab when it's activated (index 7)
+        else if (index == 7 && m_objectStatsTab)
+        {
+            m_objectStatsTab->refreshData();
         } });
 }
