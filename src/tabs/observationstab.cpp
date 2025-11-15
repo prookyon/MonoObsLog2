@@ -92,7 +92,7 @@ void ObservationsTab::populateComboBoxes()
     QSqlQuery query(m_dbManager->database());
 
     // Populate Sessions
-    if (query.exec("SELECT id, name FROM sessions ORDER BY start_date DESC"))
+    if (query.exec("SELECT id, concat(name,' (', start_date, ')') as name FROM sessions ORDER BY start_date DESC"))
     {
         while (query.next())
         {
@@ -329,7 +329,7 @@ bool ObservationsTab::showObservationDialog(const QString &title, int &sessionId
     // Session combo box
     QComboBox *sessionCombo = new QComboBox(&dialog);
     QSqlQuery query(m_dbManager->database());
-    if (query.exec("SELECT id, name FROM sessions ORDER BY name"))
+    if (query.exec("SELECT id, concat(name,' (', start_date, ')') as name FROM sessions ORDER BY start_date DESC"))
     {
         while (query.next())
         {
