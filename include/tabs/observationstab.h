@@ -13,13 +13,14 @@ QT_END_NAMESPACE
 class DatabaseManager;
 class ObservationsRepository;
 class QStringListModel;
+class SettingsManager;
 
 class ObservationsTab : public QWidget
 {
     Q_OBJECT
 
 public:
-    explicit ObservationsTab(DatabaseManager *dbManager, QWidget *parent = nullptr);
+    explicit ObservationsTab(DatabaseManager *dbManager, SettingsManager *settingsManager, QWidget *parent = nullptr);
     ~ObservationsTab();
 
     void initialize();
@@ -41,6 +42,7 @@ private:
 
     Ui::ObservationsTab *ui;
     DatabaseManager *m_dbManager;
+    SettingsManager *m_settingsManager;
     ObservationsRepository *m_repository;
     QStringListModel *m_filterListModel;
     int m_currentFilterObjectId; // -1 for "All Objects"

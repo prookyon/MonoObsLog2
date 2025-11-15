@@ -126,7 +126,7 @@ void MainWindow::initializeTabs()
     m_telescopesTab = std::make_unique<TelescopesTab>(m_dbManager.get(), telescopesTabWidget);
     telescopesLayout->addWidget(m_telescopesTab.get());
 
-    m_observationsTab = std::make_unique<ObservationsTab>(m_dbManager.get(), observationsTabWidget);
+    m_observationsTab = std::make_unique<ObservationsTab>(m_dbManager.get(), m_settingsManager.get(), observationsTabWidget);
     observationsLayout->addWidget(m_observationsTab.get());
 
     m_objectStatsTab = std::make_unique<ObjectStatsTab>(m_dbManager.get(), objectStatsTabWidget);

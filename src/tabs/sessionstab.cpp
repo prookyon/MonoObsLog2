@@ -96,8 +96,7 @@ void SessionsTab::populateTable()
             int warningThreshold = m_settingsManager->moonIlluminationWarningPercent();
             if (illumination > warningThreshold)
             {
-                // Color equivalent to Python: QColor.fromHsv(0, int(40 * 255 / 100), int(95 * 255 / 100))
-                QColor warningColor = QColor::fromHsv(0, 102, 242);
+                QColor warningColor = QColor::fromHsv(0, 40 * 255 / 100, 95 * 255 / 100);
                 moonIllumItem->setBackground(warningColor);
             }
         }

@@ -3,6 +3,7 @@
 #include "db/databasemanager.h"
 #include "db/observationsrepository.h"
 #include "numerictablewidgetitem.h"
+#include "settingsmanager.h"
 #include <QDebug>
 #include <QMessageBox>
 #include <QDialog>
@@ -17,8 +18,8 @@
 #include <QSqlError>
 #include <QStringListModel>
 
-ObservationsTab::ObservationsTab(DatabaseManager *dbManager, QWidget *parent)
-    : QWidget(parent), ui(new Ui::ObservationsTab), m_dbManager(dbManager),
+ObservationsTab::ObservationsTab(DatabaseManager *dbManager, SettingsManager *settingsManager, QWidget *parent)
+    : QWidget(parent), ui(new Ui::ObservationsTab), m_dbManager(dbManager), m_settingsManager(settingsManager),
       m_repository(nullptr), m_filterListModel(nullptr), m_currentFilterObjectId(-1)
 {
     ui->setupUi(this);
@@ -255,20 +256,40 @@ void ObservationsTab::populateTable()
         ui->observationsTable->setItem(row, 8, totalExposureItem);
 
         // Moon Illumination
-        NumericTableWidgetItem *moonIllumItem = new NumericTableWidgetItem(QString::number(obs.moonIllumination, 'f', 1));
+        NumericTableWidgetItem *moonIllumItem = new NumericTableWidgetItem(QString::number(obs.moonIllumination, 'f', 0));
         moonIllumItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+        // Apply background color if moon illumination exceeds warning threshold
+        if (m_settingsManager)
+        {
+            int warningThreshold = m_settingsManager->moonIlluminationWarningPercent();
+            if (obs.moonIllumination > warningThreshold)
+            {
+                QColor warningColor = QColor::fromHsv(0, 40 * 255 / 100, 95 * 255 / 100);
+                moonIllumItem->setBackground(warningColor);
+            }
+        }
         ui->observationsTable->setItem(row, 9, moonIllumItem);
 
         // Angular Separation
         if (obs.angularSeparation >= 0.0)
         {
-            NumericTableWidgetItem *angSepItem = new NumericTableWidgetItem(QString::number(obs.angularSeparation, 'f', 1));
+            NumericTableWidgetItem *angSepItem = new NumericTableWidgetItem(QString::number(obs.angularSeparation, 'f', 0));
             angSepItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+            // Apply background color if angular separation is smaller than warning threshold
+            if (m_settingsManager)
+            {
+                int warningThreshold = m_settingsManager->moonAngularSeparationWarningDeg();
+                if (obs.angularSeparation < warningThreshold)
+                {
+                    QColor warningColor = QColor::fromHsv(0, 40 * 255 / 100, 95 * 255 / 100);
+                    angSepItem->setBackground(warningColor);
+                }
+            }
             ui->observationsTable->setItem(row, 10, angSepItem);
         }
         else
         {
-            QTableWidgetItem *angSepItem = new QTableWidgetItem("N/A");
+            QTableWidgetItem *angSepItem = new QTableWidgetItem("");
             angSepItem->setTextAlignment(Qt::AlignCenter);
             ui->observationsTable->setItem(row, 10, angSepItem);
         }
