@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "settingsmanager.h"
+#include "db/databasebackup.h"
 #include <QApplication>
 #include <QFileDialog>
 #include <QFileInfo>
@@ -73,6 +74,18 @@ int main(int argc, char *argv[])
                                  "The path will need to be selected again next time.");
         }
         dbPath = selectedPath;
+    }
+
+    // Check and create database backup if needed
+    DatabaseBackup backupManager;
+    QString backupErrorMessage;
+    if (!backupManager.checkAndBackupIfNeeded(dbPath, backupErrorMessage))
+    {
+        // Backup failed, but we can still continue - just warn the user
+        QMessageBox::warning(nullptr, "Backup Warning",
+                             QString("Failed to create database backup:\n%1\n\n"
+                                     "The application will continue, but your database may not be backed up.")
+                                 .arg(backupErrorMessage));
     }
 
     MainWindow window(dbPath);

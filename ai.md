@@ -321,6 +321,31 @@ if (m_settingsManager) {
 4. Add UI control to [`settings_tab.ui`](uifiles/settings_tab.ui) if needed
 5. Update [`SettingsTab::loadSettingsToUI()`](src/tabs/settingstab.cpp:28) and [`onSaveButtonClicked()`](src/tabs/settingstab.cpp:42)
 
+### DatabaseBackup (Automated Database Backups)
+
+**Pattern**: Automatic backup creation on application startup
+
+**Classes**:
+- [`DatabaseBackup`](include/db/databasebackup.h) - Manages database backups in zip format
+- Creates backups in `ObsLogBackup` subfolder of database location
+- Backup filename: `observations_backup_YYYY-MM-DD.zip`
+- Uses libzip library for cross-platform zip creation
+
+**Automatic Backup Logic** ([`main.cpp`](src/main.cpp:81)):
+- Runs on startup after database path validation
+- Checks latest backup date from filename
+- Creates new backup if latest is older than 7 days or no backups exist
+- Non-blocking: application continues even if backup fails
+
+**Usage**:
+```cpp
+DatabaseBackup backupManager;
+QString errorMessage;
+if (!backupManager.checkAndBackupIfNeeded(dbPath, errorMessage)) {
+    // Handle error - warn user but continue
+}
+```
+
 ### NumericTableWidgetItem class (subclassed QTableWidgetItem)
 
 - should be used for all numeric data columns for proper sorting
@@ -331,6 +356,7 @@ if (m_settingsManager) {
 - Qt6Widgets - GUI components
 - Qt6Sql - Database (includes SQLite driver)
 - Qt6Network - HTTP requests (SIMBAD integration)
+- libzip - Zip archive creation (database backups)
 - Standard C++17 - smart pointers, std::make_unique
 
 ## Generated Files (Do Not Edit)

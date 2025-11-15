@@ -12,11 +12,16 @@ set(CMAKE_AUTOUIC_SEARCH_PATHS uifiles)
 
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets Sql Network)
 
+# Find libzip
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(LIBZIP REQUIRED libzip)
+
 set(PROJECT_SOURCES
     src/main.cpp
     src/mainwindow.cpp
     src/settingsmanager.cpp
     src/db/databasemanager.cpp
+    src/db/databasebackup.cpp
     src/db/objectsrepository.cpp
     src/db/sessionsrepository.cpp
     src/db/camerasrepository.cpp
@@ -42,6 +47,7 @@ set(PROJECT_HEADERS
     include/mainwindow.h
     include/settingsmanager.h
     include/db/databasemanager.h
+    include/db/databasebackup.h
     include/db/objectsrepository.h
     include/db/sessionsrepository.h
     include/db/camerasrepository.h
@@ -79,7 +85,7 @@ set(PROJECT_UI
     uifiles/about_tab.ui
 )
 
-include_directories(include)
+include_directories(include ${LIBZIP_INCLUDE_DIRS})
 
 set(app_icon_resource_windows "${CMAKE_CURRENT_SOURCE_DIR}/images/resources.rc")
 
@@ -96,6 +102,7 @@ target_link_libraries(${PROJECT_NAME}
     Qt6::Widgets
     Qt6::Sql
     Qt6::Network
+    ${LIBZIP_LIBRARIES}
 )
 
 # Set Windows subsystem to Windows (not console)
