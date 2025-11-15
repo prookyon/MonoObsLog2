@@ -61,7 +61,7 @@ private:
 - `filters.filter_type_id` → `filter_types.id`
 - `observations` links to: sessions, objects, cameras, telescopes, filters
 
-**Database File**: `mgw_observations.db` (SQLite3)
+**Database File**: User-configurable path, set via `database_path` setting
 
 ## Implementation Guide
 
@@ -288,7 +288,13 @@ void onCoordinatesReceived(double ra, double dec, const QString &name) {
 **Classes**:
 - [`SettingsManager`](include/settingsmanager.h) - Manages application settings in `~/.MonoObsLog/settings.json`
 - Automatically creates directory and file with defaults on first run
-- Settings: `moon_illumination_warning_percent`, `moon_angular_separation_warning_deg`, `latitude`, `longitude`
+- Settings: `moon_illumination_warning_percent`, `moon_angular_separation_warning_deg`, `latitude`, `longitude`, `database_path`
+
+**Database Path Setting**:
+- `database_path` has no default - user must select location on first run
+- Application startup ([`main.cpp`](src/main.cpp)) validates path and prompts with file dialog if missing/invalid
+- User can select existing database or create new one
+- If cancelled, application exits (database is mandatory)
 
 **Usage in Tabs** (see [`SessionsTab`](src/tabs/sessionstab.cpp)):
 ```cpp
@@ -310,8 +316,8 @@ if (m_settingsManager) {
 
 **Adding New Settings**:
 1. Add getter/setter to [`SettingsManager`](include/settingsmanager.h)
-2. Update [`createDefaultSettings()`](src/settingsmanager.cpp:80) with default value
-3. Update [`loadSettings()`](src/settingsmanager.cpp:115) and [`saveSettings()`](src/settingsmanager.cpp:151)
+2. Update [`createDefaultSettings()`](src/settingsmanager.cpp:80) with default value (or omit if no default)
+3. Update [`loadSettings()`](src/settingsmanager.cpp:145) and [`saveSettings()`](src/settingsmanager.cpp:154)
 4. Add UI control to [`settings_tab.ui`](uifiles/settings_tab.ui) if needed
 5. Update [`SettingsTab::loadSettingsToUI()`](src/tabs/settingstab.cpp:28) and [`onSaveButtonClicked()`](src/tabs/settingstab.cpp:42)
 

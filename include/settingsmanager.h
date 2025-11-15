@@ -19,12 +19,14 @@ public:
     int moonAngularSeparationWarningDeg() const;
     double latitude() const;
     double longitude() const;
+    QString databasePath() const;
 
     // Setters
     void setMoonIlluminationWarningPercent(int value);
     void setMoonAngularSeparationWarningDeg(int value);
     void setLatitude(double value);
     void setLongitude(double value);
+    void setDatabasePath(const QString &value);
 
     // Save settings to file
     bool saveSettings();
@@ -45,6 +47,7 @@ private:
     int m_moonAngularSeparationWarningDeg;
     double m_latitude;
     double m_longitude;
+    QString m_databasePath;
 
     bool m_initialized;
 };

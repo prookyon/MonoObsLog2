@@ -16,15 +16,15 @@
 #include <QMessageBox>
 #include <QVBoxLayout>
 
-MainWindow::MainWindow(QWidget *parent)
+MainWindow::MainWindow(const QString &dbPath, QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow),
       m_dbManager(std::make_unique<DatabaseManager>(this)),
       m_settingsManager(std::make_unique<SettingsManager>(this))
 {
     ui->setupUi(this);
 
-    // Initialize database
-    if (!m_dbManager->initialize())
+    // Initialize database with the provided path
+    if (!m_dbManager->initialize(dbPath))
     {
         QMessageBox::critical(this, "Database Error",
                               "Failed to initialize database. Application may not function correctly.");

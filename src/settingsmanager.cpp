@@ -12,6 +12,7 @@ SettingsManager::SettingsManager(QObject *parent)
       m_moonAngularSeparationWarningDeg(60),
       m_latitude(0.0),
       m_longitude(0.0),
+      m_databasePath(""),
       m_initialized(false)
 {
 }
@@ -84,6 +85,7 @@ bool SettingsManager::createDefaultSettings()
     m_moonAngularSeparationWarningDeg = 60;
     m_latitude = 0.0;
     m_longitude = 0.0;
+    // Note: m_databasePath has no default - must be set by user
 
     // Create JSON object with default values
     QJsonObject jsonObj;
@@ -91,6 +93,7 @@ bool SettingsManager::createDefaultSettings()
     jsonObj["moon_angular_separation_warning_deg"] = m_moonAngularSeparationWarningDeg;
     jsonObj["latitude"] = m_latitude;
     jsonObj["longitude"] = m_longitude;
+    // Do not add database_path to default settings
 
     // Write to file
     QJsonDocument doc(jsonObj);
@@ -141,6 +144,8 @@ bool SettingsManager::loadSettings()
     m_moonAngularSeparationWarningDeg = jsonObj.value("moon_angular_separation_warning_deg").toInt(60);
     m_latitude = jsonObj.value("latitude").toDouble(0.0);
     m_longitude = jsonObj.value("longitude").toDouble(0.0);
+    // Load database_path - no default value, empty if not present
+    m_databasePath = jsonObj.value("database_path").toString("");
 
     return true;
 }
@@ -152,6 +157,7 @@ bool SettingsManager::saveSettings()
     jsonObj["moon_angular_separation_warning_deg"] = m_moonAngularSeparationWarningDeg;
     jsonObj["latitude"] = m_latitude;
     jsonObj["longitude"] = m_longitude;
+    jsonObj["database_path"] = m_databasePath;
 
     QJsonDocument doc(jsonObj);
     QFile file(getSettingsFilePath());
@@ -197,6 +203,11 @@ double SettingsManager::longitude() const
     return m_longitude;
 }
 
+QString SettingsManager::databasePath() const
+{
+    return m_databasePath;
+}
+
 // Setters
 void SettingsManager::setMoonIlluminationWarningPercent(int value)
 {
@@ -227,5 +238,13 @@ void SettingsManager::setLongitude(double value)
     if (m_longitude != value)
     {
         m_longitude = value;
+    }
+}
+
+void SettingsManager::setDatabasePath(const QString &value)
+{
+    if (m_databasePath != value)
+    {
+        m_databasePath = value;
     }
 }

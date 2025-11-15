@@ -30,7 +30,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    MainWindow(QWidget *parent = nullptr);
+    MainWindow(const QString &dbPath = "mgw_observations.db", QWidget *parent = nullptr);
     ~MainWindow();
 
 private:
