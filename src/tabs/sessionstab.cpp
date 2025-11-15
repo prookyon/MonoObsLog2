@@ -1,5 +1,6 @@
 #include "tabs/sessionstab.h"
 #include "ui_sessions_tab.h"
+#include "settingsmanager.h"
 #include "db/databasemanager.h"
 #include "db/sessionsrepository.h"
 #include "numerictablewidgetitem.h"
@@ -12,9 +13,10 @@
 #include <QDialogButtonBox>
 #include <QTableWidgetItem>
 #include <QPushButton>
+#include <QColor>
 
-SessionsTab::SessionsTab(DatabaseManager *dbManager, QWidget *parent)
-    : QWidget(parent), ui(new Ui::SessionsTab), m_dbManager(dbManager), m_repository(nullptr)
+SessionsTab::SessionsTab(DatabaseManager *dbManager, SettingsManager *settingsManager, QWidget *parent)
+    : QWidget(parent), ui(new Ui::SessionsTab), m_dbManager(dbManager), m_settingsManager(settingsManager), m_repository(nullptr)
 {
     ui->setupUi(this);
     m_repository = new SessionsRepository(m_dbManager, this);
@@ -86,6 +88,20 @@ void SessionsTab::populateTable()
         QString moonIllumText = session.moonIllumination.isNull() ? "" : QString::number(session.moonIllumination.toDouble(), 'f', 0);
         NumericTableWidgetItem *moonIllumItem = new NumericTableWidgetItem(moonIllumText);
         moonIllumItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+
+        // Apply background color if moon illumination exceeds warning threshold
+        if (!session.moonIllumination.isNull() && m_settingsManager)
+        {
+            double illumination = session.moonIllumination.toDouble();
+            int warningThreshold = m_settingsManager->moonIlluminationWarningPercent();
+            if (illumination > warningThreshold)
+            {
+                // Color equivalent to Python: QColor.fromHsv(0, int(40 * 255 / 100), int(95 * 255 / 100))
+                QColor warningColor = QColor::fromHsv(0, 102, 242);
+                moonIllumItem->setBackground(warningColor);
+            }
+        }
+
         ui->sessionsTable->setItem(row, 2, moonIllumItem);
 
         // Moon RA column

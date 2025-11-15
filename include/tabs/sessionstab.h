@@ -12,13 +12,14 @@ QT_END_NAMESPACE
 
 class DatabaseManager;
 class SessionsRepository;
+class SettingsManager;
 
 class SessionsTab : public QWidget
 {
     Q_OBJECT
 
 public:
-    explicit SessionsTab(DatabaseManager *dbManager, QWidget *parent = nullptr);
+    explicit SessionsTab(DatabaseManager *dbManager, SettingsManager *settingsManager, QWidget *parent = nullptr);
     ~SessionsTab();
 
     void initialize();
@@ -35,6 +36,7 @@ private:
 
     Ui::SessionsTab *ui;
     DatabaseManager *m_dbManager;
+    SettingsManager *m_settingsManager;
     SessionsRepository *m_repository;
 };
 

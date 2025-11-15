@@ -12,6 +12,7 @@ namespace Ui
 QT_END_NAMESPACE
 
 class DatabaseManager;
+class SettingsManager;
 class ObjectsTab;
 class SessionsTab;
 class CamerasTab;
@@ -39,6 +40,7 @@ private:
 private:
     Ui::MainWindow *ui;
     std::unique_ptr<DatabaseManager> m_dbManager;
+    std::unique_ptr<SettingsManager> m_settingsManager;
 
     // Tab managers
     std::unique_ptr<ObjectsTab> m_objectsTab;

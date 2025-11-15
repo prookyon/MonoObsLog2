@@ -15,6 +15,7 @@ find_package(Qt6 REQUIRED COMPONENTS Core Widgets Sql Network)
 set(PROJECT_SOURCES
     src/main.cpp
     src/mainwindow.cpp
+    src/settingsmanager.cpp
     src/db/databasemanager.cpp
     src/db/objectsrepository.cpp
     src/db/sessionsrepository.cpp
@@ -39,6 +40,7 @@ set(PROJECT_SOURCES
 
 set(PROJECT_HEADERS
     include/mainwindow.h
+    include/settingsmanager.h
     include/db/databasemanager.h
     include/db/objectsrepository.h
     include/db/sessionsrepository.h

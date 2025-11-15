@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "settingsmanager.h"
 #include "db/databasemanager.h"
 #include "tabs/objectstab.h"
 #include "tabs/sessionstab.h"
@@ -16,7 +17,9 @@
 #include <QVBoxLayout>
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent), ui(new Ui::MainWindow), m_dbManager(std::make_unique<DatabaseManager>(this))
+    : QMainWindow(parent), ui(new Ui::MainWindow),
+      m_dbManager(std::make_unique<DatabaseManager>(this)),
+      m_settingsManager(std::make_unique<SettingsManager>(this))
 {
     ui->setupUi(this);
 
@@ -25,6 +28,13 @@ MainWindow::MainWindow(QWidget *parent)
     {
         QMessageBox::critical(this, "Database Error",
                               "Failed to initialize database. Application may not function correctly.");
+    }
+
+    // Initialize settings
+    if (!m_settingsManager->initialize())
+    {
+        QMessageBox::critical(this, "Settings Error",
+                              "Failed to initialize settings. Application may not function correctly.");
     }
 
     // Initialize all tabs
@@ -101,7 +111,7 @@ void MainWindow::initializeTabs()
     m_objectsTab = std::make_unique<ObjectsTab>(m_dbManager.get(), objectsTabWidget);
     objectsLayout->addWidget(m_objectsTab.get());
 
-    m_sessionsTab = std::make_unique<SessionsTab>(m_dbManager.get(), sessionsTabWidget);
+    m_sessionsTab = std::make_unique<SessionsTab>(m_dbManager.get(), m_settingsManager.get(), sessionsTabWidget);
     sessionsLayout->addWidget(m_sessionsTab.get());
 
     m_camerasTab = std::make_unique<CamerasTab>(m_dbManager.get(), camerasTabWidget);
@@ -125,7 +135,7 @@ void MainWindow::initializeTabs()
     m_monthlyStatsTab = std::make_unique<MonthlyStatsTab>(m_dbManager.get(), monthlyStatsTabWidget);
     monthlyStatsLayout->addWidget(m_monthlyStatsTab.get());
 
-    m_settingsTab = std::make_unique<SettingsTab>(m_dbManager.get(), settingsTabWidget);
+    m_settingsTab = std::make_unique<SettingsTab>(m_dbManager.get(), m_settingsManager.get(), settingsTabWidget);
     settingsLayout->addWidget(m_settingsTab.get());
 
     m_aboutTab = std::make_unique<AboutTab>(m_dbManager.get(), aboutTabWidget);
@@ -154,6 +164,11 @@ void MainWindow::setupConnections()
     // Connect tab switching to refresh data
     connect(ui->tabWidget, QOverload<int>::of(&QTabWidget::currentChanged), this, [this](int index)
             {
+        // Refresh Sessions tab when it's activated (index 1)
+        if (index == 1 && m_sessionsTab)
+        {
+            m_sessionsTab->refreshData();
+        }
         // Refresh Filters tab when it's activated (index 4)
         if (index == 4 && m_filtersTab)
         {
@@ -168,5 +183,10 @@ void MainWindow::setupConnections()
         else if (index == 7 && m_objectStatsTab)
         {
             m_objectStatsTab->refreshData();
+        }
+        // Refresh Monthly Stats tab when it's activated (index 8)
+        else if (index == 8 && m_monthlyStatsTab)
+        {
+            m_monthlyStatsTab->refreshData();
         } });
 }

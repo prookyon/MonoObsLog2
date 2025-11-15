@@ -281,6 +281,40 @@ void onCoordinatesReceived(double ra, double dec, const QString &name) {
 - Database stores: RA in hours (0-24), DEC in degrees
 - Conversion: `raHours = raDegrees / 15.0`
 
+### SettingsManager (Application Settings)
+
+**Pattern**: JSON-based persistent settings storage
+
+**Classes**:
+- [`SettingsManager`](include/settingsmanager.h) - Manages application settings in `~/.MonoObsLog/settings.json`
+- Automatically creates directory and file with defaults on first run
+- Settings: `moon_illumination_warning_percent`, `moon_angular_separation_warning_deg`, `latitude`, `longitude`
+
+**Usage in Tabs** (see [`SessionsTab`](src/tabs/sessionstab.cpp)):
+```cpp
+// Constructor receives SettingsManager
+SessionsTab::SessionsTab(DatabaseManager *dbManager, SettingsManager *settingsManager, QWidget *parent)
+    : QWidget(parent), m_settingsManager(settingsManager) { }
+
+// Access settings
+if (m_settingsManager) {
+    int threshold = m_settingsManager->moonIlluminationWarningPercent();
+    double lat = m_settingsManager->latitude();
+}
+```
+
+**Settings Tab Integration** ([`SettingsTab`](src/tabs/settingstab.cpp)):
+- UI controls automatically bound to SettingsManager values
+- [`loadSettingsToUI()`](src/tabs/settingstab.cpp:28) - Loads settings into spinboxes
+- [`onSaveButtonClicked()`](src/tabs/settingstab.cpp:42) - Saves to JSON file with user feedback
+
+**Adding New Settings**:
+1. Add getter/setter to [`SettingsManager`](include/settingsmanager.h)
+2. Update [`createDefaultSettings()`](src/settingsmanager.cpp:80) with default value
+3. Update [`loadSettings()`](src/settingsmanager.cpp:115) and [`saveSettings()`](src/settingsmanager.cpp:151)
+4. Add UI control to [`settings_tab.ui`](uifiles/settings_tab.ui) if needed
+5. Update [`SettingsTab::loadSettingsToUI()`](src/tabs/settingstab.cpp:28) and [`onSaveButtonClicked()`](src/tabs/settingstab.cpp:42)
+
 ### NumericTableWidgetItem class (subclassed QTableWidgetItem)
 
 - should be used for all numeric data columns for proper sorting
