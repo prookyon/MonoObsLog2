@@ -24,6 +24,8 @@ public:
     void refreshData();
 
 private:
+    void applyConditionalFormatting(const QVector<double> &totals);
+
     Ui::ObjectStatsTab *ui;
     DatabaseManager *m_dbManager;
 };

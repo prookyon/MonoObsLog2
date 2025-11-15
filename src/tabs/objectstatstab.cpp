@@ -8,6 +8,8 @@
 #include <QMessageBox>
 #include <QMap>
 #include <QHeaderView>
+#include <QColor>
+#include <algorithm>
 
 ObjectStatsTab::ObjectStatsTab(DatabaseManager *dbManager, QWidget *parent)
     : QWidget(parent), ui(new Ui::ObjectStatsTab), m_dbManager(dbManager)
@@ -23,7 +25,6 @@ ObjectStatsTab::~ObjectStatsTab()
 void ObjectStatsTab::initialize()
 {
     // Initialize the tab UI and data
-    ui->objectStatsTable->horizontalHeader()->setStretchLastSection(true);
     refreshData();
 }
 
@@ -137,7 +138,10 @@ void ObjectStatsTab::refreshData()
     headers << "Total";
     ui->objectStatsTable->setHorizontalHeaderLabels(headers);
 
-    // Populate the table
+    // Populate the table and collect totals
+    QVector<double> totals;
+    totals.reserve(objectNames.size());
+
     for (int row = 0; row < objectNames.size(); ++row)
     {
         int objectId = objectIds[row];
@@ -172,9 +176,69 @@ void ObjectStatsTab::refreshData()
         boldFont.setBold(true);
         totalItem->setFont(boldFont);
         ui->objectStatsTable->setItem(row, numCols - 1, totalItem);
+
+        // Collect the total value for conditional formatting
+        totals.append(static_cast<double>(rowTotal));
     }
 
     // Resize columns to content
     ui->objectStatsTable->resizeColumnToContents(0);
-    ui->objectStatsTable->horizontalHeader()->setStretchLastSection(false);
+
+    // Apply conditional formatting to the Total column
+    applyConditionalFormatting(totals);
+}
+
+void ObjectStatsTab::applyConditionalFormatting(const QVector<double> &totals)
+{
+    if (totals.isEmpty())
+    {
+        return;
+    }
+
+    // Find min and max values
+    double minVal = *std::min_element(totals.begin(), totals.end());
+    double maxVal = *std::max_element(totals.begin(), totals.end());
+
+    if (maxVal / minVal <= 2.0)
+    {
+        // All values are quite close, don't apply color
+        return;
+    }
+
+    int totalColIdx = ui->objectStatsTable->columnCount() - 1; // Last column is Total
+
+    // Apply color gradient from red (min) to green (max)
+    for (int row = 0; row < totals.size(); ++row)
+    {
+        double value = totals[row];
+
+        // Normalize value between 0 and 1
+        double normalized = (value - minVal) / (maxVal - minVal);
+
+        // Map to hue values: Red -> Yellow -> Green
+        // 0.0 -> Red (0°), 0.5 -> Yellow (60°), 1.0 -> Green (120°)
+        int hue;
+        if (normalized <= 0.5)
+        {
+            // Red to Yellow
+            hue = static_cast<int>(normalized * 2 * 60); // 0° -> 60°
+        }
+        else
+        {
+            // Yellow to Green
+            hue = static_cast<int>(60 + ((normalized - 0.5) * 2 * 60)); // 60° -> 120°
+        }
+
+        // For pastel: high value, low-to-medium saturation
+        int saturation = static_cast<int>(40 * 255 / 100); // 0-255, lower = more pastel
+        int valueHsv = static_cast<int>(95 * 255 / 100);   // 0-255, brightness
+
+        QColor color = QColor::fromHsv(hue, saturation, valueHsv);
+
+        QTableWidgetItem *item = ui->objectStatsTable->item(row, totalColIdx);
+        if (item)
+        {
+            item->setBackground(color);
+        }
+    }
 }
