@@ -15,6 +15,7 @@ find_package(Qt6 REQUIRED COMPONENTS Core Widgets Sql Network)
 # Find libzip
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(LIBZIP REQUIRED libzip)
+find_package(supernovas REQUIRED)
 
 set(PROJECT_SOURCES
     src/main.cpp
@@ -41,6 +42,7 @@ set(PROJECT_SOURCES
     src/tabs/monthlystatstab.cpp
     src/tabs/settingstab.cpp
     src/tabs/abouttab.cpp
+    src/astrocalc.cpp
 )
 
 set(PROJECT_HEADERS
@@ -68,6 +70,7 @@ set(PROJECT_HEADERS
     include/tabs/settingstab.h
     include/tabs/abouttab.h
     include/numerictablewidgetitem.h
+    include/astrocalc.h
 )
 
 set(PROJECT_UI
@@ -85,7 +88,7 @@ set(PROJECT_UI
     uifiles/about_tab.ui
 )
 
-include_directories(include ${LIBZIP_INCLUDE_DIRS})
+include_directories(include ${LIBZIP_INCLUDE_DIRS} ${supernovas_INCLUDE_DIRS})
 
 set(app_icon_resource_windows "${CMAKE_CURRENT_SOURCE_DIR}/images/resources.rc")
 
@@ -103,6 +106,7 @@ target_link_libraries(${PROJECT_NAME}
     Qt6::Sql
     Qt6::Network
     ${LIBZIP_LIBRARIES}
+    supernovas::supernovas
 )
 
 # Set Windows subsystem to Windows (not console)

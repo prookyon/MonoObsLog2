@@ -4,6 +4,8 @@
 #include "db/objectsrepository.h"
 #include "simbadquery.h"
 #include "numerictablewidgetitem.h"
+#include "astrocalc.h"
+#include "settingsmanager.h"
 #include <QDebug>
 #include <QMessageBox>
 #include <QDialog>
@@ -14,8 +16,8 @@
 #include <QPushButton>
 #include <QPointer>
 
-ObjectsTab::ObjectsTab(DatabaseManager *dbManager, QWidget *parent)
-    : QWidget(parent), ui(new Ui::ObjectsTab), m_dbManager(dbManager), m_repository(nullptr), m_simbadQuery(nullptr), m_dialogRaEdit(nullptr), m_dialogDecEdit(nullptr)
+ObjectsTab::ObjectsTab(DatabaseManager *dbManager, SettingsManager *settingsManager, QWidget *parent)
+    : QWidget(parent), ui(new Ui::ObjectsTab), m_dbManager(dbManager), m_settingsManager(settingsManager), m_repository(nullptr), m_simbadQuery(nullptr), m_dialogRaEdit(nullptr), m_dialogDecEdit(nullptr)
 {
     ui->setupUi(this);
     m_repository = new ObjectsRepository(m_dbManager, this);
@@ -63,6 +65,8 @@ void ObjectsTab::populateTable()
         return;
     }
 
+    double lat = m_settingsManager->latitude();
+    double lon = m_settingsManager->longitude();
     int row = 0;
     for (const ObjectData &obj : objects)
     {
@@ -84,6 +88,11 @@ void ObjectsTab::populateTable()
         NumericTableWidgetItem *decItem = new NumericTableWidgetItem(decText);
         decItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
         ui->objectsTable->setItem(row, 2, decItem);
+
+        // Transit time column
+        QDateTime transit = AstroCalc::transitTime(lat, lon, obj.ra.toDouble(), obj.dec.toDouble());
+        QTableWidgetItem *transitItem = new QTableWidgetItem(transit.toString());
+        ui->objectsTable->setItem(row, 3, transitItem);
 
         row++;
     }

@@ -108,7 +108,7 @@ void MainWindow::initializeTabs()
     ui->tabWidget->addTab(aboutTabWidget, "About");
 
     // Create tab instances with the newly created widgets
-    m_objectsTab = std::make_unique<ObjectsTab>(m_dbManager.get(), objectsTabWidget);
+    m_objectsTab = std::make_unique<ObjectsTab>(m_dbManager.get(), m_settingsManager.get(), objectsTabWidget);
     objectsLayout->addWidget(m_objectsTab.get());
 
     m_sessionsTab = std::make_unique<SessionsTab>(m_dbManager.get(), m_settingsManager.get(), sessionsTabWidget);

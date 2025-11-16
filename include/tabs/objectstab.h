@@ -14,13 +14,14 @@ QT_END_NAMESPACE
 class DatabaseManager;
 class SimbadQuery;
 class ObjectsRepository;
+class SettingsManager;
 
 class ObjectsTab : public QWidget
 {
     Q_OBJECT
 
 public:
-    explicit ObjectsTab(DatabaseManager *dbManager, QWidget *parent = nullptr);
+    explicit ObjectsTab(DatabaseManager *dbManager, SettingsManager *settingsManager, QWidget *parent = nullptr);
     ~ObjectsTab();
 
     void initialize();
@@ -39,6 +40,7 @@ private:
 
     Ui::ObjectsTab *ui;
     DatabaseManager *m_dbManager;
+    SettingsManager *m_settingsManager;
     ObjectsRepository *m_repository;
     SimbadQuery *m_simbadQuery;
     QLineEdit *m_dialogRaEdit;
