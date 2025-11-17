@@ -106,7 +106,7 @@ target_link_libraries(${PROJECT_NAME}
     Qt6::Sql
     Qt6::Network
     ${LIBZIP_LIBRARIES}
-    supernovas::supernovas
+    supernovas::core
 )
 
 # Set Windows subsystem to Windows (not console)
