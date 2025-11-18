@@ -38,5 +38,45 @@ QDateTime AstroCalc::transitTime(double lat, double lon, double raHours, double 
     novas_jd_to_date(jd_transit, NOVAS_GREGORIAN_CALENDAR, &year, &month, &day, &hour);
     int fullHour = int(hour);
     int minutes = int(hour * 60) % 60;
-    return QDateTime(QDate(year, month, day), QTime(fullHour, minutes));
+    return QDateTime(QDate(year, month, day), QTime(fullHour, minutes), QTimeZone::UTC);
+}
+
+/// @brief Calculates Moon illumination percentage, RA and Dec for given time and location
+/// @param time - local time
+/// @param lat - latitude
+/// @param lon - longitude
+/// @param illumination - returned illumination percentage
+/// @param ra - returned RA (decimal degrees)
+/// @param dec - returned Dec (decimal degrees)
+void AstroCalc::moonInfoForDate(QDateTime time, double lat, double lon, double *illumination, double *ra, double *dec)
+{
+    QDateTime utc = time.toUTC();
+    double jd = julian_date(utc.date().year(), utc.date().month(), utc.date().day(), utc.time().hour() + utc.time().minute() / 60.0 + utc.time().second() / 3600.0);
+
+    observer obs;
+    make_gps_observer(lat, lon, 0.0, &obs);
+
+    int leap_seconds = 37;   // [s] UTC - TAI time difference
+    double dut1 = 0.042;     // [s] UT1 - UTC time difference
+    novas_timespec obs_time; // Structure that will define astrometric time
+    novas_set_time(NOVAS_UTC, jd, leap_seconds, dut1, &obs_time);
+
+    novas_frame obs_frame; // Structure that will define the observing frame
+    double xp = 0;         // [mas] Earth polar offset x, e.g. from IERS Bulletin A.
+    double yp = 0;         // [mas] Earth polar offset y, from same source as above.
+    // Initialize the observing frame with the given observing parameters
+    novas_make_frame(NOVAS_REDUCED_ACCURACY, &obs, &obs_time, xp, yp, &obs_frame);
+
+    object moon;
+    novas_orbital moon_orbit = NOVAS_ORBIT_INIT;
+    novas_make_moon_orbit(jd, &moon_orbit);
+    make_orbital_object("Moon", -1, &moon_orbit, &moon);
+
+    *illumination = 100.0 * novas_solar_illum(&moon, &obs_frame);
+
+    sky_pos moonPos;
+    novas_sky_pos(&moon, &obs_frame, NOVAS_ICRS, &moonPos);
+
+    *ra = 15 * moonPos.ra;
+    *dec = moonPos.dec;
 }
