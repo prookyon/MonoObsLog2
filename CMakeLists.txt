@@ -10,7 +10,7 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOUIC_SEARCH_PATHS uifiles)
 
-find_package(Qt6 REQUIRED COMPONENTS Core Widgets Sql Network)
+find_package(Qt6 REQUIRED COMPONENTS Core Widgets Sql Network Charts)
 
 # Find libzip
 find_package(PkgConfig REQUIRED)
@@ -105,6 +105,7 @@ target_link_libraries(${PROJECT_NAME}
     Qt6::Widgets
     Qt6::Sql
     Qt6::Network
+    Qt6::Charts
     ${LIBZIP_LIBRARIES}
     supernovas::core
 )

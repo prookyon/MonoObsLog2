@@ -2,6 +2,11 @@
 #define MONTHLYSTATSTAB_H
 
 #include <QWidget>
+#include <QtCharts/QChart>
+#include <QtCharts/QBarSeries>
+#include <QtCharts/QBarSet>
+#include <QtCharts/QBarCategoryAxis>
+#include <QtCharts/QValueAxis>
 
 QT_BEGIN_NAMESPACE
 namespace Ui
@@ -24,6 +29,8 @@ public:
     void refreshData();
 
 private:
+    void createChart();
+
     Ui::MonthlyStatsTab *ui;
     DatabaseManager *m_dbManager;
 };
