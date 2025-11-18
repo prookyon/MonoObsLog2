@@ -31,8 +31,8 @@ public:
 
     // Query operations
     QVector<SessionData> getAllSessions(QString &errorMessage);
-    bool addSession(const QString &name, const QDate &startDate, const QString &comments, QString &errorMessage);
-    bool updateSession(int id, const QString &name, const QDate &startDate, const QString &comments, QString &errorMessage);
+    bool addSession(const QString &name, const QDate &startDate, const QString &comments, const double &moonIllumination, const double &moonRa, const double &moonDec, QString &errorMessage);
+    bool updateSession(int id, const QString &name, const QDate &startDate, const QString &comments, const double &moonIllumination, const double &moonRa, const double &moonDec, QString &errorMessage);
     bool deleteSession(int id, QString &errorMessage);
 
 private:

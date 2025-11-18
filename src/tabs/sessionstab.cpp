@@ -4,6 +4,7 @@
 #include "db/databasemanager.h"
 #include "db/sessionsrepository.h"
 #include "numerictablewidgetitem.h"
+#include "astrocalc.h"
 #include <QDebug>
 #include <QMessageBox>
 #include <QDialog>
@@ -198,9 +199,14 @@ void SessionsTab::onAddButtonClicked()
     QString startDate = ui->startDateEdit->date().toString("yyyy-MM-dd");
     QString comments = ui->sessionCommentsLineEdit->text().trimmed();
 
+    double illumination, ra, dec;
+    double lat = m_settingsManager->latitude();
+    double lon = m_settingsManager->longitude();
+    AstroCalc::moonInfoForDate(QDateTime::fromString(startDate, "yyyy-MM-dd").addDays(1), lat, lon, &illumination, &ra, &dec);
+
     // Insert into database using repository
     QString errorMessage;
-    if (!m_repository->addSession(name, QDate::fromString(startDate, "yyyy-MM-dd"), comments, errorMessage))
+    if (!m_repository->addSession(name, QDate::fromString(startDate, "yyyy-MM-dd"), comments, illumination, ra, dec, errorMessage))
     {
         QMessageBox::warning(this, "Database Error",
                              QString("Failed to add session: %1").arg(errorMessage));
@@ -242,9 +248,14 @@ void SessionsTab::onEditButtonClicked()
         return;
     }
 
+    double illumination, ra, dec;
+    double lat = m_settingsManager->latitude();
+    double lon = m_settingsManager->longitude();
+    AstroCalc::moonInfoForDate(QDateTime::fromString(startDate, "yyyy-MM-dd").addDays(1), lat, lon, &illumination, &ra, &dec);
+
     // Update in database using repository
     QString errorMessage;
-    if (!m_repository->updateSession(sessionId, name, QDate::fromString(startDate, "yyyy-MM-dd"), comments, errorMessage))
+    if (!m_repository->updateSession(sessionId, name, QDate::fromString(startDate, "yyyy-MM-dd"), comments, illumination, ra, dec, errorMessage))
     {
         QMessageBox::warning(this, "Database Error",
                              QString("Failed to update session: %1").arg(errorMessage));

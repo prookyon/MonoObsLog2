@@ -1,5 +1,10 @@
 #include "db/observationsrepository.h"
 #include "db/databasemanager.h"
+extern "C"
+{
+#include "novas.h"
+}
+#include "astrocalc.h"
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QVariant>
@@ -66,31 +71,16 @@ QVector<ObservationData> ObservationsRepository::getAllObservations(QString &err
         obs.filterName = query.value("filter_name").toString();
         obs.moonIllumination = query.value("moon_illumination").toDouble();
 
-        // Calculate angular separation if coordinates are available
-        obs.angularSeparation = -1.0; // Default: not available
         if (!query.value("object_ra").isNull() && !query.value("object_dec").isNull() &&
             !query.value("moon_ra").isNull() && !query.value("moon_dec").isNull())
         {
-            double objRa = query.value("object_ra").toDouble();
+            double objRa = query.value("object_ra").toDouble(); // in hours
             double objDec = query.value("object_dec").toDouble();
-            double moonRa = query.value("moon_ra").toDouble();
+            double moonRa = query.value("moon_ra").toDouble(); // in degrees
             double moonDec = query.value("moon_dec").toDouble();
 
-            // Convert RA from hours to radians (objRa is in hours)
-            objRa = objRa * 15.0 * M_PI / 180.0;
-            moonRa = moonRa * 15.0 * M_PI / 180.0;
-
-            // Convert DEC to radians
-            objDec = objDec * M_PI / 180.0;
-            moonDec = moonDec * M_PI / 180.0;
-
-            // Calculate angular separation using spherical law of cosines
-            double cosDistance = qSin(objDec) * qSin(moonDec) +
-                                 qCos(objDec) * qCos(moonDec) * qCos(objRa - moonRa);
-
-            // Clamp to prevent floating point errors
-            cosDistance = qBound(-1.0, cosDistance, 1.0);
-            obs.angularSeparation = qAcos(cosDistance) * 180.0 / M_PI;
+            double separation = novas_sep(objRa * 15.0, objDec, moonRa, moonDec);
+            obs.angularSeparation = separation;
         }
 
         observations.append(obs);
@@ -158,24 +148,16 @@ QVector<ObservationData> ObservationsRepository::getObservationsByObject(int obj
         obs.moonIllumination = query.value("moon_illumination").toDouble();
 
         // Calculate angular separation
-        obs.angularSeparation = -1.0;
         if (!query.value("object_ra").isNull() && !query.value("object_dec").isNull() &&
             !query.value("moon_ra").isNull() && !query.value("moon_dec").isNull())
         {
-            double objRa = query.value("object_ra").toDouble();
+            double objRa = query.value("object_ra").toDouble(); // in hours
             double objDec = query.value("object_dec").toDouble();
-            double moonRa = query.value("moon_ra").toDouble();
+            double moonRa = query.value("moon_ra").toDouble(); // in degrees
             double moonDec = query.value("moon_dec").toDouble();
 
-            objRa = objRa * 15.0 * M_PI / 180.0;
-            moonRa = moonRa * 15.0 * M_PI / 180.0;
-            objDec = objDec * M_PI / 180.0;
-            moonDec = moonDec * M_PI / 180.0;
-
-            double cosDistance = qSin(objDec) * qSin(moonDec) +
-                                 qCos(objDec) * qCos(moonDec) * qCos(objRa - moonRa);
-            cosDistance = qBound(-1.0, cosDistance, 1.0);
-            obs.angularSeparation = qAcos(cosDistance) * 180.0 / M_PI;
+            double separation = novas_sep(objRa * 15.0, objDec, moonRa, moonDec);
+            obs.angularSeparation = separation;
         }
 
         observations.append(obs);

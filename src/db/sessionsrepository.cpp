@@ -3,6 +3,7 @@
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QDebug>
+#include "db/sessionsrepository.h"
 
 SessionsRepository::SessionsRepository(DatabaseManager *dbManager, QObject *parent)
     : QObject(parent), m_dbManager(dbManager)
@@ -54,12 +55,15 @@ QVector<SessionData> SessionsRepository::getAllSessions(QString &errorMessage)
     return sessions;
 }
 
-bool SessionsRepository::addSession(const QString &name, const QDate &startDate, const QString &comments, QString &errorMessage)
+bool SessionsRepository::addSession(const QString &name, const QDate &startDate, const QString &comments, const double &moonIllumination, const double &moonRa, const double &moonDec, QString &errorMessage)
 {
     QSqlQuery query(m_dbManager->database());
-    query.prepare("INSERT INTO sessions (name, start_date, comments) VALUES (:name, :start_date, :comments)");
+    query.prepare("INSERT INTO sessions (name, start_date, moon_illumination, moon_ra, moon_dec, comments) VALUES (:name, :start_date, :moon_illumination, :moon_ra, :moon_dec, :comments)");
     query.bindValue(":name", name);
     query.bindValue(":start_date", startDate.toString(Qt::ISODate));
+    query.bindValue(":moon_illumination", moonIllumination);
+    query.bindValue(":moon_ra", moonRa);
+    query.bindValue(":moon_dec", moonDec);
     query.bindValue(":comments", comments);
 
     if (!query.exec())
@@ -72,12 +76,15 @@ bool SessionsRepository::addSession(const QString &name, const QDate &startDate,
     return true;
 }
 
-bool SessionsRepository::updateSession(int id, const QString &name, const QDate &startDate, const QString &comments, QString &errorMessage)
+bool SessionsRepository::updateSession(int id, const QString &name, const QDate &startDate, const QString &comments, const double &moonIllumination, const double &moonRa, const double &moonDec, QString &errorMessage)
 {
     QSqlQuery query(m_dbManager->database());
-    query.prepare("UPDATE sessions SET name = :name, start_date = :start_date, comments = :comments WHERE id = :id");
+    query.prepare("UPDATE sessions SET name = :name, start_date = :start_date, comments = :comments, moon_illumination = :moon_illumination, moon_ra = :moon_ra, moon_dec = :moon_dec WHERE id = :id");
     query.bindValue(":name", name);
     query.bindValue(":start_date", startDate.toString(Qt::ISODate));
+    query.bindValue(":moon_illumination", moonIllumination);
+    query.bindValue(":moon_ra", moonRa);
+    query.bindValue(":moon_dec", moonDec);
     query.bindValue(":comments", comments);
     query.bindValue(":id", id);
 
