@@ -13,9 +13,8 @@ set(CMAKE_AUTOUIC_SEARCH_PATHS uifiles)
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets Sql Network Charts)
 
 # Find libzip
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(LIBZIP REQUIRED libzip)
-find_package(supernovas REQUIRED)
+find_package(libzip CONFIG REQUIRED)
+find_package(supernovas CONFIG REQUIRED)
 
 set(PROJECT_SOURCES
     src/main.cpp
@@ -88,7 +87,7 @@ set(PROJECT_UI
     uifiles/about_tab.ui
 )
 
-include_directories(include ${LIBZIP_INCLUDE_DIRS} ${supernovas_INCLUDE_DIRS})
+include_directories(include ${libzip_INCLUDE_DIRS} ${supernovas_INCLUDE_DIRS})
 
 set(app_icon_resource_windows "${CMAKE_CURRENT_SOURCE_DIR}/images/resources.rc")
 
@@ -106,7 +105,7 @@ target_link_libraries(${PROJECT_NAME}
     Qt6::Sql
     Qt6::Network
     Qt6::Charts
-    ${LIBZIP_LIBRARIES}
+    libzip::zip
     supernovas::core
 )
 
@@ -114,3 +113,10 @@ target_link_libraries(${PROJECT_NAME}
 if(WIN32)
     set_target_properties(${PROJECT_NAME} PROPERTIES WIN32_EXECUTABLE TRUE)
 endif()
+
+add_custom_command(
+    TARGET ${PROJECT_NAME}
+    POST_BUILD
+    COMMAND ${Qt6_DIR}/../../../bin/windeployqt.exe
+    ARGS ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.exe --compiler-runtime
+)

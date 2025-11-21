@@ -1,0 +1,9 @@
+{
+  "name" : "mgwobslog",
+  "version-string" : "1.0.0",
+  "dependencies" : [ {
+    "name" : "libzip"
+  }, {
+    "name" : "supernovas"
+  } ]
+}
