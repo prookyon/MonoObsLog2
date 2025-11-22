@@ -112,11 +112,23 @@ target_link_libraries(${PROJECT_NAME}
 # Set Windows subsystem to Windows (not console)
 if(WIN32)
     set_target_properties(${PROJECT_NAME} PROPERTIES WIN32_EXECUTABLE TRUE)
+    add_custom_command(
+        TARGET ${PROJECT_NAME}
+        POST_BUILD
+        COMMAND ${Qt6_DIR}/../../../bin/windeployqt.exe
+        ARGS ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}${CMAKE_EXECUTABLE_SUFFIX} --compiler-runtime
+    )
 endif()
 
-add_custom_command(
-    TARGET ${PROJECT_NAME}
-    POST_BUILD
-    COMMAND ${Qt6_DIR}/../../../bin/windeployqt.exe
-    ARGS ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.exe --compiler-runtime
-)
+# set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_BINARY_DIR}/install CACHE PATH "Install path" FORCE)
+
+# install(TARGETS ${PROJECT_NAME}
+#         RUNTIME DESTINATION .
+#         LIBRARY DESTINATION .
+#         ARCHIVE DESTINATION .
+# )
+
+# install(CODE "
+#     message(\"windeployqt\")
+#     execute_process(COMMAND ${Qt6_DIR}/../../../bin/windeployqt.exe ${CMAKE_INSTALL_PREFIX}${PROJECT_NAME}.exe --compiler-runtime)
+# ")
