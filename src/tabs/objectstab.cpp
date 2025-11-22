@@ -15,9 +15,16 @@
 #include <QTableWidgetItem>
 #include <QPushButton>
 #include <QPointer>
+#include <QtCharts/QPolarChart>
+#include <QtCharts/QChartView>
+#include <QtCharts/QScatterSeries>
+#include <QtCharts/QValueAxis>
+#include <QtCharts/QCategoryAxis>
+
+#define MAX_ELEVATION 90
 
 ObjectsTab::ObjectsTab(DatabaseManager *dbManager, SettingsManager *settingsManager, QWidget *parent)
-    : QWidget(parent), ui(new Ui::ObjectsTab), m_dbManager(dbManager), m_settingsManager(settingsManager), m_repository(nullptr), m_simbadQuery(nullptr), m_dialogRaEdit(nullptr), m_dialogDecEdit(nullptr)
+    : QWidget(parent), ui(new Ui::ObjectsTab), m_dbManager(dbManager), m_settingsManager(settingsManager), m_repository(nullptr), m_simbadQuery(nullptr), m_dialogRaEdit(nullptr), m_dialogDecEdit(nullptr), m_chart(nullptr), m_chartView(nullptr), m_scatterSeries(nullptr)
 {
     ui->setupUi(this);
     m_repository = new ObjectsRepository(m_dbManager, this);
@@ -40,6 +47,45 @@ void ObjectsTab::initialize()
     ui->objectsTable->setColumnWidth(1, 150); // RA
     ui->objectsTable->setColumnWidth(2, 150); // Dec
 
+    // Create polar chart
+    m_chart = new QPolarChart();
+    m_chart->setTitle("Object Positions");
+    m_chartView = new QChartView(m_chart, this);
+    m_chartView->setMinimumSize(300, 300);
+    ui->horizontalLayout_4->addWidget(m_chartView);
+
+    // Create scatter series
+    m_scatterSeries = new QScatterSeries();
+    m_scatterSeries->setName("Objects");
+    m_scatterSeries->setMarkerShape(QScatterSeries::MarkerShapeCircle);
+    m_scatterSeries->setMarkerSize(8.0);
+    m_chart->addSeries(m_scatterSeries);
+
+    // Set up axes
+    QValueAxis *angularAxis = new QValueAxis();
+    angularAxis->setRange(0, 360);
+    angularAxis->setLabelFormat("%.0f");
+    angularAxis->setTickCount(9); // Every 45 degrees
+    m_chart->addAxis(angularAxis, QPolarChart::PolarOrientationAngular);
+
+    /*QValueAxis *radialAxis = new QValueAxis();
+    radialAxis->setRange(0, 90);
+    radialAxis->setLabelFormat("%.0f");
+    radialAxis->setTickCount(7); // Every 15 degrees
+    radialAxis->setReverse(true);
+    m_chart->addAxis(radialAxis, QPolarChart::PolarOrientationRadial);*/
+
+    QCategoryAxis *elevationAxis = new QCategoryAxis;
+    elevationAxis->setRange(0, MAX_ELEVATION);
+    for(unsigned int i = 0; i <= MAX_ELEVATION; i += 15)
+        elevationAxis->append(QString::number(MAX_ELEVATION-i), i);
+    elevationAxis->setLabelsPosition(QCategoryAxis::AxisLabelsPositionOnValue);
+    elevationAxis->setLabelsVisible(true);
+    m_chart->addAxis(elevationAxis, QPolarChart::PolarOrientationRadial);
+
+    m_scatterSeries->attachAxis(angularAxis);
+    m_scatterSeries->attachAxis(elevationAxis);
+
     // Initialize the tab UI and data
     refreshData();
 }
@@ -55,13 +101,16 @@ void ObjectsTab::populateTable()
     ui->objectsTable->setSortingEnabled(false);
     ui->objectsTable->setRowCount(0);
 
+    // Clear the scatter series
+    m_scatterSeries->clear();
+
     QString errorMessage;
     QVector<ObjectData> objects = m_repository->getAllObjects(errorMessage);
 
     if (!errorMessage.isEmpty())
     {
         QMessageBox::warning(this, "Database Error",
-                             QString("Failed to load objects: %1").arg(errorMessage));
+                              QString("Failed to load objects: %1").arg(errorMessage));
         return;
     }
 
@@ -94,6 +143,9 @@ void ObjectsTab::populateTable()
         QTableWidgetItem *transitItem = new QTableWidgetItem(info.transitTime.toLocalTime().toString("hh:mm"));
         transitItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
         ui->objectsTable->setItem(row, 3, transitItem);
+
+        // Add to scatter series
+        m_scatterSeries->append(info.azimuth, MAX_ELEVATION - info.altitude);
 
         row++;
     }
