@@ -10,10 +10,19 @@ struct EquatorialCoords
     double dec; // declination in degrees
 };
 
+struct ObjectInfo
+{
+    QDateTime transitTime;
+    QDateTime riseTime;
+    QDateTime setTime;
+    double azimuth;
+    double altitude;
+};
+
 class AstroCalc
 {
 public:
-    static QDateTime transitTime(double lat, double lon, double raHours, double decDegrees);
+    static ObjectInfo getObjectInfo(double lat, double lon, double raHours, double decDegrees);
     static void moonInfoForDate(QDateTime time, double lat, double lon, double *illumination, double *ra, double *dec);
 };
 

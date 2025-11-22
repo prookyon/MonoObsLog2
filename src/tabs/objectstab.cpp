@@ -90,8 +90,8 @@ void ObjectsTab::populateTable()
         ui->objectsTable->setItem(row, 2, decItem);
 
         // Transit time column
-        QDateTime transit = AstroCalc::transitTime(lat, lon, obj.ra.toDouble(), obj.dec.toDouble()).toLocalTime();
-        QTableWidgetItem *transitItem = new QTableWidgetItem(transit.toString("hh:mm"));
+        ObjectInfo info = AstroCalc::getObjectInfo(lat, lon, obj.ra.toDouble(), obj.dec.toDouble());
+        QTableWidgetItem *transitItem = new QTableWidgetItem(info.transitTime.toLocalTime().toString("hh:mm"));
         transitItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
         ui->objectsTable->setItem(row, 3, transitItem);
 

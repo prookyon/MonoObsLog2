@@ -5,7 +5,7 @@ extern "C"
 }
 #include <cmath>
 
-QDateTime AstroCalc::transitTime(double lat, double lon, double raHours, double decDegrees)
+ObjectInfo AstroCalc::getObjectInfo(double lat, double lon, double raHours, double decDegrees)
 {
 
     cat_entry cat; // Structure to contain information on sidereal source
@@ -33,12 +33,31 @@ QDateTime AstroCalc::transitTime(double lat, double lon, double raHours, double 
 
     // UTC-based Julian day *after* observer frame, of next source transit
     double jd_transit = novas_transit_time(&object, &obs_frame);
+    double jd_rise = novas_rises_above(0.0, &object, &obs_frame, novas_standard_refraction);
+    double jd_set = novas_sets_below(0.0, &object, &obs_frame, novas_standard_refraction);
+
+    double az, el;
+    novas_app_to_hor(&obs_frame, NOVAS_ICRS, raHours, decDegrees, NULL, &az, &el);
+
     int year, month, day;
     double hour;
     novas_jd_to_date(jd_transit, NOVAS_GREGORIAN_CALENDAR, &year, &month, &day, &hour);
     int fullHour = int(hour);
     int minutes = int(hour * 60) % 60;
-    return QDateTime(QDate(year, month, day), QTime(fullHour, minutes), QTimeZone::UTC);
+    QDateTime transitTime(QDate(year, month, day), QTime(fullHour, minutes), QTimeZone::UTC);
+
+    novas_jd_to_date(jd_rise, NOVAS_GREGORIAN_CALENDAR, &year, &month, &day, &hour);
+    fullHour = int(hour);
+    minutes = int(hour * 60) % 60;
+    QDateTime riseTime(QDate(year, month, day), QTime(fullHour, minutes), QTimeZone::UTC);
+
+    novas_jd_to_date(jd_set, NOVAS_GREGORIAN_CALENDAR, &year, &month, &day, &hour);
+    fullHour = int(hour);
+    minutes = int(hour * 60) % 60;
+    QDateTime setTime(QDate(year, month, day), QTime(fullHour, minutes), QTimeZone::UTC);
+
+    // return QDateTime(QDate(year, month, day), QTime(fullHour, minutes), QTimeZone::UTC);
+    return ObjectInfo{transitTime, riseTime, setTime, az, el};
 }
 
 /// @brief Calculates Moon illumination percentage, RA and Dec for given time and location
