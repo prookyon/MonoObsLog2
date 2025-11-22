@@ -10,11 +10,17 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOUIC_SEARCH_PATHS uifiles)
 
-find_package(Qt6 REQUIRED COMPONENTS Core Widgets Sql Network Charts)
+find_package(Qt6 REQUIRED COMPONENTS Core Widgets Sql Network Charts PrintSupport)
 
 # Find libzip
 find_package(libzip CONFIG REQUIRED)
 find_package(supernovas CONFIG REQUIRED)
+
+#to work around linker issue with too large debug info
+set_source_files_properties(
+        lib/QCustomPlot/qcustomplot.cpp
+        PROPERTIES COMPILE_FLAGS "-g0"
+)
 
 set(PROJECT_SOURCES
     src/main.cpp
@@ -91,6 +97,19 @@ include_directories(include ${libzip_INCLUDE_DIRS} ${supernovas_INCLUDE_DIRS})
 
 set(app_icon_resource_windows "${CMAKE_CURRENT_SOURCE_DIR}/images/resources.rc")
 
+add_library(customplot SHARED
+        lib/QCustomPlot/qcustomplot.cpp
+        lib/QCustomPlot/qcustomplot.h
+)
+target_compile_definitions(customplot PRIVATE QCUSTOMPLOT_COMPILE_LIBRARY)
+
+target_link_libraries(customplot
+        Qt6::Core
+        Qt6::Widgets
+        Qt6::PrintSupport
+)
+
+
 add_executable(${PROJECT_NAME}
     ${PROJECT_SOURCES}
     ${PROJECT_HEADERS}
@@ -98,6 +117,7 @@ add_executable(${PROJECT_NAME}
     resources.qrc
     ${app_icon_resource_windows}
 )
+target_compile_definitions(${PROJECT_NAME} PRIVATE QCUSTOMPLOT_USE_LIBRARY)
 
 target_link_libraries(${PROJECT_NAME}
     Qt6::Core
@@ -105,8 +125,10 @@ target_link_libraries(${PROJECT_NAME}
     Qt6::Sql
     Qt6::Network
     Qt6::Charts
+    Qt6::PrintSupport
     libzip::zip
     supernovas::core
+    customplot
 )
 
 # Set Windows subsystem to Windows (not console)

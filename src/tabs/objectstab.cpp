@@ -15,16 +15,11 @@
 #include <QTableWidgetItem>
 #include <QPushButton>
 #include <QPointer>
-#include <QtCharts/QPolarChart>
-#include <QtCharts/QChartView>
-#include <QtCharts/QScatterSeries>
-#include <QtCharts/QValueAxis>
-#include <QtCharts/QCategoryAxis>
-
-#define MAX_ELEVATION 90
+#include <cmath>
+#include "../lib/QCustomPlot/qcustomplot.h"
 
 ObjectsTab::ObjectsTab(DatabaseManager *dbManager, SettingsManager *settingsManager, QWidget *parent)
-    : QWidget(parent), ui(new Ui::ObjectsTab), m_dbManager(dbManager), m_settingsManager(settingsManager), m_repository(nullptr), m_simbadQuery(nullptr), m_dialogRaEdit(nullptr), m_dialogDecEdit(nullptr), m_chart(nullptr), m_chartView(nullptr), m_scatterSeries(nullptr)
+    : QWidget(parent), ui(new Ui::ObjectsTab), m_dbManager(dbManager), m_settingsManager(settingsManager), m_repository(nullptr), m_simbadQuery(nullptr), m_dialogRaEdit(nullptr), m_dialogDecEdit(nullptr), m_plot(nullptr), m_graph(nullptr)
 {
     ui->setupUi(this);
     m_repository = new ObjectsRepository(m_dbManager, this);
@@ -47,44 +42,29 @@ void ObjectsTab::initialize()
     ui->objectsTable->setColumnWidth(1, 150); // RA
     ui->objectsTable->setColumnWidth(2, 150); // Dec
 
-    // Create polar chart
-    m_chart = new QPolarChart();
-    m_chart->setTitle("Object Positions");
-    m_chartView = new QChartView(m_chart, this);
-    m_chartView->setMinimumSize(300, 300);
-    ui->horizontalLayout_4->addWidget(m_chartView);
+    // Create QCustomPlot
+    m_plot = new QCustomPlot(this);
+    m_plot->setMinimumSize(600, 300);
+    ui->horizontalLayout_4->addWidget(m_plot, 1);
+    ui->horizontalLayout_4->setStretchFactor(ui->objectsTable, 1);
+    // Setup polar plot
+    m_plot->plotLayout()->clear();
+    QCPPolarAxisAngular *angularAxis = new QCPPolarAxisAngular(m_plot);
+    m_plot->plotLayout()->addElement(0, 0, angularAxis);
+    //m_plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
+    angularAxis->setRangeDrag(false);
+    angularAxis->setTickLabelMode(QCPPolarAxisAngular::lmUpright);
+    angularAxis->setRangeReversed(true);
 
-    // Create scatter series
-    m_scatterSeries = new QScatterSeries();
-    m_scatterSeries->setName("Objects");
-    m_scatterSeries->setMarkerShape(QScatterSeries::MarkerShapeCircle);
-    m_scatterSeries->setMarkerSize(8.0);
-    m_chart->addSeries(m_scatterSeries);
+    angularAxis->radialAxis()->setRange(0, 90);
+    angularAxis->radialAxis()->setAngle(180);
+    angularAxis->radialAxis()->setRangeReversed(true);
+    angularAxis->radialAxis()->setTickLabelMode(QCPPolarAxisRadial::lmUpright);
 
-    // Set up axes
-    QValueAxis *angularAxis = new QValueAxis();
-    angularAxis->setRange(0, 360);
-    angularAxis->setLabelFormat("%.0f");
-    angularAxis->setTickCount(9); // Every 45 degrees
-    m_chart->addAxis(angularAxis, QPolarChart::PolarOrientationAngular);
-
-    /*QValueAxis *radialAxis = new QValueAxis();
-    radialAxis->setRange(0, 90);
-    radialAxis->setLabelFormat("%.0f");
-    radialAxis->setTickCount(7); // Every 15 degrees
-    radialAxis->setReverse(true);
-    m_chart->addAxis(radialAxis, QPolarChart::PolarOrientationRadial);*/
-
-    QCategoryAxis *elevationAxis = new QCategoryAxis;
-    elevationAxis->setRange(0, MAX_ELEVATION);
-    for(unsigned int i = 0; i <= MAX_ELEVATION; i += 15)
-        elevationAxis->append(QString::number(MAX_ELEVATION-i), i);
-    elevationAxis->setLabelsPosition(QCategoryAxis::AxisLabelsPositionOnValue);
-    elevationAxis->setLabelsVisible(true);
-    m_chart->addAxis(elevationAxis, QPolarChart::PolarOrientationRadial);
-
-    m_scatterSeries->attachAxis(angularAxis);
-    m_scatterSeries->attachAxis(elevationAxis);
+    // Create scatter graph
+    m_graph = new QCPPolarGraph(angularAxis, angularAxis->radialAxis());
+    m_graph->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, 8));
+    m_graph->setLineStyle(QCPPolarGraph::lsNone);
 
     // Initialize the tab UI and data
     refreshData();
@@ -101,9 +81,6 @@ void ObjectsTab::populateTable()
     ui->objectsTable->setSortingEnabled(false);
     ui->objectsTable->setRowCount(0);
 
-    // Clear the scatter series
-    m_scatterSeries->clear();
-
     QString errorMessage;
     QVector<ObjectData> objects = m_repository->getAllObjects(errorMessage);
 
@@ -116,6 +93,17 @@ void ObjectsTab::populateTable()
 
     double lat = m_settingsManager->latitude();
     double lon = m_settingsManager->longitude();
+    QVector<double> azimuthData, altitudeData;
+    
+    // Clear existing text items from the plot
+    for (int i = m_plot->itemCount() - 1; i >= 0; --i)
+    {
+        if (QCPItemText *textItem = qobject_cast<QCPItemText*>(m_plot->item(i)))
+        {
+            m_plot->removeItem(textItem);
+        }
+    }
+    
     int row = 0;
     for (const ObjectData &obj : objects)
     {
@@ -144,11 +132,39 @@ void ObjectsTab::populateTable()
         transitItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
         ui->objectsTable->setItem(row, 3, transitItem);
 
-        // Add to scatter series
-        m_scatterSeries->append(info.azimuth, MAX_ELEVATION - info.altitude);
+        if (info.altitude > 0) {
+            double qcpAngle = info.azimuth;
+            if (qcpAngle < 0) qcpAngle += 360.0;
+
+            azimuthData.append(qcpAngle);
+            altitudeData.append(info.altitude);
+
+            // Add text label for this point on the polar plot
+            QCPItemText *textLabel = new QCPItemText(m_plot);
+            textLabel->setPositionAlignment(Qt::AlignCenter);
+            textLabel->position->setType(QCPItemPosition::ptViewportRatio);
+            //textLabel->position->setAxisRect(qobject_cast<QCPAxisRect*>(m_plot->plotLayout()->element(0, 0)));
+
+            // Convert polar coordinates (angle, radius) to Cartesian for label positioning
+            double angleRad = qcpAngle * M_PI / 180.0;
+            double radius = info.altitude / 90.0;
+            double x = 0.5 - (1.0 - radius) * std::sin(angleRad) / 2.0;
+            double y = 0.5 - (1.0 - radius) * std::cos(angleRad) / 2.0;
+
+            textLabel->position->setCoords(x, y);
+            textLabel->setText(obj.name);
+            textLabel->setFont(QFont(font().family(), 8));
+            textLabel->setPadding(QMargins(2, 2, 2, 2));
+            textLabel->setBrush(QBrush(QColor(255, 255, 255, 200)));
+            textLabel->setPen(QPen(Qt::black));
+        }
 
         row++;
     }
+
+    // Set data to graph
+    m_graph->setData(azimuthData, altitudeData);
+    m_plot->replot();
 
     ui->objectsTable->setSortingEnabled(true);
 }

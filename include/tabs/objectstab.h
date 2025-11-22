@@ -15,9 +15,8 @@ class DatabaseManager;
 class SimbadQuery;
 class ObjectsRepository;
 class SettingsManager;
-class QPolarChart;
-class QChartView;
-class QScatterSeries;
+class QCustomPlot;
+class QCPPolarGraph;
 
 class ObjectsTab : public QWidget
 {
@@ -48,9 +47,8 @@ private:
     SimbadQuery *m_simbadQuery;
     QLineEdit *m_dialogRaEdit;
     QLineEdit *m_dialogDecEdit;
-    QPolarChart *m_chart;
-    QChartView *m_chartView;
-    QScatterSeries *m_scatterSeries;
+    QCustomPlot *m_plot;
+    QCPPolarGraph *m_graph;
 };
 
 #endif // OBJECTSTAB_H
