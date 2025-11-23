@@ -17,6 +17,7 @@ find_package(Qt6 REQUIRED COMPONENTS Core Widgets Sql Network Charts PrintSuppor
 # Find libzip
 find_package(libzip CONFIG REQUIRED)
 find_package(supernovas CONFIG REQUIRED)
+find_package(OpenXLSX CONFIG REQUIRED)
 
 pkg_search_module(Qwt REQUIRED IMPORTED_TARGET Qt6Qwt6)
 
@@ -115,6 +116,7 @@ target_link_libraries(${PROJECT_NAME}
     libzip::zip
     supernovas::core
     PkgConfig::Qwt
+    OpenXLSX::OpenXLSX
 )
 
 # Set Windows subsystem to Windows (not console)

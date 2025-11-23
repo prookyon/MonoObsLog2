@@ -33,6 +33,7 @@ private slots:
     void onDeleteObservationButtonClicked();
     void onFilterSelectionChanged();
     void onExportToHtmlClicked();
+    void onExportToExcelClicked();
 
 private:
     void populateTable();

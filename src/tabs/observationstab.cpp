@@ -22,6 +22,7 @@
 #include <QFile>
 #include <QTextStream>
 #include <QDateTime>
+#include <OpenXLSX.hpp>
 
 ObservationsTab::ObservationsTab(DatabaseManager *dbManager, SettingsManager *settingsManager, QWidget *parent)
     : QWidget(parent), ui(new Ui::ObservationsTab), m_dbManager(dbManager), m_settingsManager(settingsManager),
@@ -48,7 +49,9 @@ void ObservationsTab::initialize()
     // Setup export menu
     m_exportMenu = new QMenu(this);
     QAction *exportToHtmlAction = m_exportMenu->addAction("Export to HTML");
+    QAction *exportToExcelAction = m_exportMenu->addAction("Export to Excel");
     connect(exportToHtmlAction, &QAction::triggered, this, &ObservationsTab::onExportToHtmlClicked);
+    connect(exportToExcelAction, &QAction::triggered, this, &ObservationsTab::onExportToExcelClicked);
     ui->exportObservationButton->setMenu(m_exportMenu);
 
     // Connect filter list view
@@ -813,4 +816,146 @@ void ObservationsTab::onExportToHtmlClicked()
                              QString("Exported %1 observations to:\n%2")
                                  .arg(observations.size())
                                  .arg(fileName));
+}
+
+void ObservationsTab::onExportToExcelClicked() {
+    // Ask user for save location
+    QString fileName = QFileDialog::getSaveFileName(
+        this,
+        "Export Observations to Excel",
+        QDir::homePath() + "/observations_export.xlsx",
+        "Excel Files (*.xlsx);;All Files (*)");
+
+    if (fileName.isEmpty())
+    {
+        return; // User cancelled
+    }
+
+    // Get current observations (respecting filter)
+    QString errorMessage;
+    QVector<ObservationData> observations;
+
+    if (m_currentFilterObjectId == -1)
+    {
+        observations = m_repository->getAllObservations(errorMessage);
+    }
+    else
+    {
+        observations = m_repository->getObservationsByObject(m_currentFilterObjectId, errorMessage);
+    }
+
+    if (!errorMessage.isEmpty())
+    {
+        QMessageBox::warning(this, "Export Error",
+                             "Failed to load observations: " + errorMessage);
+        return;
+    }
+
+    try
+    {
+        // Create a new Excel document
+        OpenXLSX::XLDocument doc;
+        doc.create(fileName.toStdString(), true);
+        auto wks = doc.workbook().worksheet("Sheet1");
+
+        // Set worksheet name
+        wks.setName("Observations");
+
+        // Determine filter name
+        QString filterName = "All Objects";
+        if (m_currentFilterObjectId != -1)
+        {
+            QModelIndex index = ui->observationFilterListView->currentIndex();
+            if (index.isValid())
+            {
+                filterName = m_filterListModel->data(index, Qt::DisplayRole).toString();
+            }
+        }
+
+        // Get current date/time
+        QString exportDateTime = QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss");
+
+        // Add export information at the top
+        wks.cell("A1").value() = "Observations Export";
+        wks.cell("A2").value() = "Filter: " + filterName.toStdString();
+        wks.cell("A3").value() = "Export Date: " + exportDateTime.toStdString();
+        wks.cell("A4").value() = "Total Records: " + std::to_string(observations.size());
+
+        // Add header row (starting at row 6)
+        int headerRow = 6;
+        wks.cell(headerRow, 1).value() = "Session Name";
+        wks.cell(headerRow, 2).value() = "Date";
+        wks.cell(headerRow, 3).value() = "Object";
+        wks.cell(headerRow, 4).value() = "Camera";
+        wks.cell(headerRow, 5).value() = "Telescope";
+        wks.cell(headerRow, 6).value() = "Filter";
+        wks.cell(headerRow, 7).value() = "Images";
+        wks.cell(headerRow, 8).value() = "Exposure (s)";
+        wks.cell(headerRow, 9).value() = "Total Exposure (s)";
+        wks.cell(headerRow, 10).value() = "Moon Phase (%)";
+        wks.cell(headerRow, 11).value() = "Angular Separation";
+        wks.cell(headerRow, 12).value() = "Comments";
+
+        // Get warning thresholds
+        int moonWarningThreshold = m_settingsManager ? m_settingsManager->moonIlluminationWarningPercent() : 75;
+        int angularWarningThreshold = m_settingsManager ? m_settingsManager->moonAngularSeparationWarningDeg() : 60;
+
+        // Add data rows
+        int currentRow = headerRow + 1;
+        for (const ObservationData &obs : observations)
+        {
+            wks.cell(currentRow, 1).value() = obs.sessionName.toStdString();
+            wks.cell(currentRow, 2).value() = obs.sessionDate.toStdString();
+            wks.cell(currentRow, 3).value() = obs.objectName.toStdString();
+            wks.cell(currentRow, 4).value() = obs.cameraName.toStdString();
+            wks.cell(currentRow, 5).value() = obs.telescopeName.toStdString();
+            wks.cell(currentRow, 6).value() = obs.filterName.toStdString();
+            wks.cell(currentRow, 7).value() = obs.imageCount;
+            wks.cell(currentRow, 8).value() = obs.exposureLength;
+            wks.cell(currentRow, 9).value() = obs.totalExposure;
+            wks.cell(currentRow, 10).value() = obs.moonIllumination;
+            
+            // Angular separation (may be negative if not calculated)
+            if (obs.angularSeparation >= 0.0)
+            {
+                wks.cell(currentRow, 11).value() = obs.angularSeparation;
+            }
+            else
+            {
+                wks.cell(currentRow, 11).value() = "";
+            }
+            
+            wks.cell(currentRow, 12).value() = obs.comments.toStdString();
+
+            currentRow++;
+        }
+
+        // Auto-fit columns (set reasonable widths)
+        wks.column(1).setWidth(20);  // Session Name
+        wks.column(2).setWidth(12);  // Date
+        wks.column(3).setWidth(20);  // Object
+        wks.column(4).setWidth(15);  // Camera
+        wks.column(5).setWidth(15);  // Telescope
+        wks.column(6).setWidth(12);  // Filter
+        wks.column(7).setWidth(10);  // Images
+        wks.column(8).setWidth(14);  // Exposure
+        wks.column(9).setWidth(18);  // Total Exposure
+        wks.column(10).setWidth(16); // Moon Phase
+        wks.column(11).setWidth(18); // Angular Separation
+        wks.column(12).setWidth(30); // Comments
+
+        // Save the document
+        doc.save();
+        doc.close();
+
+        QMessageBox::information(this, "Export Successful",
+                                 QString("Exported %1 observations to:\n%2")
+                                     .arg(observations.size())
+                                     .arg(fileName));
+    }
+    catch (const std::exception &e)
+    {
+        QMessageBox::warning(this, "Export Error",
+                             QString("Failed to create Excel file: %1").arg(e.what()));
+    }
 }
