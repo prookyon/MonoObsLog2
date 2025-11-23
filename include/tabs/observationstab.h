@@ -14,6 +14,7 @@ class DatabaseManager;
 class ObservationsRepository;
 class QStringListModel;
 class SettingsManager;
+class QMenu;
 
 class ObservationsTab : public QWidget
 {
@@ -31,6 +32,7 @@ private slots:
     void onEditObservationButtonClicked();
     void onDeleteObservationButtonClicked();
     void onFilterSelectionChanged();
+    void onExportToHtmlClicked();
 
 private:
     void populateTable();
@@ -45,6 +47,7 @@ private:
     SettingsManager *m_settingsManager;
     ObservationsRepository *m_repository;
     QStringListModel *m_filterListModel;
+    QMenu *m_exportMenu;
     int m_currentFilterObjectId; // -1 for "All Objects"
 };
 

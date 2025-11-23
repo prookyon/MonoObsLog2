@@ -17,10 +17,15 @@
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QStringListModel>
+#include <QMenu>
+#include <QFileDialog>
+#include <QFile>
+#include <QTextStream>
+#include <QDateTime>
 
 ObservationsTab::ObservationsTab(DatabaseManager *dbManager, SettingsManager *settingsManager, QWidget *parent)
     : QWidget(parent), ui(new Ui::ObservationsTab), m_dbManager(dbManager), m_settingsManager(settingsManager),
-      m_repository(nullptr), m_filterListModel(nullptr), m_currentFilterObjectId(-1)
+      m_repository(nullptr), m_filterListModel(nullptr), m_exportMenu(nullptr), m_currentFilterObjectId(-1)
 {
     ui->setupUi(this);
     m_repository = new ObservationsRepository(m_dbManager, this);
@@ -39,6 +44,12 @@ void ObservationsTab::initialize()
     connect(ui->addObservationButton, &QPushButton::clicked, this, &ObservationsTab::onAddObservationButtonClicked);
     connect(ui->editObservationButton, &QPushButton::clicked, this, &ObservationsTab::onEditObservationButtonClicked);
     connect(ui->deleteObservationButton, &QPushButton::clicked, this, &ObservationsTab::onDeleteObservationButtonClicked);
+
+    // Setup export menu
+    m_exportMenu = new QMenu(this);
+    QAction *exportToHtmlAction = m_exportMenu->addAction("Export to HTML");
+    connect(exportToHtmlAction, &QAction::triggered, this, &ObservationsTab::onExportToHtmlClicked);
+    ui->exportObservationButton->setMenu(m_exportMenu);
 
     // Connect filter list view
     connect(ui->observationFilterListView->selectionModel(), &QItemSelectionModel::selectionChanged,
@@ -675,4 +686,131 @@ void ObservationsTab::onDeleteObservationButtonClicked()
     }
 
     refreshData();
+}
+
+void ObservationsTab::onExportToHtmlClicked()
+{
+    // Ask user for save location
+    QString fileName = QFileDialog::getSaveFileName(
+        this,
+        "Export Observations to HTML",
+        QDir::homePath() + "/observations_export.html",
+        "HTML Files (*.html);;All Files (*)");
+
+    if (fileName.isEmpty())
+    {
+        return; // User cancelled
+    }
+
+    // Read the template file
+    QFile templateFile(":/templates/observations_export.html");
+    if (!templateFile.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        QMessageBox::warning(this, "Export Error",
+                             "Failed to open template file: " + templateFile.errorString());
+        return;
+    }
+
+    QString templateContent = QTextStream(&templateFile).readAll();
+    templateFile.close();
+
+    // Get current observations (respecting filter)
+    QString errorMessage;
+    QVector<ObservationData> observations;
+
+    if (m_currentFilterObjectId == -1)
+    {
+        observations = m_repository->getAllObservations(errorMessage);
+    }
+    else
+    {
+        observations = m_repository->getObservationsByObject(m_currentFilterObjectId, errorMessage);
+    }
+
+    if (!errorMessage.isEmpty())
+    {
+        QMessageBox::warning(this, "Export Error",
+                             "Failed to load observations: " + errorMessage);
+        return;
+    }
+
+    // Generate table rows HTML
+    QString tableRowsHtml;
+    int moonWarningThreshold = m_settingsManager ? m_settingsManager->moonIlluminationWarningPercent() : 75;
+    int angularWarningThreshold = m_settingsManager ? m_settingsManager->moonAngularSeparationWarningDeg() : 60;
+
+    for (const ObservationData &obs : observations)
+    {
+        tableRowsHtml += "                <tr>\n";
+        tableRowsHtml += QString("                    <td>%1</td>\n").arg(obs.sessionName);
+        tableRowsHtml += QString("                    <td>%1</td>\n").arg(obs.sessionDate);
+        tableRowsHtml += QString("                    <td>%1</td>\n").arg(obs.objectName);
+        tableRowsHtml += QString("                    <td>%1</td>\n").arg(obs.cameraName);
+        tableRowsHtml += QString("                    <td>%1</td>\n").arg(obs.telescopeName);
+        tableRowsHtml += QString("                    <td>%1</td>\n").arg(obs.filterName);
+        tableRowsHtml += QString("                    <td>%1</td>\n").arg(obs.imageCount);
+        tableRowsHtml += QString("                    <td>%1</td>\n").arg(obs.exposureLength);
+        tableRowsHtml += QString("                    <td>%1</td>\n").arg(obs.totalExposure);
+
+        // Moon illumination with warning class
+        QString moonClass = (obs.moonIllumination > moonWarningThreshold) ? " class=\"moon-warning\"" : "";
+        tableRowsHtml += QString("                    <td%1>%2</td>\n")
+                             .arg(moonClass)
+                             .arg(QString::number(obs.moonIllumination, 'f', 0));
+
+        // Angular separation with warning class
+        if (obs.angularSeparation >= 0.0)
+        {
+            QString angularClass = (obs.angularSeparation < angularWarningThreshold) ? " class=\"angular-warning\"" : "";
+            tableRowsHtml += QString("                    <td%1>%2</td>\n")
+                                 .arg(angularClass)
+                                 .arg(QString::number(obs.angularSeparation, 'f', 0));
+        }
+        else
+        {
+            tableRowsHtml += "                    <td></td>\n";
+        }
+
+        tableRowsHtml += QString("                    <td>%1</td>\n").arg(obs.comments);
+        tableRowsHtml += "                </tr>\n";
+    }
+
+    // Determine filter name
+    QString filterName = "All Objects";
+    if (m_currentFilterObjectId != -1)
+    {
+        QModelIndex index = ui->observationFilterListView->currentIndex();
+        if (index.isValid())
+        {
+            filterName = m_filterListModel->data(index, Qt::DisplayRole).toString();
+        }
+    }
+
+    // Get current date/time
+    QString exportDateTime = QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss");
+
+    // Replace placeholders
+    templateContent.replace("{{filter_name}}", filterName);
+    templateContent.replace("{{export_date}}", exportDateTime);
+    templateContent.replace("{{total_records}}", QString::number(observations.size()));
+    templateContent.replace("{{table_rows}}", tableRowsHtml);
+    templateContent.replace("{{completion_date}}", exportDateTime);
+
+    // Write to file
+    QFile outputFile(fileName);
+    if (!outputFile.open(QIODevice::WriteOnly | QIODevice::Text))
+    {
+        QMessageBox::warning(this, "Export Error",
+                             "Failed to write to file: " + outputFile.errorString());
+        return;
+    }
+
+    QTextStream out(&outputFile);
+    out << templateContent;
+    outputFile.close();
+
+    QMessageBox::information(this, "Export Successful",
+                             QString("Exported %1 observations to:\n%2")
+                                 .arg(observations.size())
+                                 .arg(fileName));
 }
