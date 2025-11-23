@@ -3,6 +3,10 @@
 
 #include <QWidget>
 #include <QLineEdit>
+#include <qwt_polar_plot.h>
+#include <qwt_polar_marker.h>
+#include <qwt_polar_panner.h>
+#include <qwt_polar_magnifier.h>
 
 QT_BEGIN_NAMESPACE
 namespace Ui
@@ -15,8 +19,6 @@ class DatabaseManager;
 class SimbadQuery;
 class ObjectsRepository;
 class SettingsManager;
-class QCustomPlot;
-class QCPPolarGraph;
 
 class ObjectsTab : public QWidget
 {
@@ -47,6 +49,8 @@ private:
     SimbadQuery *m_simbadQuery;
     QLineEdit *m_dialogRaEdit;
     QLineEdit *m_dialogDecEdit;
+    QwtPolarPanner* m_panner;
+    QwtPolarMagnifier* m_zoomer;
 };
 
 #endif // OBJECTSTAB_H

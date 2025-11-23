@@ -10,11 +10,15 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOUIC_SEARCH_PATHS uifiles)
 
+find_package(PkgConfig REQUIRED)
+
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets Sql Network Charts PrintSupport)
 
 # Find libzip
 find_package(libzip CONFIG REQUIRED)
 find_package(supernovas CONFIG REQUIRED)
+
+pkg_search_module(Qwt REQUIRED IMPORTED_TARGET Qt6Qwt6)
 
 
 set(PROJECT_SOURCES
@@ -110,15 +114,16 @@ target_link_libraries(${PROJECT_NAME}
     Qt6::PrintSupport
     libzip::zip
     supernovas::core
+    PkgConfig::Qwt
 )
 
 # Set Windows subsystem to Windows (not console)
 if(WIN32)
     set_target_properties(${PROJECT_NAME} PROPERTIES WIN32_EXECUTABLE TRUE)
-    add_custom_command(
-        TARGET ${PROJECT_NAME}
-        POST_BUILD
-        COMMAND ${Qt6_DIR}/../../../bin/windeployqt.exe
-        ARGS ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}${CMAKE_EXECUTABLE_SUFFIX} --compiler-runtime
-    )
+#    add_custom_command(
+#        TARGET ${PROJECT_NAME}
+#        POST_BUILD
+#        COMMAND ${Qt6_DIR}/../../../bin/windeployqt.exe
+#        ARGS ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}${CMAKE_EXECUTABLE_SUFFIX} --compiler-runtime
+#    )
 endif()

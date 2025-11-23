@@ -38,7 +38,7 @@
       </layout>
      </item>
      <item>
-      <layout class="QHBoxLayout" name="horizontalLayout_4">
+      <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="1,1">
        <item>
         <widget class="QTableWidget" name="objectsTable">
          <property name="editTriggers">
@@ -81,6 +81,9 @@
          </column>
         </widget>
        </item>
+       <item>
+        <widget class="QwtPolarPlot" name="polarPlot" native="true"/>
+       </item>
       </layout>
      </item>
      <item>
@@ -104,7 +107,7 @@
           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Shows current view of sky (remember to set correct location in settings! ) with all of the visible objects from the list.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="text">
-          <string>Show Plot ...</string>
+          <string>Refresh</string>
          </property>
         </widget>
        </item>
@@ -128,6 +131,13 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QwtPolarPlot</class>
+   <extends>QWidget</extends>
+   <header>qwt_polar_plot.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

@@ -1,4 +1,5 @@
 #include "tabs/objectstab.h"
+#include "tabs/objectstab.h"
 #include "ui_objects_tab.h"
 #include "db/databasemanager.h"
 #include "db/objectsrepository.h"
@@ -15,6 +16,14 @@
 #include <QTableWidgetItem>
 #include <QPushButton>
 #include <QPointer>
+#include <qwt_polar_grid.h>
+#include <qwt_polar_marker.h>
+#include <qwt_text.h>
+#include <qwt_symbol.h>
+#include <qwt_polar_panner.h>
+#include <qwt_polar_magnifier.h>
+#include <qwt_polar_canvas.h>
+#include <qwt_scale_div.h>
 
 ObjectsTab::ObjectsTab(DatabaseManager *dbManager, SettingsManager *settingsManager, QWidget *parent)
     : QWidget(parent), ui(new Ui::ObjectsTab), m_dbManager(dbManager), m_settingsManager(settingsManager), m_repository(nullptr), m_simbadQuery(nullptr), m_dialogRaEdit(nullptr), m_dialogDecEdit(nullptr)
@@ -34,11 +43,41 @@ void ObjectsTab::initialize()
     connect(ui->addButton, &QPushButton::clicked, this, &ObjectsTab::onAddButtonClicked);
     connect(ui->editButton, &QPushButton::clicked, this, &ObjectsTab::onEditButtonClicked);
     connect(ui->deleteButton, &QPushButton::clicked, this, &ObjectsTab::onDeleteButtonClicked);
+    connect(ui->plotButton, &QPushButton::clicked, this, &ObjectsTab::populateTable);
 
     // Configure table columns (without ID column)
     ui->objectsTable->setColumnWidth(0, 200); // Name
     ui->objectsTable->setColumnWidth(1, 150); // RA
     ui->objectsTable->setColumnWidth(2, 150); // Dec
+
+    // Initialize polar plot
+    ui->polarPlot->setPlotBackground(QColor(0,66,124,255));
+
+    // Configure axes
+    ui->polarPlot->setScale(QwtPolar::Azimuth, 0.0, 360.0, 30.0);
+    ui->polarPlot->setScale(QwtPolar::Radius, 90.0, 0.0, 30.0);
+
+    // Add grid
+    QwtPolarGrid *grid = new QwtPolarGrid();
+    grid->setPen( QPen( Qt::white ) );
+    grid->setAxisPen(QwtPolar::AxisAzimuth, QPen(Qt::black));
+    grid->showAxis( QwtPolar::AxisAzimuth, true );
+    grid->showAxis( QwtPolar::AxisLeft, false );
+    grid->showAxis( QwtPolar::AxisRight, false );
+    grid->showAxis( QwtPolar::AxisTop, false );
+    grid->showAxis( QwtPolar::AxisBottom, true );
+    grid->attach(ui->polarPlot);
+
+    // Set azimuth origin to North (top) and direction clockwise
+    ui->polarPlot->setAzimuthOrigin(90.0*M_PI/180.0);
+    ui->polarPlot->setScaleMaxMinor(QwtPolar::Azimuth, 0);
+    ui->polarPlot->setScaleMaxMinor(QwtPolar::Radius, 0);
+
+    m_panner = new QwtPolarPanner( ui->polarPlot->canvas() );
+    m_panner->setEnabled( true );
+
+    m_zoomer = new QwtPolarMagnifier( ui->polarPlot->canvas() );
+    m_zoomer->setEnabled( true );
 
     // Initialize the tab UI and data
     refreshData();
@@ -65,6 +104,9 @@ void ObjectsTab::populateTable()
         return;
     }
 
+    // Clear existing markers from polar plot
+    ui->polarPlot->detachItems(QwtPolarItem::Rtti_PolarMarker);
+
     double lat = m_settingsManager->latitude();
     double lon = m_settingsManager->longitude();
     int row = 0;
@@ -89,16 +131,54 @@ void ObjectsTab::populateTable()
         decItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
         ui->objectsTable->setItem(row, 2, decItem);
 
-        // Transit time column
-        ObjectInfo info = AstroCalc::getObjectInfo(lat, lon, obj.ra.toDouble(), obj.dec.toDouble());
-        QTableWidgetItem *transitItem = new QTableWidgetItem(info.transitTime.toLocalTime().toString("hh:mm"));
-        transitItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
-        ui->objectsTable->setItem(row, 3, transitItem);
+        // Get object info for transit time and position
+        if (!obj.ra.isNull() && !obj.dec.isNull())
+        {
+            ObjectInfo info = AstroCalc::getObjectInfo(lat, lon, obj.ra.toDouble(), obj.dec.toDouble());
+            
+            // Transit time column
+            QTableWidgetItem *transitItem = new QTableWidgetItem(info.transitTime.toLocalTime().toString("hh:mm"));
+            transitItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+            ui->objectsTable->setItem(row, 3, transitItem);
+
+            // Add marker to polar plot if altitude is positive (object is above horizon)
+            if (info.altitude > 0)
+            {
+                QwtPolarMarker *marker = new QwtPolarMarker();
+                
+                // Set position: azimuth (angular) and altitude
+                QwtPointPolar position(info.azimuth, info.altitude);
+                marker->setPosition(position);
+                
+                // Set label with object name
+                QwtText label(obj.name);
+                label.setColor(Qt::white);
+                label.setBackgroundBrush(QBrush(QColor(0, 0, 0, 128))); // Semi-transparent black background
+                marker->setLabel(label);
+                marker->setLabelAlignment(Qt::AlignTop | Qt::AlignHCenter);
+                
+                // Set marker symbol
+                marker->setSymbol(new QwtSymbol(QwtSymbol::Ellipse,
+                                               QBrush(Qt::yellow),
+                                               QPen(Qt::white),
+                                               QSize(4, 4)));
+                
+                marker->attach(ui->polarPlot);
+            }
+        }
+        else
+        {
+            // Empty transit time if coordinates are missing
+            QTableWidgetItem *transitItem = new QTableWidgetItem("");
+            transitItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+            ui->objectsTable->setItem(row, 3, transitItem);
+        }
 
         row++;
     }
 
     ui->objectsTable->setSortingEnabled(true);
+    ui->polarPlot->replot();
 }
 
 bool ObjectsTab::showObjectDialog(const QString &title, QString &name, QString &ra, QString &dec)
