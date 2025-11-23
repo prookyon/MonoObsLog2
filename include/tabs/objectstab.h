@@ -47,8 +47,6 @@ private:
     SimbadQuery *m_simbadQuery;
     QLineEdit *m_dialogRaEdit;
     QLineEdit *m_dialogDecEdit;
-    QCustomPlot *m_plot;
-    QCPPolarGraph *m_graph;
 };
 
 #endif // OBJECTSTAB_H

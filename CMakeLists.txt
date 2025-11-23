@@ -16,11 +16,6 @@ find_package(Qt6 REQUIRED COMPONENTS Core Widgets Sql Network Charts PrintSuppor
 find_package(libzip CONFIG REQUIRED)
 find_package(supernovas CONFIG REQUIRED)
 
-#to work around linker issue with too large debug info
-set_source_files_properties(
-        lib/QCustomPlot/qcustomplot.cpp
-        PROPERTIES COMPILE_FLAGS "-g0"
-)
 
 set(PROJECT_SOURCES
     src/main.cpp
@@ -97,18 +92,6 @@ include_directories(include ${libzip_INCLUDE_DIRS} ${supernovas_INCLUDE_DIRS})
 
 set(app_icon_resource_windows "${CMAKE_CURRENT_SOURCE_DIR}/images/resources.rc")
 
-add_library(customplot SHARED
-        lib/QCustomPlot/qcustomplot.cpp
-        lib/QCustomPlot/qcustomplot.h
-)
-target_compile_definitions(customplot PRIVATE QCUSTOMPLOT_COMPILE_LIBRARY)
-
-target_link_libraries(customplot
-        Qt6::Core
-        Qt6::Widgets
-        Qt6::PrintSupport
-)
-
 
 add_executable(${PROJECT_NAME}
     ${PROJECT_SOURCES}
@@ -117,7 +100,6 @@ add_executable(${PROJECT_NAME}
     resources.qrc
     ${app_icon_resource_windows}
 )
-target_compile_definitions(${PROJECT_NAME} PRIVATE QCUSTOMPLOT_USE_LIBRARY)
 
 target_link_libraries(${PROJECT_NAME}
     Qt6::Core
@@ -128,7 +110,6 @@ target_link_libraries(${PROJECT_NAME}
     Qt6::PrintSupport
     libzip::zip
     supernovas::core
-    customplot
 )
 
 # Set Windows subsystem to Windows (not console)
@@ -141,16 +122,3 @@ if(WIN32)
         ARGS ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}${CMAKE_EXECUTABLE_SUFFIX} --compiler-runtime
     )
 endif()
-
-# set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_BINARY_DIR}/install CACHE PATH "Install path" FORCE)
-
-# install(TARGETS ${PROJECT_NAME}
-#         RUNTIME DESTINATION .
-#         LIBRARY DESTINATION .
-#         ARCHIVE DESTINATION .
-# )
-
-# install(CODE "
-#     message(\"windeployqt\")
-#     execute_process(COMMAND ${Qt6_DIR}/../../../bin/windeployqt.exe ${CMAKE_INSTALL_PREFIX}${PROJECT_NAME}.exe --compiler-runtime)
-# ")
