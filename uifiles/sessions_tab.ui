@@ -96,17 +96,7 @@
      </column>
      <column>
       <property name="text">
-       <string>Moon Illumination</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>Moon RA</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>Moon Dec</string>
+       <string>Moon Illumination (%)</string>
       </property>
      </column>
      <column>
@@ -123,6 +113,13 @@
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;Start Date&lt;/span&gt; should be the date of the &lt;span style=&quot; font-weight:700;&quot;&gt;evening&lt;/span&gt;, even if observations were all after midnight.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+      </widget>
+     </item>
      <item>
       <spacer name="horizontalSpacer">
        <property name="orientation">
