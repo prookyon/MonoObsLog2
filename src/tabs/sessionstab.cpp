@@ -39,10 +39,8 @@ void SessionsTab::initialize()
     ui->sessionsTable->setColumnWidth(0, 150); // Session Name
     ui->sessionsTable->setColumnWidth(1, 120); // Start Date
     ui->sessionsTable->setColumnWidth(2, 150); // Moon Illumination
-    ui->sessionsTable->setColumnWidth(3, 100); // Moon RA
-    ui->sessionsTable->setColumnWidth(4, 100); // Moon Dec
-    ui->sessionsTable->setColumnWidth(5, 150); // Exposure Total (h)
-    ui->sessionsTable->setColumnWidth(6, 200); // Comments
+    ui->sessionsTable->setColumnWidth(3, 150); // Exposure Total (h)
+    ui->sessionsTable->setColumnWidth(4, 200); // Comments
 
     // Initialize the tab UI and data
     ui->startDateEdit->setDate(QDate::currentDate());
@@ -104,27 +102,15 @@ void SessionsTab::populateTable()
 
         ui->sessionsTable->setItem(row, 2, moonIllumItem);
 
-        // Moon RA column
-        QString moonRaText = session.moonRa.isNull() ? "" : QString::number(session.moonRa.toDouble(), 'f', 2);
-        NumericTableWidgetItem *moonRaItem = new NumericTableWidgetItem(moonRaText);
-        moonRaItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
-        ui->sessionsTable->setItem(row, 3, moonRaItem);
-
-        // Moon Dec column
-        QString moonDecText = session.moonDec.isNull() ? "" : QString::number(session.moonDec.toDouble(), 'f', 2);
-        NumericTableWidgetItem *moonDecItem = new NumericTableWidgetItem(moonDecText);
-        moonDecItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
-        ui->sessionsTable->setItem(row, 4, moonDecItem);
-
         // Exposure Total (h) column
         QString exposureText = session.exposureTotal.isNull() ? "0" : QString::number(session.exposureTotal.toDouble(), 'f', 1);
         NumericTableWidgetItem *exposureItem = new NumericTableWidgetItem(exposureText);
         exposureItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
-        ui->sessionsTable->setItem(row, 5, exposureItem);
+        ui->sessionsTable->setItem(row, 3, exposureItem);
 
         // Comments column
         QTableWidgetItem *commentsItem = new QTableWidgetItem(session.comments);
-        ui->sessionsTable->setItem(row, 6, commentsItem);
+        ui->sessionsTable->setItem(row, 4, commentsItem);
 
         row++;
     }
