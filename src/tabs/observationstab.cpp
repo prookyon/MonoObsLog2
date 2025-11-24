@@ -316,6 +316,7 @@ void ObservationsTab::populateTable()
     }
 
     ui->observationsTable->setSortingEnabled(true);
+    ui->observationsTable->resizeColumnsToContents();
 }
 
 void ObservationsTab::onFilterSelectionChanged()

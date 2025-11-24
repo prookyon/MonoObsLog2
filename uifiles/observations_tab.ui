@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>ObservationsTab</class>
- <widget class="QWidget" name="ObservationTab">
+ <widget class="QWidget" name="ObservationsTab">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -162,7 +162,8 @@
        </attribute>
        <column>
         <property name="text">
-         <string>Session Name</string>
+         <string>Session
+Name</string>
         </property>
        </column>
        <column>
@@ -209,13 +210,13 @@ Exposure (s)</string>
        <column>
         <property name="text">
          <string>Moon
-Illumination</string>
+Illumination (%)</string>
         </property>
        </column>
        <column>
         <property name="text">
          <string>Angular
-Separation</string>
+Separation (°)</string>
         </property>
        </column>
        <column>

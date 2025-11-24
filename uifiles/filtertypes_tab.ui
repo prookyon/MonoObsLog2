@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>FilterTypesTab</class>
- <widget class="QWidget" name="FilterTypeTab">
+ <widget class="QWidget" name="FilterTypesTab">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -51,6 +51,9 @@
       <widget class="QPushButton" name="addFilterTypeButton">
        <property name="text">
         <string>Add Filter Type</string>
+       </property>
+       <property name="default">
+        <bool>true</bool>
        </property>
       </widget>
      </item>

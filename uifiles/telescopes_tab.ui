@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>TelescopesTab</class>
- <widget class="QWidget" name="TelescopeTab">
+ <widget class="QWidget" name="TelescopesTab">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>337</width>
+    <width>636</width>
     <height>356</height>
    </rect>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <layout class="QGridLayout" name="gridLayout"  columnstretch="0,1,0,1,0,1,0">
+    <layout class="QGridLayout" name="gridLayout" columnstretch="0,1,0,1,0,1,0">
      <item row="0" column="0">
       <widget class="QLabel" name="nameLabel">
        <property name="text">
@@ -75,10 +75,13 @@
        </property>
       </widget>
      </item>
-     <item row="1" column="6" >
+     <item row="1" column="6">
       <widget class="QPushButton" name="addTelescopeButton">
        <property name="text">
         <string>Add Telescope</string>
+       </property>
+       <property name="default">
+        <bool>true</bool>
        </property>
       </widget>
      </item>
