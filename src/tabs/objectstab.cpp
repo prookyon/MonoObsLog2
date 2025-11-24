@@ -13,11 +13,15 @@
 #include <QFormLayout>
 #include <QLineEdit>
 #include <QDialogButtonBox>
+#include <QFile>
 #include <QTableWidgetItem>
 #include <QPushButton>
 #include <QPointer>
 #include <qwt_polar_grid.h>
 #include <qwt_polar_marker.h>
+#include <qwt_polar_curve.h>
+#include <qwt_point_polar.h>
+#include <qwt_series_data.h>
 #include <qwt_text.h>
 #include <qwt_symbol.h>
 #include <qwt_polar_panner.h>
@@ -79,6 +83,8 @@ void ObjectsTab::initialize()
     m_zoomer = new QwtPolarMagnifier( ui->polarPlot->canvas() );
     m_zoomer->setEnabled( true );
 
+    LoadConstellations();
+
     // Initialize the tab UI and data
     refreshData();
 }
@@ -104,8 +110,9 @@ void ObjectsTab::populateTable()
         return;
     }
 
-    // Clear existing markers from polar plot
+    // Clear existing markers and curves from polar plot
     ui->polarPlot->detachItems(QwtPolarItem::Rtti_PolarMarker);
+    ui->polarPlot->detachItems(QwtPolarItem::Rtti_PolarCurve);
 
     double lat = m_settingsManager->latitude();
     double lon = m_settingsManager->longitude();
@@ -177,7 +184,33 @@ void ObjectsTab::populateTable()
         row++;
     }
 
+    // Draw constellation lines
+    QString currentConstellation;
+    QwtPolarCurve *curve = nullptr;
+
+    for (const ConstellationLine &line : m_constellations) {
+        auto first = AstroCalc::getObjectInfo(lat, lon, line.ra1/15.0, line.dec1);
+        auto second = AstroCalc::getObjectInfo(lat, lon, line.ra2/15.0, line.dec2);
+
+        // Skip if both points are below horizon
+        if (first.altitude < 0 && second.altitude < 0)
+            continue;
+
+        curve = new QwtPolarCurve();
+        curve->setPen(QPen(Qt::cyan, 1));
+        curve->setSymbol( new QwtSymbol( QwtSymbol::Ellipse,
+                QBrush( QColor(220,220,220,255)), QPen(  QColor(220,220,220,255) ), QSize( 2, 2 ) ) );
+        QVector<QwtPointPolar> points;
+
+        // Add points to current curve (clamp altitude to 0 if below horizon)
+        points.append(QwtPointPolar(first.azimuth, qMax(0.0, first.altitude)));
+        points.append(QwtPointPolar(second.azimuth, qMax(0.0, second.altitude)));
+        curve->setData(new QwtArraySeriesData(points));
+        curve->attach(ui->polarPlot);
+    }
+
     ui->objectsTable->setSortingEnabled(true);
+    ui->polarPlot->setTitle(QDateTime::currentDateTime().toString(  Qt::ISODate));
     ui->polarPlot->replot();
 }
 
@@ -441,4 +474,35 @@ void ObjectsTab::onSimbadError(const QString &error)
     qDebug() << "SIMBAD error:" << error;
     QMessageBox::warning(nullptr, "SIMBAD Query Error",
                          QString("Failed to retrieve coordinates:\n\n%1").arg(error));
+}
+
+void ObjectsTab::LoadConstellations() {
+    // Read the template file
+    QFile conCsv(":/data/constellations.csv");
+    if (!conCsv.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        QMessageBox::warning(this, "Error",
+                              "Failed to open constellations file: " + conCsv.errorString());
+        return;
+    }
+
+    m_constellations.clear();
+    QTextStream stream(&conCsv);
+    while (!stream.atEnd()) {
+        QString line = stream.readLine().trimmed();
+        if (line.isEmpty()) continue;
+        if (QStringList parts = line.split(','); parts.size() == 5) {
+            ConstellationLine cl;
+            cl.name = parts[0];
+            bool ok1, ok2, ok3, ok4;
+            cl.ra1 = parts[1].toDouble(&ok1);
+            cl.dec1 = parts[2].toDouble(&ok2);
+            cl.ra2 = parts[3].toDouble(&ok3);
+            cl.dec2 = parts[4].toDouble(&ok4);
+            if (ok1 && ok2 && ok3 && ok4) {
+                m_constellations.append(cl);
+            }
+        }
+    }
+    conCsv.close();
 }

@@ -3,5 +3,6 @@
         <file>images/icon.ico</file>
         <file>images/icon.png</file>
         <file>templates/observations_export.html</file>
+        <file>data/constellations.csv</file>
     </qresource>
 </RCC>

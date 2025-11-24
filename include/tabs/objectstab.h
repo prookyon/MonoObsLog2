@@ -7,6 +7,7 @@
 #include <qwt_polar_marker.h>
 #include <qwt_polar_panner.h>
 #include <qwt_polar_magnifier.h>
+#include <qwt_polar_curve.h>
 
 QT_BEGIN_NAMESPACE
 namespace Ui
@@ -39,8 +40,14 @@ private slots:
     void onSimbadError(const QString &error);
 
 private:
+    struct ConstellationLine {
+        QString name;
+        double ra1, dec1, ra2, dec2;
+    };
+
     void populateTable();
     bool showObjectDialog(const QString &title, QString &name, QString &ra, QString &dec);
+    void LoadConstellations();
 
     Ui::ObjectsTab *ui;
     DatabaseManager *m_dbManager;
@@ -51,6 +58,7 @@ private:
     QLineEdit *m_dialogDecEdit;
     QwtPolarPanner* m_panner;
     QwtPolarMagnifier* m_zoomer;
+    QVector<ConstellationLine> m_constellations;
 };
 
 #endif // OBJECTSTAB_H

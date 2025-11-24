@@ -102,6 +102,13 @@
         </spacer>
        </item>
        <item>
+        <widget class="QLabel" name="label">
+         <property name="text">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Zoom with mousewheel, pan by clicking and dragging.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QPushButton" name="plotButton">
          <property name="toolTip">
           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Shows current view of sky (remember to set correct location in settings! ) with all of the visible objects from the list.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
