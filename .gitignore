@@ -45,3 +45,6 @@ desktop.ini
 *~
 *.swp
 *.swo
+
+#Vcpkg
+vcpkg_installed/
