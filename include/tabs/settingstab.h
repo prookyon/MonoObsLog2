@@ -19,7 +19,7 @@ class SettingsTab : public QWidget
 
 public:
     explicit SettingsTab(DatabaseManager *dbManager, SettingsManager *settingsManager, QWidget *parent = nullptr);
-    ~SettingsTab();
+    ~SettingsTab() override;
 
     void initialize();
     void refreshData();

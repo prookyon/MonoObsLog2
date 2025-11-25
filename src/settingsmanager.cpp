@@ -1,7 +1,5 @@
 #include "settingsmanager.h"
-#include <QFile>
 #include <QDir>
-#include <QJsonDocument>
 #include <QJsonObject>
 #include <QDebug>
 #include <QStandardPaths>
@@ -13,22 +11,22 @@ SettingsManager::SettingsManager(QObject *parent)
       m_latitude(0.0),
       m_longitude(0.0),
       m_databasePath(""),
+      m_style(""),
+      m_colorScheme(Qt::ColorScheme::Unknown),
       m_initialized(false)
 {
 }
 
 SettingsManager::~SettingsManager()
-{
-}
+= default;
 
 bool SettingsManager::initialize()
 {
-    QString settingsDir = getSettingsDirectoryPath();
-    QString settingsFile = getSettingsFilePath();
+    const QString settingsDir = getSettingsDirectoryPath();
+    const QString settingsFile = getSettingsFilePath();
 
     // Check if directory exists, create if not
-    QDir dir;
-    if (!dir.exists(settingsDir))
+    if (const QDir dir; !dir.exists(settingsDir))
     {
         if (!dir.mkpath(settingsDir))
         {
@@ -39,9 +37,8 @@ bool SettingsManager::initialize()
     }
 
     // Check if settings file exists
-    bool fileExists = QFile::exists(settingsFile);
 
-    if (!fileExists)
+    if (const bool fileExists = QFile::exists(settingsFile); !fileExists)
     {
         // Create default settings file
         if (!createDefaultSettings())
@@ -67,13 +64,12 @@ bool SettingsManager::initialize()
     return true;
 }
 
-QString SettingsManager::getSettingsDirectoryPath() const
-{
-    QString homePath = QDir::homePath();
+QString SettingsManager::getSettingsDirectoryPath() {
+    const QString homePath = QDir::homePath();
     return QDir(homePath).filePath(".MonoObsLog");
 }
 
-QString SettingsManager::getSettingsFilePath() const
+QString SettingsManager::getSettingsFilePath()
 {
     return QDir(getSettingsDirectoryPath()).filePath("settings.json");
 }
@@ -85,6 +81,8 @@ bool SettingsManager::createDefaultSettings()
     m_moonAngularSeparationWarningDeg = 60;
     m_latitude = 0.0;
     m_longitude = 0.0;
+    m_style = "";                             // use Qt default at first
+    m_colorScheme = Qt::ColorScheme::Unknown; // use Qt default at first
     // Note: m_databasePath has no default - must be set by user
 
     // Create JSON object with default values
@@ -93,10 +91,12 @@ bool SettingsManager::createDefaultSettings()
     jsonObj["moon_angular_separation_warning_deg"] = m_moonAngularSeparationWarningDeg;
     jsonObj["latitude"] = m_latitude;
     jsonObj["longitude"] = m_longitude;
+    jsonObj["style"] = m_style;
+    jsonObj["color_scheme"] = static_cast<int>(m_colorScheme);
     // Do not add database_path to default settings
 
     // Write to file
-    QJsonDocument doc(jsonObj);
+    const QJsonDocument doc(jsonObj);
     QFile file(getSettingsFilePath());
 
     if (!file.open(QIODevice::WriteOnly))
@@ -126,10 +126,10 @@ bool SettingsManager::loadSettings()
         return false;
     }
 
-    QByteArray data = file.readAll();
+    const QByteArray data = file.readAll();
     file.close();
 
-    QJsonDocument doc = QJsonDocument::fromJson(data);
+    const QJsonDocument doc = QJsonDocument::fromJson(data);
 
     if (doc.isNull() || !doc.isObject())
     {
@@ -137,7 +137,7 @@ bool SettingsManager::loadSettings()
         return false;
     }
 
-    QJsonObject jsonObj = doc.object();
+    const QJsonObject jsonObj = doc.object();
 
     // Load values with defaults if keys are missing
     m_moonIlluminationWarningPercent = jsonObj.value("moon_illumination_warning_percent").toInt(75);
@@ -146,6 +146,8 @@ bool SettingsManager::loadSettings()
     m_longitude = jsonObj.value("longitude").toDouble(0.0);
     // Load database_path - no default value, empty if not present
     m_databasePath = jsonObj.value("database_path").toString("");
+    m_style = jsonObj.value("style").toString("");
+    m_colorScheme = static_cast<Qt::ColorScheme>(jsonObj.value("color_scheme").toInt(static_cast<int>(Qt::ColorScheme::Unknown)));
 
     return true;
 }
@@ -158,8 +160,10 @@ bool SettingsManager::saveSettings()
     jsonObj["latitude"] = m_latitude;
     jsonObj["longitude"] = m_longitude;
     jsonObj["database_path"] = m_databasePath;
+    jsonObj["style"] = m_style;
+    jsonObj["color_scheme"] = static_cast<int>(m_colorScheme);
 
-    QJsonDocument doc(jsonObj);
+    const QJsonDocument doc(jsonObj);
     QFile file(getSettingsFilePath());
 
     if (!file.open(QIODevice::WriteOnly))
@@ -208,8 +212,18 @@ QString SettingsManager::databasePath() const
     return m_databasePath;
 }
 
+QString SettingsManager::style() const
+{
+    return m_style;
+}
+
+Qt::ColorScheme SettingsManager::colorScheme() const
+{
+    return m_colorScheme;
+}
+
 // Setters
-void SettingsManager::setMoonIlluminationWarningPercent(int value)
+void SettingsManager::setMoonIlluminationWarningPercent(const int value)
 {
     if (m_moonIlluminationWarningPercent != value)
     {
@@ -217,7 +231,7 @@ void SettingsManager::setMoonIlluminationWarningPercent(int value)
     }
 }
 
-void SettingsManager::setMoonAngularSeparationWarningDeg(int value)
+void SettingsManager::setMoonAngularSeparationWarningDeg(const int value)
 {
     if (m_moonAngularSeparationWarningDeg != value)
     {
@@ -225,7 +239,7 @@ void SettingsManager::setMoonAngularSeparationWarningDeg(int value)
     }
 }
 
-void SettingsManager::setLatitude(double value)
+void SettingsManager::setLatitude(const double value)
 {
     if (m_latitude != value)
     {
@@ -233,7 +247,7 @@ void SettingsManager::setLatitude(double value)
     }
 }
 
-void SettingsManager::setLongitude(double value)
+void SettingsManager::setLongitude(const double value)
 {
     if (m_longitude != value)
     {
@@ -246,5 +260,21 @@ void SettingsManager::setDatabasePath(const QString &value)
     if (m_databasePath != value)
     {
         m_databasePath = value;
+    }
+}
+
+void SettingsManager::setStyle(const QString &value)
+{
+    if (m_style != value)
+    {
+        m_style = value;
+    }
+}
+
+void SettingsManager::setColorScheme(const Qt::ColorScheme value)
+{
+    if (m_colorScheme != value)
+    {
+        m_colorScheme = value;
     }
 }

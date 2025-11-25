@@ -10,16 +10,18 @@ class SettingsManager : public QObject
 
 public:
     explicit SettingsManager(QObject *parent = nullptr);
-    ~SettingsManager();
+    ~SettingsManager() override;
 
     bool initialize();
 
     // Getters
-    int moonIlluminationWarningPercent() const;
-    int moonAngularSeparationWarningDeg() const;
-    double latitude() const;
-    double longitude() const;
-    QString databasePath() const;
+    [[nodiscard]] int moonIlluminationWarningPercent() const;
+    [[nodiscard]] int moonAngularSeparationWarningDeg() const;
+    [[nodiscard]] double latitude() const;
+    [[nodiscard]] double longitude() const;
+    [[nodiscard]] QString databasePath() const;
+    [[nodiscard]] QString style() const;
+    [[nodiscard]] Qt::ColorScheme colorScheme() const;
 
     // Setters
     void setMoonIlluminationWarningPercent(int value);
@@ -27,6 +29,8 @@ public:
     void setLatitude(double value);
     void setLongitude(double value);
     void setDatabasePath(const QString &value);
+    void setStyle(const QString &value);
+    void setColorScheme(Qt::ColorScheme value);
 
     // Save settings to file
     bool saveSettings();
@@ -39,8 +43,9 @@ signals:
 private:
     bool loadSettings();
     bool createDefaultSettings();
-    QString getSettingsFilePath() const;
-    QString getSettingsDirectoryPath() const;
+    static QString getSettingsFilePath() ;
+
+    static QString getSettingsDirectoryPath();
 
     // Settings values
     int m_moonIlluminationWarningPercent;
@@ -48,6 +53,8 @@ private:
     double m_latitude;
     double m_longitude;
     QString m_databasePath;
+    QString m_style;
+    Qt::ColorScheme m_colorScheme;
 
     bool m_initialized;
 };

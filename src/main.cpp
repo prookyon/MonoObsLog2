@@ -6,6 +6,7 @@
 #include <QFileInfo>
 #include <QMessageBox>
 #include <QDir>
+#include <QStyleHints>
 
 int main(int argc, char *argv[])
 {
@@ -36,9 +37,8 @@ int main(int argc, char *argv[])
     }
     else
     {
-        QFileInfo fileInfo(dbPath);
         // Check if file exists OR if parent directory exists (for new database creation)
-        if (!fileInfo.exists() && !fileInfo.dir().exists())
+        if (const QFileInfo fileInfo(dbPath); !fileInfo.exists() && !fileInfo.dir().exists())
         {
             QMessageBox::warning(nullptr, "Database Path Invalid",
                                  QString("The configured database path is invalid:\n%1\n\n"
@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
     // Prompt user to select database file if needed
     if (needsNewPath)
     {
-        QString selectedPath = QFileDialog::getSaveFileName(
+        const QString selectedPath = QFileDialog::getSaveFileName(
             nullptr,
             "Select or Create Database File",
             QDir::homePath() + "/MonoObsLog.db",
@@ -76,20 +76,36 @@ int main(int argc, char *argv[])
         dbPath = selectedPath;
     }
 
-    // Check and create database backup if needed
-    DatabaseBackup backupManager;
-    QString backupErrorMessage;
-    if (!backupManager.checkAndBackupIfNeeded(dbPath, backupErrorMessage))
+    if (!needsNewPath)
+    { // skip the backup for first run as DB file has not been created yet
+
+        // Check and create database backup if needed
+        DatabaseBackup backupManager;
+        QString backupErrorMessage;
+        if (!backupManager.checkAndBackupIfNeeded(dbPath, backupErrorMessage))
+        {
+            // Backup failed, but we can still continue - just warn the user
+            QMessageBox::warning(nullptr, "Backup Warning",
+                                 QString("Failed to create database backup:\n%1\n\n"
+                                         "The application will continue, but your database may not be backed up.")
+                                     .arg(backupErrorMessage));
+        }
+    }
+
+    QString style = settingsManager.style();
+    if (!style.isEmpty())
     {
-        // Backup failed, but we can still continue - just warn the user
-        QMessageBox::warning(nullptr, "Backup Warning",
-                             QString("Failed to create database backup:\n%1\n\n"
-                                     "The application will continue, but your database may not be backed up.")
-                                 .arg(backupErrorMessage));
+        QApplication::setStyle(style);
+    }
+
+    auto colorScheme = settingsManager.colorScheme();
+    if (colorScheme != Qt::ColorScheme::Unknown)
+    {
+        qApp->styleHints()->setColorScheme(colorScheme);
     }
 
     MainWindow window(dbPath);
     window.show();
 
-    return app.exec();
+    return QApplication::exec();
 }

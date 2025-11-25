@@ -52,58 +52,80 @@ MainWindow::~MainWindow()
 void MainWindow::initializeTabs()
 {
     // Create tab widgets and add them to tabWidget
-    QWidget *objectsTabWidget = new QWidget();
-    QVBoxLayout *objectsLayout = new QVBoxLayout(objectsTabWidget);
+    auto *objectsTabWidget = new QWidget();
+    // ReSharper disable once CppDFAMemoryLeak
+    auto *objectsLayout = new QVBoxLayout(objectsTabWidget);
+    objectsTabWidget->setLayout(objectsLayout);
     objectsLayout->setContentsMargins(0, 0, 0, 0);
     ui->tabWidget->addTab(objectsTabWidget, "Objects");
 
-    QWidget *sessionsTabWidget = new QWidget();
-    QVBoxLayout *sessionsLayout = new QVBoxLayout(sessionsTabWidget);
+    auto *sessionsTabWidget = new QWidget();
+    // ReSharper disable once CppDFAMemoryLeak
+    auto *sessionsLayout = new QVBoxLayout(sessionsTabWidget);
+    sessionsTabWidget->setLayout(sessionsLayout);
     sessionsLayout->setContentsMargins(0, 0, 0, 0);
     ui->tabWidget->addTab(sessionsTabWidget, "Sessions");
 
-    QWidget *camerasTabWidget = new QWidget();
-    QVBoxLayout *camerasLayout = new QVBoxLayout(camerasTabWidget);
+    auto *camerasTabWidget = new QWidget();
+    // ReSharper disable once CppDFAMemoryLeak
+    auto *camerasLayout = new QVBoxLayout(camerasTabWidget);
+    camerasTabWidget->setLayout(camerasLayout);
     camerasLayout->setContentsMargins(0, 0, 0, 0);
     ui->tabWidget->addTab(camerasTabWidget, "Cameras");
 
-    QWidget *filterTypesTabWidget = new QWidget();
-    QVBoxLayout *filterTypesLayout = new QVBoxLayout(filterTypesTabWidget);
+    auto *filterTypesTabWidget = new QWidget();
+    // ReSharper disable once CppDFAMemoryLeak
+    auto *filterTypesLayout = new QVBoxLayout(filterTypesTabWidget);
+    filterTypesTabWidget->setLayout(filterTypesLayout);
     filterTypesLayout->setContentsMargins(0, 0, 0, 0);
     ui->tabWidget->addTab(filterTypesTabWidget, "Filter Types");
 
-    QWidget *filtersTabWidget = new QWidget();
-    QVBoxLayout *filtersLayout = new QVBoxLayout(filtersTabWidget);
+    auto *filtersTabWidget = new QWidget();
+    // ReSharper disable once CppDFAMemoryLeak
+    auto *filtersLayout = new QVBoxLayout(filtersTabWidget);
+    filtersTabWidget->setLayout(filtersLayout);
     filtersLayout->setContentsMargins(0, 0, 0, 0);
     ui->tabWidget->addTab(filtersTabWidget, "Filters");
 
-    QWidget *telescopesTabWidget = new QWidget();
-    QVBoxLayout *telescopesLayout = new QVBoxLayout(telescopesTabWidget);
+    auto *telescopesTabWidget = new QWidget();
+    // ReSharper disable once CppDFAMemoryLeak
+    auto *telescopesLayout = new QVBoxLayout(telescopesTabWidget);
+    telescopesTabWidget->setLayout(telescopesLayout);
     telescopesLayout->setContentsMargins(0, 0, 0, 0);
     ui->tabWidget->addTab(telescopesTabWidget, "Telescopes");
 
-    QWidget *observationsTabWidget = new QWidget();
-    QVBoxLayout *observationsLayout = new QVBoxLayout(observationsTabWidget);
+    auto *observationsTabWidget = new QWidget();
+    // ReSharper disable once CppDFAMemoryLeak
+    auto *observationsLayout = new QVBoxLayout(observationsTabWidget);
+    observationsTabWidget->setLayout(observationsLayout);
     observationsLayout->setContentsMargins(0, 0, 0, 0);
     ui->tabWidget->addTab(observationsTabWidget, "Observations");
 
-    QWidget *objectStatsTabWidget = new QWidget();
-    QVBoxLayout *objectStatsLayout = new QVBoxLayout(objectStatsTabWidget);
+    auto *objectStatsTabWidget = new QWidget();
+    // ReSharper disable once CppDFAMemoryLeak
+    auto *objectStatsLayout = new QVBoxLayout(objectStatsTabWidget);
+    objectStatsTabWidget->setLayout(objectStatsLayout);
     objectStatsLayout->setContentsMargins(0, 0, 0, 0);
     ui->tabWidget->addTab(objectStatsTabWidget, "Object Stats");
 
-    QWidget *monthlyStatsTabWidget = new QWidget();
-    QVBoxLayout *monthlyStatsLayout = new QVBoxLayout(monthlyStatsTabWidget);
+    auto *monthlyStatsTabWidget = new QWidget();
+    // ReSharper disable once CppDFAMemoryLeak
+    auto *monthlyStatsLayout = new QVBoxLayout(monthlyStatsTabWidget);
+    monthlyStatsTabWidget->setLayout(monthlyStatsLayout);
     monthlyStatsLayout->setContentsMargins(0, 0, 0, 0);
     ui->tabWidget->addTab(monthlyStatsTabWidget, "Monthly Stats");
 
-    QWidget *settingsTabWidget = new QWidget();
-    QVBoxLayout *settingsLayout = new QVBoxLayout(settingsTabWidget);
+    auto *settingsTabWidget = new QWidget();
+    // ReSharper disable once CppDFAMemoryLeak
+    auto *settingsLayout = new QVBoxLayout(settingsTabWidget);
+    settingsTabWidget->setLayout(settingsLayout);
     settingsLayout->setContentsMargins(0, 0, 0, 0);
     ui->tabWidget->addTab(settingsTabWidget, "Settings");
 
-    QWidget *aboutTabWidget = new QWidget();
-    QVBoxLayout *aboutLayout = new QVBoxLayout(aboutTabWidget);
+    auto *aboutTabWidget = new QWidget();
+    // ReSharper disable once CppDFAMemoryLeak
+    auto *aboutLayout = new QVBoxLayout(aboutTabWidget);
+    aboutTabWidget->setLayout(aboutLayout);
     aboutLayout->setContentsMargins(0, 0, 0, 0);
     ui->tabWidget->addTab(aboutTabWidget, "About");
 
@@ -162,7 +184,7 @@ void MainWindow::setupConnections()
             { QMessageBox::warning(this, "Database Error", error); });
 
     // Connect tab switching to refresh data
-    connect(ui->tabWidget, QOverload<int>::of(&QTabWidget::currentChanged), this, [this](int index)
+    connect(ui->tabWidget, QOverload<int>::of(&QTabWidget::currentChanged), this, [this](const int index)
             {
         // Refresh Sessions tab when it's activated (index 1)
         if (index == 1 && m_sessionsTab)
