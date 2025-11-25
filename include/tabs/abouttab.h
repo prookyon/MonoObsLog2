@@ -18,10 +18,11 @@ class AboutTab : public QWidget
 
 public:
     explicit AboutTab(DatabaseManager *dbManager, QWidget *parent = nullptr);
-    ~AboutTab();
+    ~AboutTab() override;
 
-    void initialize();
-    void refreshData();
+    void initialize() const;
+
+    static void refreshData();
 
 private:
     Ui::AboutTab *ui;

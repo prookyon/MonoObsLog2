@@ -9,7 +9,7 @@ ObjectInfo AstroCalc::getObjectInfo(double lat, double lon, double raHours, doub
 {
 
     cat_entry cat; // Structure to contain information on sidereal source
-    novas_init_cat_entry(&cat, NULL, raHours, decDegrees);
+    novas_init_cat_entry(&cat, nullptr, raHours, decDegrees);
 
     object object; // Encapsulates a sidereal or a Solar-system source
     make_cat_object(&cat, &object);
@@ -37,23 +37,23 @@ ObjectInfo AstroCalc::getObjectInfo(double lat, double lon, double raHours, doub
     double jd_set = novas_sets_below(0.0, &object, &obs_frame, novas_standard_refraction);
 
     double az, el;
-    novas_app_to_hor(&obs_frame, NOVAS_ICRS, raHours, decDegrees, NULL, &az, &el);
+    novas_app_to_hor(&obs_frame, NOVAS_ICRS, raHours, decDegrees, nullptr, &az, &el);
 
     int year, month, day;
     double hour;
     novas_jd_to_date(jd_transit, NOVAS_GREGORIAN_CALENDAR, &year, &month, &day, &hour);
-    int fullHour = int(hour);
-    int minutes = int(hour * 60) % 60;
+    int fullHour = static_cast<int>(hour);
+    int minutes = static_cast<int>(hour * 60) % 60;
     QDateTime transitTime(QDate(year, month, day), QTime(fullHour, minutes), QTimeZone::UTC);
 
     novas_jd_to_date(jd_rise, NOVAS_GREGORIAN_CALENDAR, &year, &month, &day, &hour);
-    fullHour = int(hour);
-    minutes = int(hour * 60) % 60;
+    fullHour = static_cast<int>(hour);
+    minutes = static_cast<int>(hour * 60) % 60;
     QDateTime riseTime(QDate(year, month, day), QTime(fullHour, minutes), QTimeZone::UTC);
 
     novas_jd_to_date(jd_set, NOVAS_GREGORIAN_CALENDAR, &year, &month, &day, &hour);
-    fullHour = int(hour);
-    minutes = int(hour * 60) % 60;
+    fullHour = static_cast<int>(hour);
+    minutes = static_cast<int>(hour * 60) % 60;
     QDateTime setTime(QDate(year, month, day), QTime(fullHour, minutes), QTimeZone::UTC);
 
     // return QDateTime(QDate(year, month, day), QTime(fullHour, minutes), QTimeZone::UTC);
@@ -67,10 +67,10 @@ ObjectInfo AstroCalc::getObjectInfo(double lat, double lon, double raHours, doub
 /// @param illumination - returned illumination percentage
 /// @param ra - returned RA (decimal degrees)
 /// @param dec - returned Dec (decimal degrees)
-void AstroCalc::moonInfoForDate(QDateTime time, double lat, double lon, double *illumination, double *ra, double *dec)
+void AstroCalc::moonInfoForDate(const QDateTime& time, double lat, double lon, double *illumination, double *ra, double *dec)
 {
     QDateTime utc = time.toUTC();
-    double jd = julian_date(utc.date().year(), utc.date().month(), utc.date().day(), utc.time().hour() + utc.time().minute() / 60.0 + utc.time().second() / 3600.0);
+    double jd = julian_date(static_cast<short>(utc.date().year()), static_cast<short>(utc.date().month()), static_cast<short>(utc.date().day()), utc.time().hour() + utc.time().minute() / 60.0 + utc.time().second() / 3600.0);
 
     observer obs;
     make_gps_observer(lat, lon, 0.0, &obs);

@@ -1,9 +1,7 @@
 #ifndef SIMBADQUERY_H
 #define SIMBADQUERY_H
 
-#include <QObject>
-#include <QString>
-#include <QNetworkAccessManager>
+
 #include <QNetworkReply>
 
 /**
@@ -24,7 +22,7 @@
  * query->queryObject("M31");
  * @endcode
  */
-class SimbadQuery : public QObject
+class SimbadQuery final : public QObject
 {
     Q_OBJECT
 
@@ -38,7 +36,7 @@ public:
     /**
      * @brief Destroy the SimbadQuery object
      */
-    ~SimbadQuery();
+    ~SimbadQuery() override;
 
     /**
      * @brief Query SIMBAD database for object coordinates
@@ -95,7 +93,7 @@ private:
      * @param dec Output parameter for Declination
      * @return true if parsing successful, false otherwise
      */
-    bool parseVOTableResponse(const QByteArray &data, double &ra, double &dec);
+    static bool parseVOTableResponse(const QByteArray &data, double &ra, double &dec);
 
     QNetworkAccessManager *m_networkManager;
     QNetworkReply *m_currentReply;

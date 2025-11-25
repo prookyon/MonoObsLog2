@@ -71,7 +71,7 @@ void SimbadQuery::handleNetworkReply()
     // Check for network errors
     if (m_currentReply->error() != QNetworkReply::NoError)
     {
-        QString errorMsg = QString("Network error: %1").arg(m_currentReply->errorString());
+        const QString errorMsg = QString("Network error: %1").arg(m_currentReply->errorString());
         qDebug() << errorMsg;
         emit errorOccurred(errorMsg);
         m_currentReply->deleteLater();
@@ -80,34 +80,31 @@ void SimbadQuery::handleNetworkReply()
     }
 
     // Read response data
-    QByteArray responseData = m_currentReply->readAll();
+    const QByteArray responseData = m_currentReply->readAll();
     m_currentReply->deleteLater();
     m_currentReply = nullptr;
 
     qDebug() << "Received response, size:" << responseData.size() << "bytes";
 
     // Parse the VOTable response
-    double ra = 0.0;
-    double dec = 0.0;
-
-    if (parseVOTableResponse(responseData, ra, dec))
+    if (double ra = 0.0, dec = 0.0; parseVOTableResponse(responseData, ra, dec))
     {
         qDebug() << "Successfully parsed coordinates - RA:" << ra << "Dec:" << dec;
         emit coordinatesReceived(ra, dec, m_currentObjectName);
     }
     else
     {
-        QString errorMsg = QString("Failed to parse coordinates for object '%1'").arg(m_currentObjectName);
+        const QString errorMsg = QString("Failed to parse coordinates for object '%1'").arg(m_currentObjectName);
         qDebug() << errorMsg;
         emit errorOccurred(errorMsg);
     }
 }
 
-void SimbadQuery::handleNetworkError(QNetworkReply::NetworkError code)
+void SimbadQuery::handleNetworkError(const QNetworkReply::NetworkError code)
 {
     if (m_currentReply)
     {
-        QString errorMsg = QString("Network error (%1): %2")
+        const QString errorMsg = QString("Network error (%1): %2")
                                .arg(code)
                                .arg(m_currentReply->errorString());
         qDebug() << errorMsg;
@@ -161,8 +158,8 @@ bool SimbadQuery::parseVOTableResponse(const QByteArray &data, double &ra, doubl
     xml.addData(data);
 
     // Second pass: extract data from TR/TD elements
-    int raIndex = fieldIds.indexOf(raFieldId);
-    int decIndex = fieldIds.indexOf(decFieldId);
+    const qsizetype raIndex = fieldIds.indexOf(raFieldId);
+    const qsizetype decIndex = fieldIds.indexOf(decFieldId);
 
     if (raIndex == -1 || decIndex == -1)
     {

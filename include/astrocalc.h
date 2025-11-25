@@ -23,7 +23,7 @@ class AstroCalc
 {
 public:
     static ObjectInfo getObjectInfo(double lat, double lon, double raHours, double decDegrees);
-    static void moonInfoForDate(QDateTime time, double lat, double lon, double *illumination, double *ra, double *dec);
+    static void moonInfoForDate(const QDateTime &time, double lat, double lon, double *illumination, double *ra, double *dec);
 };
 
 #endif // ASTROCALC_H
