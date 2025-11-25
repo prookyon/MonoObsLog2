@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.31)
 
 project(mgwObsLog VERSION 1.0.0 LANGUAGES CXX)
 
@@ -119,6 +119,9 @@ target_link_libraries(${PROJECT_NAME}
     OpenXLSX::OpenXLSX
 )
 
+file(GLOB EXE_FILES "${CMAKE_CURRENT_BINARY_DIR}/*.exe")
+file(GLOB DLL_FILES "${CMAKE_CURRENT_BINARY_DIR}/*.dll")
+
 # Set Windows subsystem to Windows (not console)
 if(WIN32)
     set_target_properties(${PROJECT_NAME} PROPERTIES WIN32_EXECUTABLE TRUE)
@@ -128,4 +131,21 @@ if(WIN32)
 #        COMMAND ${Qt6_DIR}/../../../bin/windeployqt.exe
 #        ARGS ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}${CMAKE_EXECUTABLE_SUFFIX} --compiler-runtime
 #    )
+    if(CMAKE_BUILD_TYPE STREQUAL Release)
+        cmake_path(GET CMAKE_CXX_COMPILER PARENT_PATH COMPILER_DIR)
+        install(
+                FILES ${EXE_FILES} ${DLL_FILES}
+                DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/../deploy"
+        )
+        install(FILES "${COMPILER_DIR}/qwt-qt6.dll" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/../deploy")
+        set(WINDEPLOYQT "${Qt6_DIR}/../../../bin/windeployqt.exe")
+        set(DEPLOYEDEXE "${CMAKE_CURRENT_BINARY_DIR}/../deploy/${PROJECT_NAME}${CMAKE_EXECUTABLE_SUFFIX}")
+        install(CODE "
+             execute_process(
+                COMMAND \"${WINDEPLOYQT}\"
+                \"${DEPLOYEDEXE}\"
+                --compiler-runtime
+            )
+        ")
+    endif ()
 endif()
