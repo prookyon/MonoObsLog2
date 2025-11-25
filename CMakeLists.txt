@@ -119,9 +119,6 @@ target_link_libraries(${PROJECT_NAME}
     OpenXLSX::OpenXLSX
 )
 
-file(GLOB EXE_FILES "${CMAKE_CURRENT_BINARY_DIR}/*.exe")
-file(GLOB DLL_FILES "${CMAKE_CURRENT_BINARY_DIR}/*.dll")
-
 # Set Windows subsystem to Windows (not console)
 if(WIN32)
     set_target_properties(${PROJECT_NAME} PROPERTIES WIN32_EXECUTABLE TRUE)
@@ -133,10 +130,18 @@ if(WIN32)
 #    )
     if(CMAKE_BUILD_TYPE STREQUAL Release)
         cmake_path(GET CMAKE_CXX_COMPILER PARENT_PATH COMPILER_DIR)
-        install(
-                FILES ${EXE_FILES} ${DLL_FILES}
-                DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/../deploy"
-        )
+        install(CODE "
+            file(GLOB EXE_FILES \"${CMAKE_CURRENT_BINARY_DIR}/*.exe\")
+            foreach(f \${EXE_FILES})
+                file(INSTALL DESTINATION \"${CMAKE_CURRENT_BINARY_DIR}/../deploy\" TYPE FILE FILES \"\${f}\")
+            endforeach()
+        ")
+        install(CODE "
+            file(GLOB EXE_FILES \"${CMAKE_CURRENT_BINARY_DIR}/*.dll\")
+            foreach(f \${EXE_FILES})
+                file(INSTALL DESTINATION \"${CMAKE_CURRENT_BINARY_DIR}/../deploy\" TYPE FILE FILES \"\${f}\")
+            endforeach()
+        ")
         install(FILES "${COMPILER_DIR}/qwt-qt6.dll" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/../deploy")
         set(WINDEPLOYQT "${Qt6_DIR}/../../../bin/windeployqt.exe")
         set(DEPLOYEDEXE "${CMAKE_CURRENT_BINARY_DIR}/../deploy/${PROJECT_NAME}${CMAKE_EXECUTABLE_SUFFIX}")
