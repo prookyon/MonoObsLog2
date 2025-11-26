@@ -9,8 +9,7 @@ CamerasRepository::CamerasRepository(DatabaseManager *dbManager, QObject *parent
 {
 }
 
-QVector<CameraData> CamerasRepository::getAllCameras(QString &errorMessage)
-{
+QVector<CameraData> CamerasRepository::getAllCameras(QString &errorMessage) const {
     QVector<CameraData> cameras;
 
     QSqlQuery query(m_dbManager->database());
@@ -38,8 +37,7 @@ QVector<CameraData> CamerasRepository::getAllCameras(QString &errorMessage)
     return cameras;
 }
 
-bool CamerasRepository::addCamera(const QString &name, const QString &sensor, double pixelSize, int width, int height, QString &errorMessage)
-{
+bool CamerasRepository::addCamera(const QString &name, const QString &sensor, const double pixelSize, const int width, const int height, QString &errorMessage) const {
     QSqlQuery query(m_dbManager->database());
     query.prepare("INSERT INTO cameras (name, sensor, pixel_size, width, height) VALUES (:name, :sensor, :pixel_size, :width, :height)");
     query.bindValue(":name", name);
@@ -58,8 +56,7 @@ bool CamerasRepository::addCamera(const QString &name, const QString &sensor, do
     return true;
 }
 
-bool CamerasRepository::updateCamera(int id, const QString &name, const QString &sensor, double pixelSize, int width, int height, QString &errorMessage)
-{
+bool CamerasRepository::updateCamera(const int id, const QString &name, const QString &sensor, const double pixelSize, const int width, const int height, QString &errorMessage) const {
     QSqlQuery query(m_dbManager->database());
     query.prepare("UPDATE cameras SET name = :name, sensor = :sensor, pixel_size = :pixel_size, width = :width, height = :height WHERE id = :id");
     query.bindValue(":name", name);
@@ -79,8 +76,7 @@ bool CamerasRepository::updateCamera(int id, const QString &name, const QString 
     return true;
 }
 
-bool CamerasRepository::deleteCamera(int id, QString &errorMessage)
-{
+bool CamerasRepository::deleteCamera(const int id, QString &errorMessage) const {
     QSqlQuery query(m_dbManager->database());
     query.prepare("DELETE FROM cameras WHERE id = :id");
     query.bindValue(":id", id);

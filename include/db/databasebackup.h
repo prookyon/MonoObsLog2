@@ -10,7 +10,7 @@ class DatabaseBackup : public QObject
 
 public:
     explicit DatabaseBackup(QObject *parent = nullptr);
-    ~DatabaseBackup();
+    ~DatabaseBackup() override;
 
     // Check if backup is needed and create if necessary
     bool checkAndBackupIfNeeded(const QString &dbPath, QString &errorMessage);
@@ -23,10 +23,10 @@ signals:
     void backupCheckCompleted(bool backupCreated);
 
 private:
-    QString getBackupDirectory(const QString &dbPath);
-    QString getLatestBackupPath(const QString &backupDir);
-    bool isBackupNeeded(const QString &latestBackupPath);
-    bool createZipBackup(const QString &dbPath, const QString &backupPath, QString &errorMessage);
+    static QString getBackupDirectory(const QString &dbPath);
+    static QString getLatestBackupPath(const QString &backupDir);
+    static bool isBackupNeeded(const QString &latestBackupPath);
+    static bool createZipBackup(const QString &dbPath, const QString &backupPath, QString &errorMessage);
 };
 
 #endif // DATABASEBACKUP_H

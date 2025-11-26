@@ -24,13 +24,13 @@ class CamerasRepository : public QObject
 
 public:
     explicit CamerasRepository(DatabaseManager *dbManager, QObject *parent = nullptr);
-    ~CamerasRepository() = default;
+    ~CamerasRepository() override = default;
 
     // Query operations
-    QVector<CameraData> getAllCameras(QString &errorMessage);
-    bool addCamera(const QString &name, const QString &sensor, double pixelSize, int width, int height, QString &errorMessage);
-    bool updateCamera(int id, const QString &name, const QString &sensor, double pixelSize, int width, int height, QString &errorMessage);
-    bool deleteCamera(int id, QString &errorMessage);
+    QVector<CameraData> getAllCameras(QString &errorMessage) const;
+    bool addCamera(const QString &name, const QString &sensor, double pixelSize, int width, int height, QString &errorMessage) const;
+    bool updateCamera(int id, const QString &name, const QString &sensor, double pixelSize, int width, int height, QString &errorMessage) const;
+    bool deleteCamera(int id, QString &errorMessage) const;
 
 private:
     DatabaseManager *m_dbManager;

@@ -27,7 +27,7 @@ class ObjectsTab : public QWidget
 
 public:
     explicit ObjectsTab(DatabaseManager *dbManager, SettingsManager *settingsManager, QWidget *parent = nullptr);
-    ~ObjectsTab();
+    ~ObjectsTab() override;
 
     void initialize();
     void refreshData();
@@ -36,8 +36,8 @@ private slots:
     void onAddButtonClicked();
     void onEditButtonClicked();
     void onDeleteButtonClicked();
-    void onCoordinatesReceived(double ra, double dec, const QString &objectName);
-    void onSimbadError(const QString &error);
+    void onCoordinatesReceived(double ra, double dec, const QString &objectName) const;
+    static void onSimbadError(const QString &error);
 
 private:
     struct ConstellationLine {
@@ -56,8 +56,8 @@ private:
     SimbadQuery *m_simbadQuery;
     QLineEdit *m_dialogRaEdit;
     QLineEdit *m_dialogDecEdit;
-    QwtPolarPanner* m_panner;
-    QwtPolarMagnifier* m_zoomer;
+    QwtPolarPanner* m_panner{};
+    QwtPolarMagnifier* m_zoomer{};
     QVector<ConstellationLine> m_constellations;
 };
 

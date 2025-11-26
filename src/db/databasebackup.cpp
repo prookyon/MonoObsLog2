@@ -1,5 +1,4 @@
 #include "db/databasebackup.h"
-#include <QFile>
 #include <QDir>
 #include <QFileInfo>
 #include <QDateTime>
@@ -13,34 +12,32 @@ DatabaseBackup::DatabaseBackup(QObject *parent)
 }
 
 DatabaseBackup::~DatabaseBackup()
-{
-}
+= default;
 
 QString DatabaseBackup::getBackupDirectory(const QString &dbPath)
 {
-    QFileInfo fileInfo(dbPath);
-    QDir dbDir = fileInfo.dir();
+    const QFileInfo fileInfo(dbPath);
+    const QDir dbDir = fileInfo.dir();
     QString backupDir = dbDir.filePath("ObsLogBackup");
     return backupDir;
 }
 
 QString DatabaseBackup::getLatestBackupPath(const QString &backupDir)
 {
-    QDir dir(backupDir);
+    const QDir dir(backupDir);
     if (!dir.exists())
     {
-        return QString();
+        return {};
     }
 
     // Filter for backup files matching pattern observations_backup_YYYY-MM-DD.zip
-    QRegularExpression regex("^observations_backup_(\\d{4}-\\d{2}-\\d{2})\\.zip$");
+    const QRegularExpression regex(R"(^observations_backup_(\d{4}-\d{2}-\d{2})\.zip$)");
     QStringList backups;
 
     QFileInfoList files = dir.entryInfoList(QDir::Files, QDir::Name | QDir::Reversed);
     for (const QFileInfo &fileInfo : files)
     {
-        QRegularExpressionMatch match = regex.match(fileInfo.fileName());
-        if (match.hasMatch())
+        if (QRegularExpressionMatch match = regex.match(fileInfo.fileName()); match.hasMatch())
         {
             backups.append(fileInfo.absoluteFilePath());
         }
@@ -48,7 +45,7 @@ QString DatabaseBackup::getLatestBackupPath(const QString &backupDir)
 
     if (backups.isEmpty())
     {
-        return QString();
+        return {};
     }
 
     // Return the first one (most recent due to sorting)
@@ -64,19 +61,19 @@ bool DatabaseBackup::isBackupNeeded(const QString &latestBackupPath)
     }
 
     // Extract date from filename
-    QFileInfo fileInfo(latestBackupPath);
-    QString filename = fileInfo.fileName();
+    const QFileInfo fileInfo(latestBackupPath);
+    const QString filename = fileInfo.fileName();
 
-    QRegularExpression regex("^observations_backup_(\\d{4}-\\d{2}-\\d{2})\\.zip$");
-    QRegularExpressionMatch match = regex.match(filename);
+    const QRegularExpression regex(R"(^observations_backup_(\d{4}-\d{2}-\d{2})\.zip$)");
+    const QRegularExpressionMatch match = regex.match(filename);
 
     if (!match.hasMatch())
     {
         return true;
     }
 
-    QString dateString = match.captured(1);
-    QDate backupDate = QDate::fromString(dateString, "yyyy-MM-dd");
+    const QString dateString = match.captured(1);
+    const QDate backupDate = QDate::fromString(dateString, "yyyy-MM-dd");
 
     if (!backupDate.isValid())
     {
@@ -84,8 +81,8 @@ bool DatabaseBackup::isBackupNeeded(const QString &latestBackupPath)
     }
 
     // Check if backup is older than 7 days
-    QDate currentDate = QDate::currentDate();
-    int daysSinceBackup = backupDate.daysTo(currentDate);
+    const QDate currentDate = QDate::currentDate();
+    const int daysSinceBackup = backupDate.daysTo(currentDate);
 
     return daysSinceBackup >= 7;
 }
@@ -115,7 +112,7 @@ bool DatabaseBackup::createZipBackup(const QString &dbPath, const QString &backu
     }
 
     // Read all database content
-    QByteArray dbData = dbFile.readAll();
+    const QByteArray dbData = dbFile.readAll();
     dbFile.close();
 
     if (dbData.isEmpty())
@@ -126,8 +123,8 @@ bool DatabaseBackup::createZipBackup(const QString &dbPath, const QString &backu
     }
 
     // Create a zip source from the database data
-    QFileInfo dbFileInfo(dbPath);
-    QString dbFileName = dbFileInfo.fileName();
+    const QFileInfo dbFileInfo(dbPath);
+    const QString dbFileName = dbFileInfo.fileName();
 
     zip_source_t *source = zip_source_buffer(archive, dbData.constData(), dbData.size(), 0);
     if (!source)
@@ -138,8 +135,7 @@ bool DatabaseBackup::createZipBackup(const QString &dbPath, const QString &backu
     }
 
     // Add file to archive
-    zip_int64_t index = zip_file_add(archive, dbFileName.toUtf8().constData(), source, ZIP_FL_ENC_UTF_8);
-    if (index < 0)
+    if (const zip_int64_t index = zip_file_add(archive, dbFileName.toUtf8().constData(), source, ZIP_FL_ENC_UTF_8); index < 0)
     {
         errorMessage = QString("Failed to add file to archive: %1").arg(zip_strerror(archive));
         zip_source_free(source);
@@ -167,11 +163,10 @@ bool DatabaseBackup::createBackup(const QString &dbPath, QString &errorMessage)
     }
 
     // Get backup directory path
-    QString backupDir = getBackupDirectory(dbPath);
+    const QString backupDir = getBackupDirectory(dbPath);
 
     // Create backup directory if it doesn't exist
-    QDir dir;
-    if (!dir.exists(backupDir))
+    if (const QDir dir; !dir.exists(backupDir))
     {
         if (!dir.mkpath(backupDir))
         {
@@ -181,9 +176,9 @@ bool DatabaseBackup::createBackup(const QString &dbPath, QString &errorMessage)
     }
 
     // Generate backup filename with current date
-    QString currentDate = QDate::currentDate().toString("yyyy-MM-dd");
-    QString backupFileName = QString("observations_backup_%1.zip").arg(currentDate);
-    QString backupPath = QDir(backupDir).filePath(backupFileName);
+    const QString currentDate = QDate::currentDate().toString("yyyy-MM-dd");
+    const QString backupFileName = QString("observations_backup_%1.zip").arg(currentDate);
+    const QString backupPath = QDir(backupDir).filePath(backupFileName);
 
     // Create the zip backup
     if (!createZipBackup(dbPath, backupPath, errorMessage))
@@ -200,15 +195,14 @@ bool DatabaseBackup::createBackup(const QString &dbPath, QString &errorMessage)
 bool DatabaseBackup::checkAndBackupIfNeeded(const QString &dbPath, QString &errorMessage)
 {
     // Get backup directory
-    QString backupDir = getBackupDirectory(dbPath);
+    const QString backupDir = getBackupDirectory(dbPath);
 
     // Get latest backup file
-    QString latestBackup = getLatestBackupPath(backupDir);
+    const QString latestBackup = getLatestBackupPath(backupDir);
 
     // Check if backup is needed
-    bool needsBackup = isBackupNeeded(latestBackup);
 
-    if (needsBackup)
+    if (bool needsBackup = isBackupNeeded(latestBackup))
     {
         qDebug() << "Backup needed. Creating new backup...";
         if (!createBackup(dbPath, errorMessage))

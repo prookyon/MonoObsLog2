@@ -1,5 +1,4 @@
 #include "tabs/objectstab.h"
-#include "tabs/objectstab.h"
 #include "ui_objects_tab.h"
 #include "db/databasemanager.h"
 #include "db/objectsrepository.h"
@@ -26,7 +25,6 @@
 #include <qwt_symbol.h>
 #include <qwt_polar_panner.h>
 #include <qwt_polar_magnifier.h>
-#include <qwt_polar_canvas.h>
 #include <qwt_scale_div.h>
 
 ObjectsTab::ObjectsTab(DatabaseManager *dbManager, SettingsManager *settingsManager, QWidget *parent)
@@ -62,7 +60,7 @@ void ObjectsTab::initialize()
     ui->polarPlot->setScale(QwtPolar::Radius, 90.0, 0.0, 30.0);
 
     // Add grid
-    QwtPolarGrid *grid = new QwtPolarGrid();
+    auto *grid = new QwtPolarGrid();
     grid->setPen( QPen( Qt::white ) );
     grid->setAxisPen(QwtPolar::AxisAzimuth, QPen(Qt::black));
     grid->showAxis( QwtPolar::AxisAzimuth, true );
@@ -122,19 +120,19 @@ void ObjectsTab::populateTable()
         ui->objectsTable->insertRow(row);
 
         // Name column
-        QTableWidgetItem *nameItem = new QTableWidgetItem(obj.name);
+        auto *nameItem = new QTableWidgetItem(obj.name);
         nameItem->setData(Qt::UserRole, obj.id); // Store ID as hidden data
         ui->objectsTable->setItem(row, 0, nameItem);
 
         // RA column
         QString raText = obj.ra.isNull() ? "" : QString::number(obj.ra.toDouble(), 'f', 6);
-        NumericTableWidgetItem *raItem = new NumericTableWidgetItem(raText);
+        auto *raItem = new NumericTableWidgetItem(raText);
         raItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
         ui->objectsTable->setItem(row, 1, raItem);
 
         // Dec column
         QString decText = obj.dec.isNull() ? "" : QString::number(obj.dec.toDouble(), 'f', 6);
-        NumericTableWidgetItem *decItem = new NumericTableWidgetItem(decText);
+        auto *decItem = new NumericTableWidgetItem(decText);
         decItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
         ui->objectsTable->setItem(row, 2, decItem);
 
@@ -144,14 +142,14 @@ void ObjectsTab::populateTable()
             ObjectInfo info = AstroCalc::getObjectInfo(lat, lon, obj.ra.toDouble(), obj.dec.toDouble());
             
             // Transit time column
-            QTableWidgetItem *transitItem = new QTableWidgetItem(info.transitTime.toLocalTime().toString("hh:mm"));
+            auto *transitItem = new QTableWidgetItem(info.transitTime.toLocalTime().toString("hh:mm"));
             transitItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
             ui->objectsTable->setItem(row, 3, transitItem);
 
             // Add marker to polar plot if altitude is positive (object is above horizon)
             if (info.altitude > 0)
             {
-                QwtPolarMarker *marker = new QwtPolarMarker();
+                auto *marker = new QwtPolarMarker();
                 
                 // Set position: azimuth (angular) and altitude
                 QwtPointPolar position(info.azimuth, info.altitude);
@@ -176,7 +174,7 @@ void ObjectsTab::populateTable()
         else
         {
             // Empty transit time if coordinates are missing
-            QTableWidgetItem *transitItem = new QTableWidgetItem("");
+            auto *transitItem = new QTableWidgetItem("");
             transitItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
             ui->objectsTable->setItem(row, 3, transitItem);
         }
@@ -185,7 +183,6 @@ void ObjectsTab::populateTable()
     }
 
     // Draw constellation lines
-    QString currentConstellation;
     QwtPolarCurve *curve = nullptr;
 
     for (const ConstellationLine &line : m_constellations) {
@@ -220,10 +217,10 @@ bool ObjectsTab::showObjectDialog(const QString &title, QString &name, QString &
     dialog.setWindowTitle(title);
     dialog.setMinimumWidth(500);
 
-    QFormLayout *formLayout = new QFormLayout(&dialog);
+    auto *formLayout = new QFormLayout(&dialog);
 
     // Name field
-    QLineEdit *nameEdit = new QLineEdit(&dialog);
+    auto *nameEdit = new QLineEdit(&dialog);
     nameEdit->setText(name);
     nameEdit->setPlaceholderText("Enter object name");
     formLayout->addRow("Name:", nameEdit);
@@ -241,7 +238,7 @@ bool ObjectsTab::showObjectDialog(const QString &title, QString &name, QString &
     formLayout->addRow("Dec (degrees):", m_dialogDecEdit);
 
     // Coordinates Lookup button
-    QPushButton *lookupButton = new QPushButton("Coordinates Lookup", &dialog);
+    auto *lookupButton = new QPushButton("Coordinates Lookup", &dialog);
     lookupButton->setToolTip("Query SIMBAD database for coordinates based on object name");
     formLayout->addRow("", lookupButton);
 
@@ -259,9 +256,8 @@ bool ObjectsTab::showObjectDialog(const QString &title, QString &name, QString &
     QPointer<QPushButton> safeButtonPtr(lookupButton);
 
     // Connect lookup button
-    connect(lookupButton, &QPushButton::clicked, [&, nameEdit, safeButtonPtr]()
-            {
-        QString objectName = nameEdit->text().trimmed();
+    connect(lookupButton, &QPushButton::clicked, [&, nameEdit, safeButtonPtr] {
+        const QString objectName = nameEdit->text().trimmed();
         if (objectName.isEmpty()) {
             QMessageBox::warning(&dialog, "Input Error", "Please enter an object name first.");
             return;
@@ -273,7 +269,7 @@ bool ObjectsTab::showObjectDialog(const QString &title, QString &name, QString &
         m_simbadQuery->queryObject(objectName); });
 
     // Buttons
-    QDialogButtonBox *buttonBox = new QDialogButtonBox(
+    auto *buttonBox = new QDialogButtonBox(
         QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialog);
     formLayout->addRow(buttonBox);
 
@@ -281,8 +277,7 @@ bool ObjectsTab::showObjectDialog(const QString &title, QString &name, QString &
     connect(buttonBox, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
 
     // Validate name on OK
-    connect(buttonBox, &QDialogButtonBox::accepted, [&]()
-            {
+    connect(buttonBox, &QDialogButtonBox::accepted, [&] {
         if (nameEdit->text().trimmed().isEmpty()) {
             QMessageBox::warning(&dialog, "Validation Error", "Object name cannot be empty.");
             dialog.done(QDialog::Rejected);
@@ -306,10 +301,10 @@ bool ObjectsTab::showObjectDialog(const QString &title, QString &name, QString &
         } });
 
     // Disconnect these specific connections when dialog is destroyed
-    connect(&dialog, &QDialog::destroyed, [conn1, conn2, this]()
-            {
+    connect(&dialog, &QDialog::destroyed, [conn1, conn2] {
         disconnect(conn1);
-        disconnect(conn2); });
+        disconnect(conn2);
+    });
 
     if (dialog.exec() == QDialog::Accepted)
     {
@@ -321,7 +316,7 @@ bool ObjectsTab::showObjectDialog(const QString &title, QString &name, QString &
         m_dialogRaEdit = nullptr;
         m_dialogDecEdit = nullptr;
 
-        return name.isEmpty() ? false : true;
+        return !name.isEmpty();
     }
 
     // Clear the dialog pointers
@@ -342,16 +337,15 @@ void ObjectsTab::onAddButtonClicked()
 
     // Convert string values to QVariant
     bool raOk = false;
-    double raValue = ra.toDouble(&raOk);
-    QVariant raVariant = raOk ? QVariant(raValue) : QVariant();
+    const double raValue = ra.toDouble(&raOk);
+    const QVariant raVariant = raOk ? QVariant(raValue) : QVariant();
 
     bool decOk = false;
-    double decValue = dec.toDouble(&decOk);
-    QVariant decVariant = decOk ? QVariant(decValue) : QVariant();
+    const double decValue = dec.toDouble(&decOk);
+    const QVariant decVariant = decOk ? QVariant(decValue) : QVariant();
 
     // Insert into database using repository
-    QString errorMessage;
-    if (!m_repository->addObject(name, raVariant, decVariant, errorMessage))
+    if (QString errorMessage; !m_repository->addObject(name, raVariant, decVariant, errorMessage))
     {
         QMessageBox::warning(this, "Database Error",
                              QString("Failed to add object: %1").arg(errorMessage));
@@ -364,7 +358,7 @@ void ObjectsTab::onAddButtonClicked()
 void ObjectsTab::onEditButtonClicked()
 {
     // Check if a row is selected
-    int currentRow = ui->objectsTable->currentRow();
+    const int currentRow = ui->objectsTable->currentRow();
     if (currentRow < 0)
     {
         QMessageBox::information(this, "No Selection", "Please select an object to edit.");
@@ -372,11 +366,11 @@ void ObjectsTab::onEditButtonClicked()
     }
 
     // Get current object data (ID is stored in UserRole)
-    QTableWidgetItem *nameItem = ui->objectsTable->item(currentRow, 0);
-    int objectId = nameItem->data(Qt::UserRole).toInt();
-    QString currentName = nameItem->text();
-    QString currentRa = ui->objectsTable->item(currentRow, 1)->text();
-    QString currentDec = ui->objectsTable->item(currentRow, 2)->text();
+    const QTableWidgetItem *nameItem = ui->objectsTable->item(currentRow, 0);
+    const int objectId = nameItem->data(Qt::UserRole).toInt();
+    const QString currentName = nameItem->text();
+    const QString currentRa = ui->objectsTable->item(currentRow, 1)->text();
+    const QString currentDec = ui->objectsTable->item(currentRow, 2)->text();
 
     // Show dialog
     QString name = currentName;
@@ -390,16 +384,15 @@ void ObjectsTab::onEditButtonClicked()
 
     // Convert string values to QVariant
     bool raOk = false;
-    double raValue = ra.toDouble(&raOk);
-    QVariant raVariant = raOk ? QVariant(raValue) : QVariant();
+    const double raValue = ra.toDouble(&raOk);
+    const QVariant raVariant = raOk ? QVariant(raValue) : QVariant();
 
     bool decOk = false;
-    double decValue = dec.toDouble(&decOk);
-    QVariant decVariant = decOk ? QVariant(decValue) : QVariant();
+    const double decValue = dec.toDouble(&decOk);
+    const QVariant decVariant = decOk ? QVariant(decValue) : QVariant();
 
     // Update in database using repository
-    QString errorMessage;
-    if (!m_repository->updateObject(objectId, name, raVariant, decVariant, errorMessage))
+    if (QString errorMessage; !m_repository->updateObject(objectId, name, raVariant, decVariant, errorMessage))
     {
         QMessageBox::warning(this, "Database Error",
                              QString("Failed to update object: %1").arg(errorMessage));
@@ -412,7 +405,7 @@ void ObjectsTab::onEditButtonClicked()
 void ObjectsTab::onDeleteButtonClicked()
 {
     // Check if a row is selected
-    int currentRow = ui->objectsTable->currentRow();
+    const int currentRow = ui->objectsTable->currentRow();
     if (currentRow < 0)
     {
         QMessageBox::information(this, "No Selection", "Please select an object to delete.");
@@ -420,12 +413,12 @@ void ObjectsTab::onDeleteButtonClicked()
     }
 
     // Get object data
-    QTableWidgetItem *nameItem = ui->objectsTable->item(currentRow, 0);
-    int objectId = nameItem->data(Qt::UserRole).toInt();
-    QString objectName = nameItem->text();
+    const QTableWidgetItem *nameItem = ui->objectsTable->item(currentRow, 0);
+    const int objectId = nameItem->data(Qt::UserRole).toInt();
+    const QString objectName = nameItem->text();
 
     // Confirm deletion
-    QMessageBox::StandardButton reply = QMessageBox::question(
+    const QMessageBox::StandardButton reply = QMessageBox::question(
         this,
         "Confirm Deletion",
         QString("Are you sure you want to delete the object '%1'?").arg(objectName),
@@ -438,8 +431,7 @@ void ObjectsTab::onDeleteButtonClicked()
     }
 
     // Delete from database using repository
-    QString errorMessage;
-    if (!m_repository->deleteObject(objectId, errorMessage))
+    if (QString errorMessage; !m_repository->deleteObject(objectId, errorMessage))
     {
         QMessageBox::warning(this, "Database Error",
                              QString("Failed to delete object: %1").arg(errorMessage));
@@ -449,10 +441,9 @@ void ObjectsTab::onDeleteButtonClicked()
     refreshData();
 }
 
-void ObjectsTab::onCoordinatesReceived(double ra, double dec, const QString &objectName)
-{
+void ObjectsTab::onCoordinatesReceived(const double ra, const double dec, const QString &objectName) const {
     // Convert RA from degrees to hours (RA in degrees / 15 = RA in hours)
-    double raHours = ra / 15.0;
+    const double raHours = ra / 15.0;
 
     qDebug() << "Received coordinates for" << objectName;
     qDebug() << "RA:" << ra << "degrees =" << raHours << "hours";
