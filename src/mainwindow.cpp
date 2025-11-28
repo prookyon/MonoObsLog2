@@ -24,10 +24,13 @@ MainWindow::MainWindow(const QString &dbPath, QWidget *parent)
     ui->setupUi(this);
 
     // Initialize database with the provided path
-    if (!m_dbManager->initialize(dbPath))
+    if (const auto result = m_dbManager->initialize(dbPath); !result)
     {
         QMessageBox::critical(this, "Database Error",
-                              "Failed to initialize database. Application may not function correctly.");
+                              result.error().errorMessage);
+
+        if (result.error().severity == ErrorSeverity::Critical)
+            throw std::runtime_error("Failed to initialize database. Exiting");
     }
 
     // Initialize settings

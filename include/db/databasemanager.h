@@ -4,6 +4,10 @@
 #include <QObject>
 #include <QSqlDatabase>
 #include <QString>
+#include "ER.h"
+#include <expected>
+
+#define OBSLOGDBVERSION 1
 
 class DatabaseManager : public QObject
 {
@@ -11,19 +15,24 @@ class DatabaseManager : public QObject
 
 public:
     explicit DatabaseManager(QObject *parent = nullptr);
-    ~DatabaseManager();
+    ~DatabaseManager() override;
 
-    bool initialize(const QString &dbPath = "mgw_observations.db");
-    bool isOpen() const;
+    std::expected<void, ER> initialize(const QString &dbPath = "mgw_observations.db");
+    [[nodiscard]] bool isOpen() const;
     QSqlDatabase &database();
+
+    static int getSupportedDbVersion();
+    [[nodiscard]] std::expected<int, ER> getActualDbVersion() const;
+
 
 signals:
     void errorOccurred(const QString &error);
     void databaseInitialized();
 
 private:
-    bool createTables();
-    bool tableExists(const QString &tableName);
+    [[nodiscard]] bool createTables() const;
+    [[nodiscard]] bool tableExists(const QString &tableName) const;
+
 
     QSqlDatabase m_database;
     QString m_dbPath;

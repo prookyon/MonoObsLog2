@@ -17,12 +17,12 @@ DatabaseManager::~DatabaseManager()
     }
 }
 
-bool DatabaseManager::initialize(const QString &dbPath)
+std::expected<void, ER> DatabaseManager::initialize(const QString &dbPath)
 {
     m_dbPath = dbPath;
 
     // Check if database file exists
-    bool dbExists = QFile::exists(m_dbPath);
+    const bool dbExists = QFile::exists(m_dbPath);
 
     // Open/create the database
     m_database = QSqlDatabase::addDatabase("QSQLITE");
@@ -30,8 +30,7 @@ bool DatabaseManager::initialize(const QString &dbPath)
 
     if (!m_database.open())
     {
-        emit errorOccurred(QString("Failed to open database: %1").arg(m_database.lastError().text()));
-        return false;
+        return std::unexpected(ER::Critical(QString("Failed to open database: %1").arg(m_database.lastError().text()) ));
     }
 
     // If database didn't exist, create tables
@@ -39,14 +38,25 @@ bool DatabaseManager::initialize(const QString &dbPath)
     {
         if (!createTables())
         {
-            emit errorOccurred("Failed to create database tables");
-            return false;
+            return std::unexpected(ER::Critical(QString("Failed to create database tables: %1").arg(m_database.lastError().text()) ));
         }
+    }
+
+    const auto result = getActualDbVersion();
+
+    if ( !result) {
+        return std::unexpected(ER::Critical(result.error().errorMessage ));
+    }
+
+    if (result.value() > getSupportedDbVersion()) {
+        m_initialized = true;
+        emit databaseInitialized();
+        return std::unexpected(ER::Error(QString("Database is from newer version of application. This can have unknown consequences.") ));
     }
 
     m_initialized = true;
     emit databaseInitialized();
-    return true;
+    return {};
 }
 
 bool DatabaseManager::isOpen() const
@@ -59,12 +69,37 @@ QSqlDatabase &DatabaseManager::database()
     return m_database;
 }
 
-bool DatabaseManager::createTables()
-{
+bool DatabaseManager::createTables() const {
     QSqlQuery query(m_database);
 
-    // Create filter_types table first (referenced by filters)
+    // Create internal table
     QString sql = R"(
+        CREATE TABLE internal (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            key TEXT NOT NULL UNIQUE,
+            value TEXT
+        )
+    )";
+
+    if (!query.exec(sql))
+    {
+        qDebug() << "Failed to create internal table:" << query.lastError().text();
+        return false;
+    }
+
+    query.prepare(R"(INSERT INTO internal (key, value) VALUES ("DBVERSION", :version))");
+    query.bindValue(":version", OBSLOGDBVERSION);
+
+    if (!query.exec())
+    {
+        qDebug() << "Failed to set DB version:" << query.lastError().text();
+        return false;
+    }
+
+    query.clear();
+
+    // Create filter_types table first (referenced by filters)
+    sql = R"(
         CREATE TABLE filter_types (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL UNIQUE,
@@ -195,7 +230,21 @@ bool DatabaseManager::createTables()
     return true;
 }
 
-bool DatabaseManager::tableExists(const QString &tableName)
-{
+bool DatabaseManager::tableExists(const QString &tableName) const {
     return m_database.tables().contains(tableName);
+}
+
+int DatabaseManager::getSupportedDbVersion() {
+    return OBSLOGDBVERSION;
+}
+
+std::expected<int, ER> DatabaseManager::getActualDbVersion() const {
+    QSqlQuery query(m_database);
+    if (const QString sql = R"(SELECT value FROM internal WHERE key = "DBVERSION")"; !query.exec(sql)) {
+        qDebug() << "Failed to query DB version:" << query.lastError().text();
+        return std::unexpected(ER::Critical(QString("Failed to create database tables: %1").arg(query.lastError().text()) ));
+    }
+
+    query.next();
+    return query.value(0).toInt();
 }
