@@ -51,11 +51,15 @@ int main(int argc, char *argv[])
     // Prompt user to select database file if needed
     if (needsNewPath)
     {
+        QMessageBox::information(nullptr,"No database",
+            "Looks like this is the first time you have run this program.\nPlease select where you would like to store the database.\nIf you have an existing database file then select that.",
+            QMessageBox::Ok);
         const QString selectedPath = QFileDialog::getSaveFileName(
             nullptr,
             "Select or Create Database File",
             QDir::homePath() + "/MonoObsLog.db",
-            "SQLite Database (*.db);;All Files (*.*)");
+            "SQLite Database (*.db);;All Files (*.*)",
+            nullptr, QFileDialog::DontConfirmOverwrite);
 
         if (selectedPath.isEmpty())
         {
