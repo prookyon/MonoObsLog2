@@ -3,15 +3,13 @@
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QDebug>
-#include "db/sessionsrepository.h"
 
 SessionsRepository::SessionsRepository(DatabaseManager *dbManager, QObject *parent)
     : QObject(parent), m_dbManager(dbManager)
 {
 }
 
-QVector<SessionData> SessionsRepository::getAllSessions(QString &errorMessage)
-{
+QVector<SessionData> SessionsRepository::getAllSessions(QString &errorMessage) const {
     QVector<SessionData> sessions;
 
     QSqlQuery query(m_dbManager->database());
@@ -55,8 +53,7 @@ QVector<SessionData> SessionsRepository::getAllSessions(QString &errorMessage)
     return sessions;
 }
 
-bool SessionsRepository::addSession(const QString &name, const QDate &startDate, const QString &comments, const double &moonIllumination, const double &moonRa, const double &moonDec, QString &errorMessage)
-{
+bool SessionsRepository::addSession(const QString &name, const QDate &startDate, const QString &comments, const double &moonIllumination, const double &moonRa, const double &moonDec, QString &errorMessage) const {
     QSqlQuery query(m_dbManager->database());
     query.prepare("INSERT INTO sessions (name, start_date, moon_illumination, moon_ra, moon_dec, comments) VALUES (:name, :start_date, :moon_illumination, :moon_ra, :moon_dec, :comments)");
     query.bindValue(":name", name);
@@ -76,8 +73,7 @@ bool SessionsRepository::addSession(const QString &name, const QDate &startDate,
     return true;
 }
 
-bool SessionsRepository::updateSession(int id, const QString &name, const QDate &startDate, const QString &comments, const double &moonIllumination, const double &moonRa, const double &moonDec, QString &errorMessage)
-{
+bool SessionsRepository::updateSession(int id, const QString &name, const QDate &startDate, const QString &comments, const double &moonIllumination, const double &moonRa, const double &moonDec, QString &errorMessage) const {
     QSqlQuery query(m_dbManager->database());
     query.prepare("UPDATE sessions SET name = :name, start_date = :start_date, comments = :comments, moon_illumination = :moon_illumination, moon_ra = :moon_ra, moon_dec = :moon_dec WHERE id = :id");
     query.bindValue(":name", name);
@@ -98,8 +94,7 @@ bool SessionsRepository::updateSession(int id, const QString &name, const QDate 
     return true;
 }
 
-bool SessionsRepository::deleteSession(int id, QString &errorMessage)
-{
+bool SessionsRepository::deleteSession(int id, QString &errorMessage) const {
     QSqlQuery query(m_dbManager->database());
     query.prepare("DELETE FROM sessions WHERE id = :id");
     query.bindValue(":id", id);

@@ -37,18 +37,18 @@ class ObservationsRepository : public QObject
 
 public:
     explicit ObservationsRepository(DatabaseManager *dbManager, QObject *parent = nullptr);
-    ~ObservationsRepository() = default;
+    ~ObservationsRepository() override = default;
 
     // Query operations
-    QVector<ObservationData> getAllObservations(QString &errorMessage);
-    QVector<ObservationData> getObservationsByObject(int objectId, QString &errorMessage);
+    QVector<ObservationData> getAllObservations(QString &errorMessage) const;
+    QVector<ObservationData> getObservationsByObject(int objectId, QString &errorMessage) const;
     bool addObservation(int imageCount, int exposureLength, const QString &comments,
                         int sessionId, int objectId, int cameraId, int telescopeId,
-                        int filterId, QString &errorMessage);
+                        int filterId, QString &errorMessage) const;
     bool updateObservation(int id, int imageCount, int exposureLength, const QString &comments,
                            int sessionId, int objectId, int cameraId, int telescopeId,
-                           int filterId, QString &errorMessage);
-    bool deleteObservation(int id, QString &errorMessage);
+                           int filterId, QString &errorMessage) const;
+    bool deleteObservation(int id, QString &errorMessage) const;
 
 private:
     DatabaseManager *m_dbManager;

@@ -9,8 +9,7 @@ FiltersRepository::FiltersRepository(DatabaseManager *dbManager, QObject *parent
 {
 }
 
-QVector<FilterData> FiltersRepository::getAllFilters(QString &errorMessage)
-{
+QVector<FilterData> FiltersRepository::getAllFilters(QString &errorMessage) const {
     QVector<FilterData> filters;
 
     QSqlQuery query(m_dbManager->database());
@@ -38,8 +37,7 @@ QVector<FilterData> FiltersRepository::getAllFilters(QString &errorMessage)
     return filters;
 }
 
-bool FiltersRepository::addFilter(const QString &name, int filterTypeId, QString &errorMessage)
-{
+bool FiltersRepository::addFilter(const QString &name, const int filterTypeId, QString &errorMessage) const {
     QSqlQuery query(m_dbManager->database());
     query.prepare("INSERT INTO filters (name, filter_type_id) VALUES (:name, :filter_type_id)");
     query.bindValue(":name", name);
@@ -55,8 +53,7 @@ bool FiltersRepository::addFilter(const QString &name, int filterTypeId, QString
     return true;
 }
 
-bool FiltersRepository::updateFilter(int id, const QString &name, int filterTypeId, QString &errorMessage)
-{
+bool FiltersRepository::updateFilter(const int id, const QString &name, const int filterTypeId, QString &errorMessage) const {
     QSqlQuery query(m_dbManager->database());
     query.prepare("UPDATE filters SET name = :name, filter_type_id = :filter_type_id WHERE id = :id");
     query.bindValue(":name", name);
@@ -73,8 +70,7 @@ bool FiltersRepository::updateFilter(int id, const QString &name, int filterType
     return true;
 }
 
-bool FiltersRepository::deleteFilter(int id, QString &errorMessage)
-{
+bool FiltersRepository::deleteFilter(const int id, QString &errorMessage) const {
     QSqlQuery query(m_dbManager->database());
     query.prepare("DELETE FROM filters WHERE id = :id");
     query.bindValue(":id", id);

@@ -4,27 +4,23 @@ extern "C"
 {
 #include "novas.h"
 }
-#include "astrocalc.h"
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QVariant>
-#include <QDebug>
-#include <QtMath>
 
 ObservationsRepository::ObservationsRepository(DatabaseManager *dbManager, QObject *parent)
     : QObject(parent), m_dbManager(dbManager)
 {
 }
 
-QVector<ObservationData> ObservationsRepository::getAllObservations(QString &errorMessage)
-{
+QVector<ObservationData> ObservationsRepository::getAllObservations(QString &errorMessage) const {
     QVector<ObservationData> observations;
     errorMessage.clear();
 
     QSqlQuery query(m_dbManager->database());
 
     // Join with related tables to get names and calculate angular separation
-    QString sql = R"(
+    const QString sql = R"(
         SELECT 
             o.id, o.image_count, o.exposure_length, o.total_exposure, o.comments,
             o.session_id, o.object_id, o.camera_id, o.telescope_id, o.filter_id,
@@ -74,12 +70,12 @@ QVector<ObservationData> ObservationsRepository::getAllObservations(QString &err
         if (!query.value("object_ra").isNull() && !query.value("object_dec").isNull() &&
             !query.value("moon_ra").isNull() && !query.value("moon_dec").isNull())
         {
-            double objRa = query.value("object_ra").toDouble(); // in hours
-            double objDec = query.value("object_dec").toDouble();
-            double moonRa = query.value("moon_ra").toDouble(); // in degrees
-            double moonDec = query.value("moon_dec").toDouble();
+            const double objRa = query.value("object_ra").toDouble(); // in hours
+            const double objDec = query.value("object_dec").toDouble();
+            const double moonRa = query.value("moon_ra").toDouble(); // in degrees
+            const double moonDec = query.value("moon_dec").toDouble();
 
-            double separation = novas_sep(objRa * 15.0, objDec, moonRa, moonDec);
+            const double separation = novas_sep(objRa * 15.0, objDec, moonRa, moonDec);
             obs.angularSeparation = separation;
         }
 
@@ -89,14 +85,13 @@ QVector<ObservationData> ObservationsRepository::getAllObservations(QString &err
     return observations;
 }
 
-QVector<ObservationData> ObservationsRepository::getObservationsByObject(int objectId, QString &errorMessage)
-{
+QVector<ObservationData> ObservationsRepository::getObservationsByObject(const int objectId, QString &errorMessage) const {
     QVector<ObservationData> observations;
     errorMessage.clear();
 
     QSqlQuery query(m_dbManager->database());
 
-    QString sql = R"(
+    const QString sql = R"(
         SELECT 
             o.id, o.image_count, o.exposure_length, o.total_exposure, o.comments,
             o.session_id, o.object_id, o.camera_id, o.telescope_id, o.filter_id,
@@ -151,12 +146,12 @@ QVector<ObservationData> ObservationsRepository::getObservationsByObject(int obj
         if (!query.value("object_ra").isNull() && !query.value("object_dec").isNull() &&
             !query.value("moon_ra").isNull() && !query.value("moon_dec").isNull())
         {
-            double objRa = query.value("object_ra").toDouble(); // in hours
-            double objDec = query.value("object_dec").toDouble();
-            double moonRa = query.value("moon_ra").toDouble(); // in degrees
-            double moonDec = query.value("moon_dec").toDouble();
+            const double objRa = query.value("object_ra").toDouble(); // in hours
+            const double objDec = query.value("object_dec").toDouble();
+            const double moonRa = query.value("moon_ra").toDouble(); // in degrees
+            const double moonDec = query.value("moon_dec").toDouble();
 
-            double separation = novas_sep(objRa * 15.0, objDec, moonRa, moonDec);
+            const double separation = novas_sep(objRa * 15.0, objDec, moonRa, moonDec);
             obs.angularSeparation = separation;
         }
 
@@ -166,14 +161,13 @@ QVector<ObservationData> ObservationsRepository::getObservationsByObject(int obj
     return observations;
 }
 
-bool ObservationsRepository::addObservation(int imageCount, int exposureLength, const QString &comments,
-                                            int sessionId, int objectId, int cameraId, int telescopeId,
-                                            int filterId, QString &errorMessage)
-{
+bool ObservationsRepository::addObservation(const int imageCount, const int exposureLength, const QString &comments,
+                                            const int sessionId, const int objectId, const int cameraId, const int telescopeId,
+                                            const int filterId, QString &errorMessage) const {
     errorMessage.clear();
 
     // Calculate total exposure
-    int totalExposure = imageCount * exposureLength;
+    const int totalExposure = imageCount * exposureLength;
 
     QSqlQuery query(m_dbManager->database());
     query.prepare(R"(
@@ -202,14 +196,13 @@ bool ObservationsRepository::addObservation(int imageCount, int exposureLength, 
     return true;
 }
 
-bool ObservationsRepository::updateObservation(int id, int imageCount, int exposureLength, const QString &comments,
-                                               int sessionId, int objectId, int cameraId, int telescopeId,
-                                               int filterId, QString &errorMessage)
-{
+bool ObservationsRepository::updateObservation(const int id, const int imageCount, const int exposureLength, const QString &comments,
+                                               const int sessionId, const int objectId, const int cameraId, const int telescopeId,
+                                               const int filterId, QString &errorMessage) const {
     errorMessage.clear();
 
     // Calculate total exposure
-    int totalExposure = imageCount * exposureLength;
+    const int totalExposure = imageCount * exposureLength;
 
     QSqlQuery query(m_dbManager->database());
     query.prepare(R"(
@@ -246,8 +239,7 @@ bool ObservationsRepository::updateObservation(int id, int imageCount, int expos
     return true;
 }
 
-bool ObservationsRepository::deleteObservation(int id, QString &errorMessage)
-{
+bool ObservationsRepository::deleteObservation(const int id, QString &errorMessage) const {
     errorMessage.clear();
 
     QSqlQuery query(m_dbManager->database());

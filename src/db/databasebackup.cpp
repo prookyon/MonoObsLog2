@@ -82,7 +82,7 @@ bool DatabaseBackup::isBackupNeeded(const QString &latestBackupPath)
 
     // Check if backup is older than 7 days
     const QDate currentDate = QDate::currentDate();
-    const int daysSinceBackup = backupDate.daysTo(currentDate);
+    const auto daysSinceBackup = backupDate.daysTo(currentDate);
 
     return daysSinceBackup >= 7;
 }
@@ -186,7 +186,6 @@ bool DatabaseBackup::createBackup(const QString &dbPath, QString &errorMessage)
         return false;
     }
 
-    emit backupCreated(backupPath);
     qDebug() << "Database backup created:" << backupPath;
 
     return true;
@@ -202,21 +201,18 @@ bool DatabaseBackup::checkAndBackupIfNeeded(const QString &dbPath, QString &erro
 
     // Check if backup is needed
 
-    if (bool needsBackup = isBackupNeeded(latestBackup))
+    if (isBackupNeeded(latestBackup))
     {
         qDebug() << "Backup needed. Creating new backup...";
         if (!createBackup(dbPath, errorMessage))
         {
-            emit backupCheckCompleted(false);
             return false;
         }
-        emit backupCheckCompleted(true);
         return true;
     }
     else
     {
         qDebug() << "Recent backup exists, no backup needed";
-        emit backupCheckCompleted(false);
         return true;
     }
 }

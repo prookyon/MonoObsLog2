@@ -1,10 +1,6 @@
 #ifndef SESSIONSREPOSITORY_H
 #define SESSIONSREPOSITORY_H
 
-#include <QObject>
-#include <QString>
-#include <QVariant>
-#include <QVector>
 #include <QDate>
 
 class DatabaseManager;
@@ -27,13 +23,13 @@ class SessionsRepository : public QObject
 
 public:
     explicit SessionsRepository(DatabaseManager *dbManager, QObject *parent = nullptr);
-    ~SessionsRepository() = default;
+    ~SessionsRepository() override = default;
 
     // Query operations
-    QVector<SessionData> getAllSessions(QString &errorMessage);
-    bool addSession(const QString &name, const QDate &startDate, const QString &comments, const double &moonIllumination, const double &moonRa, const double &moonDec, QString &errorMessage);
-    bool updateSession(int id, const QString &name, const QDate &startDate, const QString &comments, const double &moonIllumination, const double &moonRa, const double &moonDec, QString &errorMessage);
-    bool deleteSession(int id, QString &errorMessage);
+    QVector<SessionData> getAllSessions(QString &errorMessage) const;
+    bool addSession(const QString &name, const QDate &startDate, const QString &comments, const double &moonIllumination, const double &moonRa, const double &moonDec, QString &errorMessage) const;
+    bool updateSession(int id, const QString &name, const QDate &startDate, const QString &comments, const double &moonIllumination, const double &moonRa, const double &moonDec, QString &errorMessage) const;
+    bool deleteSession(int id, QString &errorMessage) const;
 
 private:
     DatabaseManager *m_dbManager;

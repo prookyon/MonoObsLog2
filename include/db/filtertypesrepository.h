@@ -21,13 +21,13 @@ class FilterTypesRepository : public QObject
 
 public:
     explicit FilterTypesRepository(DatabaseManager *dbManager, QObject *parent = nullptr);
-    ~FilterTypesRepository() = default;
+    ~FilterTypesRepository() override = default;
 
     // Query operations
-    QVector<FilterTypeData> getAllFilterTypes(QString &errorMessage);
-    bool addFilterType(const QString &name, int priority, QString &errorMessage);
-    bool updateFilterType(int id, const QString &name, int priority, QString &errorMessage);
-    bool deleteFilterType(int id, QString &errorMessage);
+    QVector<FilterTypeData> getAllFilterTypes(QString &errorMessage) const;
+    bool addFilterType(const QString &name, int priority, QString &errorMessage) const;
+    bool updateFilterType(int id, const QString &name, int priority, QString &errorMessage) const;
+    bool deleteFilterType(int id, QString &errorMessage) const;
 
 private:
     DatabaseManager *m_dbManager;

@@ -9,8 +9,7 @@ ObjectsRepository::ObjectsRepository(DatabaseManager *dbManager, QObject *parent
 {
 }
 
-QVector<ObjectData> ObjectsRepository::getAllObjects(QString &errorMessage)
-{
+QVector<ObjectData> ObjectsRepository::getAllObjects(QString &errorMessage) const {
     QVector<ObjectData> objects;
 
     QSqlQuery query(m_dbManager->database());
@@ -36,8 +35,7 @@ QVector<ObjectData> ObjectsRepository::getAllObjects(QString &errorMessage)
     return objects;
 }
 
-bool ObjectsRepository::addObject(const QString &name, const QVariant &ra, const QVariant &dec, QString &errorMessage)
-{
+bool ObjectsRepository::addObject(const QString &name, const QVariant &ra, const QVariant &dec, QString &errorMessage) const {
     QSqlQuery query(m_dbManager->database());
     query.prepare("INSERT INTO objects (name, ra, dec) VALUES (:name, :ra, :dec)");
     query.bindValue(":name", name);
@@ -54,8 +52,7 @@ bool ObjectsRepository::addObject(const QString &name, const QVariant &ra, const
     return true;
 }
 
-bool ObjectsRepository::updateObject(int id, const QString &name, const QVariant &ra, const QVariant &dec, QString &errorMessage)
-{
+bool ObjectsRepository::updateObject(const int id, const QString &name, const QVariant &ra, const QVariant &dec, QString &errorMessage) const {
     QSqlQuery query(m_dbManager->database());
     query.prepare("UPDATE objects SET name = :name, ra = :ra, dec = :dec WHERE id = :id");
     query.bindValue(":name", name);
@@ -73,8 +70,7 @@ bool ObjectsRepository::updateObject(int id, const QString &name, const QVariant
     return true;
 }
 
-bool ObjectsRepository::deleteObject(int id, QString &errorMessage)
-{
+bool ObjectsRepository::deleteObject(const int id, QString &errorMessage) const {
     QSqlQuery query(m_dbManager->database());
     query.prepare("DELETE FROM objects WHERE id = :id");
     query.bindValue(":id", id);

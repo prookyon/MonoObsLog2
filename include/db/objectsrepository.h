@@ -22,13 +22,13 @@ class ObjectsRepository : public QObject
 
 public:
     explicit ObjectsRepository(DatabaseManager *dbManager, QObject *parent = nullptr);
-    ~ObjectsRepository() = default;
+    ~ObjectsRepository() override = default;
 
     // Query operations
-    QVector<ObjectData> getAllObjects(QString &errorMessage);
-    bool addObject(const QString &name, const QVariant &ra, const QVariant &dec, QString &errorMessage);
-    bool updateObject(int id, const QString &name, const QVariant &ra, const QVariant &dec, QString &errorMessage);
-    bool deleteObject(int id, QString &errorMessage);
+    QVector<ObjectData> getAllObjects(QString &errorMessage) const;
+    bool addObject(const QString &name, const QVariant &ra, const QVariant &dec, QString &errorMessage) const;
+    bool updateObject(int id, const QString &name, const QVariant &ra, const QVariant &dec, QString &errorMessage) const;
+    bool deleteObject(int id, QString &errorMessage) const;
 
 private:
     DatabaseManager *m_dbManager;

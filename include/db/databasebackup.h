@@ -13,14 +13,10 @@ public:
     ~DatabaseBackup() override;
 
     // Check if backup is needed and create if necessary
-    bool checkAndBackupIfNeeded(const QString &dbPath, QString &errorMessage);
+    static bool checkAndBackupIfNeeded(const QString &dbPath, QString &errorMessage);
 
     // Force create a backup
-    bool createBackup(const QString &dbPath, QString &errorMessage);
-
-signals:
-    void backupCreated(const QString &backupPath);
-    void backupCheckCompleted(bool backupCreated);
+    static bool createBackup(const QString &dbPath, QString &errorMessage);
 
 private:
     static QString getBackupDirectory(const QString &dbPath);

@@ -22,13 +22,13 @@ class FiltersRepository : public QObject
 
 public:
     explicit FiltersRepository(DatabaseManager *dbManager, QObject *parent = nullptr);
-    ~FiltersRepository() = default;
+    ~FiltersRepository() override = default;
 
     // Query operations
-    QVector<FilterData> getAllFilters(QString &errorMessage);
-    bool addFilter(const QString &name, int filterTypeId, QString &errorMessage);
-    bool updateFilter(int id, const QString &name, int filterTypeId, QString &errorMessage);
-    bool deleteFilter(int id, QString &errorMessage);
+    QVector<FilterData> getAllFilters(QString &errorMessage) const;
+    bool addFilter(const QString &name, int filterTypeId, QString &errorMessage) const;
+    bool updateFilter(int id, const QString &name, int filterTypeId, QString &errorMessage) const;
+    bool deleteFilter(int id, QString &errorMessage) const;
 
 private:
     DatabaseManager *m_dbManager;
