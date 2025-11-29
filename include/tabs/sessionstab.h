@@ -29,6 +29,7 @@ private slots:
     void onAddButtonClicked();
     void onEditButtonClicked();
     void onDeleteButtonClicked();
+    void onExploreSessionsFolder();
 
 private:
     void populateTable();
@@ -38,6 +39,7 @@ private:
     DatabaseManager *m_dbManager;
     SettingsManager *m_settingsManager;
     SessionsRepository *m_repository;
+    QMenu *m_rightClickMenu{};
 };
 
 #endif // SESSIONSTAB_H

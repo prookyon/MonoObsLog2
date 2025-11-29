@@ -22,7 +22,7 @@ class ObservationsTab : public QWidget
 
 public:
     explicit ObservationsTab(DatabaseManager *dbManager, SettingsManager *settingsManager, QWidget *parent = nullptr);
-    ~ObservationsTab();
+    ~ObservationsTab() override;
 
     void initialize();
     void refreshData();
@@ -34,11 +34,12 @@ private slots:
     void onFilterSelectionChanged();
     void onExportToHtmlClicked();
     void onExportToExcelClicked();
+    void onExploreSessionsFolder();
 
 private:
     void populateTable();
-    void populateComboBoxes();
-    void populateObjectFilter();
+    void populateComboBoxes() const;
+    void populateObjectFilter() const;
     bool showObservationDialog(const QString &title, int &sessionId, int &objectId,
                                int &cameraId, int &telescopeId, int &filterId,
                                int &imageCount, int &exposureLength, QString &comments);
@@ -49,6 +50,7 @@ private:
     ObservationsRepository *m_repository;
     QStringListModel *m_filterListModel;
     QMenu *m_exportMenu;
+    QMenu *m_rightClickMenu{};
     int m_currentFilterObjectId; // -1 for "All Objects"
 };
 

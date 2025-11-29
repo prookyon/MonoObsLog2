@@ -13,6 +13,9 @@
 #include <QTableWidgetItem>
 #include <QPushButton>
 #include <QColor>
+#include <QDesktopServices>
+#include <QFileInfo>
+#include <QMenu>
 
 SessionsTab::SessionsTab(DatabaseManager *dbManager, SettingsManager *settingsManager, QWidget *parent)
     : QWidget(parent), ui(new Ui::SessionsTab), m_dbManager(dbManager), m_settingsManager(settingsManager), m_repository(nullptr)
@@ -32,6 +35,17 @@ void SessionsTab::initialize()
     connect(ui->addSessionButton, &QPushButton::clicked, this, &SessionsTab::onAddButtonClicked);
     connect(ui->editSessionButton, &QPushButton::clicked, this, &SessionsTab::onEditButtonClicked);
     connect(ui->deleteSessionButton, &QPushButton::clicked, this, &SessionsTab::onDeleteButtonClicked);
+
+    m_rightClickMenu = new QMenu(ui->sessionsTable);
+    const auto openExplorerAction = m_rightClickMenu->addAction("Browse to Session folder...");
+    connect(openExplorerAction, &QAction::triggered, this, &SessionsTab::onExploreSessionsFolder);
+
+    ui->sessionsTable->setContextMenuPolicy(Qt::ContextMenuPolicy::CustomContextMenu);
+    connect(ui->sessionsTable,&QTableWidget::customContextMenuRequested,this,[this]{
+        if (m_settingsManager->sessionsFolderTemplate().isEmpty())
+            return;
+        m_rightClickMenu->popup(QCursor::pos());
+    });
 
     // Configure table columns
     ui->sessionsTable->setColumnWidth(0, 150); // Session Name
@@ -287,3 +301,18 @@ void SessionsTab::onDeleteButtonClicked()
 
     refreshData();
 }
+
+void SessionsTab::onExploreSessionsFolder() {
+    const int currentRow = ui->sessionsTable->currentRow();
+    const QString sessionId = ui->sessionsTable->item(currentRow, 0)->text();
+    QString folderTemplate = m_settingsManager->sessionsFolderTemplate();
+    const QString finalPath = folderTemplate.replace("{{sessionid}}", sessionId);
+    //Test path exists
+    if (QFileInfo::exists(folderTemplate)) {
+        QDesktopServices::openUrl(QUrl::fromLocalFile(folderTemplate));
+    }
+    else {
+        QMessageBox::warning(this, "Folder not found", QString("Session folder %1 does not exist").arg(folderTemplate));
+    }
+}
+

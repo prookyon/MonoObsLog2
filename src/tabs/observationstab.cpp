@@ -4,7 +4,6 @@
 #include "db/observationsrepository.h"
 #include "numerictablewidgetitem.h"
 #include "settingsmanager.h"
-#include <QDebug>
 #include <QMessageBox>
 #include <QDialog>
 #include <QFormLayout>
@@ -15,7 +14,6 @@
 #include <QTableWidgetItem>
 #include <QPushButton>
 #include <QSqlQuery>
-#include <QSqlError>
 #include <QStringListModel>
 #include <QMenu>
 #include <QFileDialog>
@@ -23,6 +21,7 @@
 #include <QTextStream>
 #include <QDateTime>
 #include <OpenXLSX.hpp>
+#include <QDesktopServices>
 
 ObservationsTab::ObservationsTab(DatabaseManager *dbManager, SettingsManager *settingsManager, QWidget *parent)
     : QWidget(parent), ui(new Ui::ObservationsTab), m_dbManager(dbManager), m_settingsManager(settingsManager),
@@ -46,13 +45,25 @@ void ObservationsTab::initialize()
     connect(ui->editObservationButton, &QPushButton::clicked, this, &ObservationsTab::onEditObservationButtonClicked);
     connect(ui->deleteObservationButton, &QPushButton::clicked, this, &ObservationsTab::onDeleteObservationButtonClicked);
 
+    m_rightClickMenu = new QMenu(ui->observationsTable);
+    const auto openExplorerAction = m_rightClickMenu->addAction("Browse to Session folder...");
+    connect(openExplorerAction, &QAction::triggered, this, &ObservationsTab::onExploreSessionsFolder);
+
+    ui->observationsTable->setContextMenuPolicy(Qt::ContextMenuPolicy::CustomContextMenu);
+    connect(ui->observationsTable,&QTableWidget::customContextMenuRequested,this,[this]{
+        if (m_settingsManager->sessionsFolderTemplate().isEmpty())
+            return;
+        m_rightClickMenu->popup(QCursor::pos());
+    });
+
     // Setup export menu
     m_exportMenu = new QMenu(this);
-    QAction *exportToHtmlAction = m_exportMenu->addAction("Export to HTML");
-    QAction *exportToExcelAction = m_exportMenu->addAction("Export to Excel");
+    const auto exportToHtmlAction = m_exportMenu->addAction("Export to HTML");
+    const auto exportToExcelAction = m_exportMenu->addAction("Export to Excel");
     connect(exportToHtmlAction, &QAction::triggered, this, &ObservationsTab::onExportToHtmlClicked);
     connect(exportToExcelAction, &QAction::triggered, this, &ObservationsTab::onExportToExcelClicked);
     ui->exportObservationButton->setMenu(m_exportMenu);
+
 
     // Connect filter list view
     connect(ui->observationFilterListView->selectionModel(), &QItemSelectionModel::selectionChanged,
@@ -88,14 +99,14 @@ void ObservationsTab::refreshData()
     populateTable();
 }
 
-void ObservationsTab::populateComboBoxes()
-{
+void ObservationsTab::populateComboBoxes() const {
     // Save current selections
-    int sessionIndex = ui->sessionNameComboBox->currentIndex();
-    int objectIndex = ui->objectComboBox->currentIndex();
-    int cameraIndex = ui->cameraComboBox->currentIndex();
-    int telescopeIndex = ui->telescopeComboBox->currentIndex();
-    int filterIndex = ui->filterComboBox->currentIndex();
+    // TODO: this is very naive, maybe use actual user data to restore selected item
+    const int sessionIndex = ui->sessionNameComboBox->currentIndex();
+    const int objectIndex = ui->objectComboBox->currentIndex();
+    const int cameraIndex = ui->cameraComboBox->currentIndex();
+    const int telescopeIndex = ui->telescopeComboBox->currentIndex();
+    const int filterIndex = ui->filterComboBox->currentIndex();
 
     // Clear all combo boxes
     ui->sessionNameComboBox->clear();
@@ -111,7 +122,7 @@ void ObservationsTab::populateComboBoxes()
     {
         while (query.next())
         {
-            int id = query.value("id").toInt();
+            const int id = query.value("id").toInt();
             QString name = query.value("name").toString();
             ui->sessionNameComboBox->addItem(name, id);
         }
@@ -174,8 +185,7 @@ void ObservationsTab::populateComboBoxes()
         ui->filterComboBox->setCurrentIndex(filterIndex);
 }
 
-void ObservationsTab::populateObjectFilter()
-{
+void ObservationsTab::populateObjectFilter() const {
     QStringList objectNames;
     objectNames << "< All Objects >";
 
@@ -230,47 +240,47 @@ void ObservationsTab::populateTable()
         ui->observationsTable->insertRow(row);
 
         // Session Name
-        QTableWidgetItem *sessionItem = new QTableWidgetItem(obs.sessionName);
+        const auto sessionItem = new QTableWidgetItem(obs.sessionName);
         sessionItem->setData(Qt::UserRole, obs.id); // Store observation ID
         ui->observationsTable->setItem(row, 0, sessionItem);
 
         // Date
-        QTableWidgetItem *dateItem = new QTableWidgetItem(obs.sessionDate);
+        const auto dateItem = new QTableWidgetItem(obs.sessionDate);
         ui->observationsTable->setItem(row, 1, dateItem);
 
         // Object
-        QTableWidgetItem *objectItem = new QTableWidgetItem(obs.objectName);
+        const auto objectItem = new QTableWidgetItem(obs.objectName);
         ui->observationsTable->setItem(row, 2, objectItem);
 
         // Camera
-        QTableWidgetItem *cameraItem = new QTableWidgetItem(obs.cameraName);
+        const auto cameraItem = new QTableWidgetItem(obs.cameraName);
         ui->observationsTable->setItem(row, 3, cameraItem);
 
         // Telescope
-        QTableWidgetItem *telescopeItem = new QTableWidgetItem(obs.telescopeName);
+        const auto telescopeItem = new QTableWidgetItem(obs.telescopeName);
         ui->observationsTable->setItem(row, 4, telescopeItem);
 
         // Filter
-        QTableWidgetItem *filterItem = new QTableWidgetItem(obs.filterName);
+        const auto filterItem = new QTableWidgetItem(obs.filterName);
         ui->observationsTable->setItem(row, 5, filterItem);
 
         // Image Count
-        NumericTableWidgetItem *imageCountItem = new NumericTableWidgetItem(QString::number(obs.imageCount));
+        const auto imageCountItem = new NumericTableWidgetItem(QString::number(obs.imageCount));
         imageCountItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
         ui->observationsTable->setItem(row, 6, imageCountItem);
 
         // Exposure Length
-        NumericTableWidgetItem *exposureLengthItem = new NumericTableWidgetItem(QString::number(obs.exposureLength));
+        const auto exposureLengthItem = new NumericTableWidgetItem(QString::number(obs.exposureLength));
         exposureLengthItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
         ui->observationsTable->setItem(row, 7, exposureLengthItem);
 
         // Total Exposure
-        NumericTableWidgetItem *totalExposureItem = new NumericTableWidgetItem(QString::number(obs.totalExposure));
+        const auto totalExposureItem = new NumericTableWidgetItem(QString::number(obs.totalExposure));
         totalExposureItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
         ui->observationsTable->setItem(row, 8, totalExposureItem);
 
         // Moon Illumination
-        NumericTableWidgetItem *moonIllumItem = new NumericTableWidgetItem(QString::number(obs.moonIllumination, 'f', 0));
+        const auto moonIllumItem = new NumericTableWidgetItem(QString::number(obs.moonIllumination, 'f', 0));
         moonIllumItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
         // Apply background color if moon illumination exceeds warning threshold
         if (m_settingsManager)
@@ -287,7 +297,7 @@ void ObservationsTab::populateTable()
         // Angular Separation
         if (obs.angularSeparation >= 0.0)
         {
-            NumericTableWidgetItem *angSepItem = new NumericTableWidgetItem(QString::number(obs.angularSeparation, 'f', 0));
+            const auto angSepItem = new NumericTableWidgetItem(QString::number(obs.angularSeparation, 'f', 0));
             angSepItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
             // Apply background color if angular separation is smaller than warning threshold
             if (m_settingsManager)
@@ -303,13 +313,13 @@ void ObservationsTab::populateTable()
         }
         else
         {
-            QTableWidgetItem *angSepItem = new QTableWidgetItem("");
+            const auto angSepItem = new QTableWidgetItem("");
             angSepItem->setTextAlignment(Qt::AlignCenter);
             ui->observationsTable->setItem(row, 10, angSepItem);
         }
 
         // Comments
-        QTableWidgetItem *commentsItem = new QTableWidgetItem(obs.comments);
+        const auto commentsItem = new QTableWidgetItem(obs.comments);
         ui->observationsTable->setItem(row, 11, commentsItem);
 
         row++;
@@ -360,10 +370,10 @@ bool ObservationsTab::showObservationDialog(const QString &title, int &sessionId
     dialog.setWindowTitle(title);
     dialog.setMinimumWidth(500);
 
-    QFormLayout *formLayout = new QFormLayout(&dialog);
+    const auto formLayout = new QFormLayout(&dialog);
 
     // Session combo box
-    QComboBox *sessionCombo = new QComboBox(&dialog);
+    const auto sessionCombo = new QComboBox(&dialog);
     QSqlQuery query(m_dbManager->database());
     if (query.exec("SELECT id, concat(name,' (', start_date, ')') as name FROM sessions ORDER BY start_date DESC"))
     {
@@ -379,7 +389,7 @@ bool ObservationsTab::showObservationDialog(const QString &title, int &sessionId
     formLayout->addRow("Session:", sessionCombo);
 
     // Object combo box
-    QComboBox *objectCombo = new QComboBox(&dialog);
+    const auto objectCombo = new QComboBox(&dialog);
     if (query.exec("SELECT id, name FROM objects ORDER BY name"))
     {
         while (query.next())
@@ -393,7 +403,7 @@ bool ObservationsTab::showObservationDialog(const QString &title, int &sessionId
     formLayout->addRow("Object:", objectCombo);
 
     // Camera combo box
-    QComboBox *cameraCombo = new QComboBox(&dialog);
+    const auto cameraCombo = new QComboBox(&dialog);
     if (query.exec("SELECT id, name FROM cameras ORDER BY name"))
     {
         while (query.next())
@@ -407,7 +417,7 @@ bool ObservationsTab::showObservationDialog(const QString &title, int &sessionId
     formLayout->addRow("Camera:", cameraCombo);
 
     // Telescope combo box
-    QComboBox *telescopeCombo = new QComboBox(&dialog);
+    const auto telescopeCombo = new QComboBox(&dialog);
     if (query.exec("SELECT id, name FROM telescopes ORDER BY name"))
     {
         while (query.next())
@@ -421,7 +431,7 @@ bool ObservationsTab::showObservationDialog(const QString &title, int &sessionId
     formLayout->addRow("Telescope:", telescopeCombo);
 
     // Filter combo box
-    QComboBox *filterCombo = new QComboBox(&dialog);
+    const auto filterCombo = new QComboBox(&dialog);
     if (query.exec("SELECT id, name FROM filters ORDER BY name"))
     {
         while (query.next())
@@ -435,25 +445,25 @@ bool ObservationsTab::showObservationDialog(const QString &title, int &sessionId
     formLayout->addRow("Filter:", filterCombo);
 
     // Image Count spin box
-    QSpinBox *imageCountSpin = new QSpinBox(&dialog);
+    const auto imageCountSpin = new QSpinBox(&dialog);
     imageCountSpin->setMaximum(99999);
     imageCountSpin->setValue(imageCount);
     formLayout->addRow("Image Count:", imageCountSpin);
 
     // Exposure Length spin box
-    QSpinBox *exposureLengthSpin = new QSpinBox(&dialog);
+    const auto exposureLengthSpin = new QSpinBox(&dialog);
     exposureLengthSpin->setMaximum(99999);
     exposureLengthSpin->setValue(exposureLength);
     formLayout->addRow("Exposure Length (s):", exposureLengthSpin);
 
     // Comments field
-    QLineEdit *commentsEdit = new QLineEdit(&dialog);
+    const auto commentsEdit = new QLineEdit(&dialog);
     commentsEdit->setText(comments);
     commentsEdit->setPlaceholderText("Enter comments (optional)");
     formLayout->addRow("Comments:", commentsEdit);
 
     // Buttons
-    QDialogButtonBox *buttonBox = new QDialogButtonBox(
+    const auto buttonBox = new QDialogButtonBox(
         QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialog);
     formLayout->addRow(buttonBox);
 
@@ -461,7 +471,7 @@ bool ObservationsTab::showObservationDialog(const QString &title, int &sessionId
     connect(buttonBox, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
 
     // Validation on OK
-    connect(buttonBox, &QDialogButtonBox::accepted, [&]()
+    connect(buttonBox, &QDialogButtonBox::accepted, &dialog, [&dialog, sessionCombo,objectCombo,cameraCombo,telescopeCombo,filterCombo,imageCountSpin,exposureLengthSpin]()
             {
         if (sessionCombo->currentIndex() < 0)
         {
@@ -518,14 +528,14 @@ bool ObservationsTab::showObservationDialog(const QString &title, int &sessionId
 void ObservationsTab::onAddObservationButtonClicked()
 {
     // Get values from input fields
-    int sessionId = ui->sessionNameComboBox->currentData().toInt();
-    int objectId = ui->objectComboBox->currentData().toInt();
-    int cameraId = ui->cameraComboBox->currentData().toInt();
-    int telescopeId = ui->telescopeComboBox->currentData().toInt();
-    int filterId = ui->filterComboBox->currentData().toInt();
-    int imageCount = ui->imageCountSpinBox->value();
-    int exposureLength = ui->exposureLengthSpinBox->value();
-    QString comments = ui->commentsLineEdit->text().trimmed();
+    const int sessionId = ui->sessionNameComboBox->currentData().toInt();
+    const int objectId = ui->objectComboBox->currentData().toInt();
+    const int cameraId = ui->cameraComboBox->currentData().toInt();
+    const int telescopeId = ui->telescopeComboBox->currentData().toInt();
+    const int filterId = ui->filterComboBox->currentData().toInt();
+    const int imageCount = ui->imageCountSpinBox->value();
+    const int exposureLength = ui->exposureLengthSpinBox->value();
+    const QString comments = ui->commentsLineEdit->text().trimmed();
 
     // Validate inputs
     if (ui->sessionNameComboBox->currentIndex() < 0)
@@ -565,10 +575,9 @@ void ObservationsTab::onAddObservationButtonClicked()
     }
 
     // Add to database using repository
-    QString errorMessage;
-    if (!m_repository->addObservation(imageCount, exposureLength, comments,
-                                      sessionId, objectId, cameraId, telescopeId, filterId,
-                                      errorMessage))
+    if (QString errorMessage; !m_repository->addObservation(imageCount, exposureLength, comments,
+                                                            sessionId, objectId, cameraId, telescopeId, filterId,
+                                                            errorMessage))
     {
         QMessageBox::warning(this, "Database Error",
                              QString("Failed to add observation: %1").arg(errorMessage));
@@ -587,7 +596,7 @@ void ObservationsTab::onAddObservationButtonClicked()
 void ObservationsTab::onEditObservationButtonClicked()
 {
     // Check if a row is selected
-    int currentRow = ui->observationsTable->currentRow();
+    const int currentRow = ui->observationsTable->currentRow();
     if (currentRow < 0)
     {
         QMessageBox::information(this, "No Selection", "Please select an observation to edit.");
@@ -595,8 +604,8 @@ void ObservationsTab::onEditObservationButtonClicked()
     }
 
     // Get observation ID from the table
-    QTableWidgetItem *sessionItem = ui->observationsTable->item(currentRow, 0);
-    int observationId = sessionItem->data(Qt::UserRole).toInt();
+    const QTableWidgetItem *sessionItem = ui->observationsTable->item(currentRow, 0);
+    const int observationId = sessionItem->data(Qt::UserRole).toInt();
 
     // Find the observation data
     QString errorMessage;
@@ -652,7 +661,7 @@ void ObservationsTab::onEditObservationButtonClicked()
 void ObservationsTab::onDeleteObservationButtonClicked()
 {
     // Check if a row is selected
-    int currentRow = ui->observationsTable->currentRow();
+    const int currentRow = ui->observationsTable->currentRow();
     if (currentRow < 0)
     {
         QMessageBox::information(this, "No Selection", "Please select an observation to delete.");
@@ -660,18 +669,17 @@ void ObservationsTab::onDeleteObservationButtonClicked()
     }
 
     // Get observation data
-    QTableWidgetItem *sessionItem = ui->observationsTable->item(currentRow, 0);
-    int observationId = sessionItem->data(Qt::UserRole).toInt();
+    const QTableWidgetItem *sessionItem = ui->observationsTable->item(currentRow, 0);
+    const int observationId = sessionItem->data(Qt::UserRole).toInt();
     QString sessionName = sessionItem->text();
     QString objectName = ui->observationsTable->item(currentRow, 2)->text();
 
     // Confirm deletion
-    QMessageBox::StandardButton reply = QMessageBox::question(
+    const QMessageBox::StandardButton reply = QMessageBox::question(
         this,
         "Confirm Deletion",
         QString("Are you sure you want to delete the observation of '%1' in session '%2'?")
-            .arg(objectName)
-            .arg(sessionName),
+            .arg(objectName, sessionName),
         QMessageBox::Yes | QMessageBox::No,
         QMessageBox::No);
 
@@ -681,8 +689,7 @@ void ObservationsTab::onDeleteObservationButtonClicked()
     }
 
     // Delete from database
-    QString errorMessage;
-    if (!m_repository->deleteObservation(observationId, errorMessage))
+    if (QString errorMessage; !m_repository->deleteObservation(observationId, errorMessage))
     {
         QMessageBox::warning(this, "Database Error",
                              QString("Failed to delete observation: %1").arg(errorMessage));
@@ -695,7 +702,7 @@ void ObservationsTab::onDeleteObservationButtonClicked()
 void ObservationsTab::onExportToHtmlClicked()
 {
     // Ask user for save location
-    QString fileName = QFileDialog::getSaveFileName(
+    const QString fileName = QFileDialog::getSaveFileName(
         this,
         "Export Observations to HTML",
         QDir::homePath() + "/observations_export.html",
@@ -740,8 +747,8 @@ void ObservationsTab::onExportToHtmlClicked()
 
     // Generate table rows HTML
     QString tableRowsHtml;
-    int moonWarningThreshold = m_settingsManager ? m_settingsManager->moonIlluminationWarningPercent() : 75;
-    int angularWarningThreshold = m_settingsManager ? m_settingsManager->moonAngularSeparationWarningDeg() : 60;
+    const int moonWarningThreshold = m_settingsManager ? m_settingsManager->moonIlluminationWarningPercent() : 75;
+    const int angularWarningThreshold = m_settingsManager ? m_settingsManager->moonAngularSeparationWarningDeg() : 60;
 
     for (const ObservationData &obs : observations)
     {
@@ -757,18 +764,16 @@ void ObservationsTab::onExportToHtmlClicked()
         tableRowsHtml += QString("                    <td>%1</td>\n").arg(obs.totalExposure);
 
         // Moon illumination with warning class
-        QString moonClass = (obs.moonIllumination > moonWarningThreshold) ? " class=\"moon-warning\"" : "";
+        QString moonClass = obs.moonIllumination > moonWarningThreshold ? " class=\"moon-warning\"" : "";
         tableRowsHtml += QString("                    <td%1>%2</td>\n")
-                             .arg(moonClass)
-                             .arg(QString::number(obs.moonIllumination, 'f', 0));
+                             .arg(moonClass, QString::number(obs.moonIllumination, 'f', 0));
 
         // Angular separation with warning class
         if (obs.angularSeparation >= 0.0)
         {
-            QString angularClass = (obs.angularSeparation < angularWarningThreshold) ? " class=\"angular-warning\"" : "";
+            QString angularClass = obs.angularSeparation < angularWarningThreshold ? " class=\"angular-warning\"" : "";
             tableRowsHtml += QString("                    <td%1>%2</td>\n")
-                                 .arg(angularClass)
-                                 .arg(QString::number(obs.angularSeparation, 'f', 0));
+                                 .arg(angularClass, QString::number(obs.angularSeparation, 'f', 0));
         }
         else
         {
@@ -791,7 +796,7 @@ void ObservationsTab::onExportToHtmlClicked()
     }
 
     // Get current date/time
-    QString exportDateTime = QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss");
+    const QString exportDateTime = QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss");
 
     // Replace placeholders
     templateContent.replace("{{filter_name}}", filterName);
@@ -821,7 +826,7 @@ void ObservationsTab::onExportToHtmlClicked()
 
 void ObservationsTab::onExportToExcelClicked() {
     // Ask user for save location
-    QString fileName = QFileDialog::getSaveFileName(
+    const QString fileName = QFileDialog::getSaveFileName(
         this,
         "Export Observations to Excel",
         QDir::homePath() + "/observations_export.xlsx",
@@ -874,7 +879,7 @@ void ObservationsTab::onExportToExcelClicked() {
         }
 
         // Get current date/time
-        QString exportDateTime = QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss");
+        const QString exportDateTime = QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss");
 
         // Add export information at the top
         wks.cell("A1").value() = "Observations Export";
@@ -883,7 +888,7 @@ void ObservationsTab::onExportToExcelClicked() {
         wks.cell("A4").value() = "Total Records: " + std::to_string(observations.size());
 
         // Add header row (starting at row 6)
-        int headerRow = 6;
+        constexpr int headerRow = 6;
         wks.cell(headerRow, 1).value() = "Session Name";
         wks.cell(headerRow, 2).value() = "Date";
         wks.cell(headerRow, 3).value() = "Object";
@@ -896,10 +901,6 @@ void ObservationsTab::onExportToExcelClicked() {
         wks.cell(headerRow, 10).value() = "Moon Phase (%)";
         wks.cell(headerRow, 11).value() = "Angular Separation";
         wks.cell(headerRow, 12).value() = "Comments";
-
-        // Get warning thresholds
-        int moonWarningThreshold = m_settingsManager ? m_settingsManager->moonIlluminationWarningPercent() : 75;
-        int angularWarningThreshold = m_settingsManager ? m_settingsManager->moonAngularSeparationWarningDeg() : 60;
 
         // Add data rows
         int currentRow = headerRow + 1;
@@ -930,7 +931,6 @@ void ObservationsTab::onExportToExcelClicked() {
 
             currentRow++;
         }
-
         // Auto-fit columns (set reasonable widths)
         wks.column(1).setWidth(20);  // Session Name
         wks.column(2).setWidth(12);  // Date
@@ -958,5 +958,19 @@ void ObservationsTab::onExportToExcelClicked() {
     {
         QMessageBox::warning(this, "Export Error",
                              QString("Failed to create Excel file: %1").arg(e.what()));
+    }
+}
+
+void ObservationsTab::onExploreSessionsFolder() {
+    const int currentRow = ui->observationsTable->currentRow();
+    const QString sessionId = ui->observationsTable->item(currentRow, 0)->text();
+    QString folderTemplate = m_settingsManager->sessionsFolderTemplate();
+    const QString finalPath = folderTemplate.replace("{{sessionid}}", sessionId);
+    //Test path exists
+    if (QFileInfo::exists(folderTemplate)) {
+        QDesktopServices::openUrl(QUrl::fromLocalFile(folderTemplate));
+    }
+    else {
+        QMessageBox::warning(this, "Folder not found", QString("Session folder %1 does not exist").arg(folderTemplate));
     }
 }
