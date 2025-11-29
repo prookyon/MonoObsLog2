@@ -46,7 +46,7 @@ private:
     };
 
     void populateTable();
-    bool showObjectDialog(const QString &title, QString &name, QString &ra, QString &dec);
+    bool showObjectDialog(const QString &title, QString &name, QString &ra, QString &dec, QString &comments);
     void LoadConstellations();
 
     Ui::ObjectsTab *ui;

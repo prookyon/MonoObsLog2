@@ -51,6 +51,7 @@ void ObjectsTab::initialize()
     ui->objectsTable->setColumnWidth(0, 200); // Name
     ui->objectsTable->setColumnWidth(1, 150); // RA
     ui->objectsTable->setColumnWidth(2, 150); // Dec
+    //Comments is already set to stretch
 
     // Initialize polar plot
     ui->polarPlot->setPlotBackground(QColor(0,66,124,255));
@@ -120,19 +121,19 @@ void ObjectsTab::populateTable()
         ui->objectsTable->insertRow(row);
 
         // Name column
-        auto *nameItem = new QTableWidgetItem(obj.name);
+        auto nameItem = new QTableWidgetItem(obj.name);
         nameItem->setData(Qt::UserRole, obj.id); // Store ID as hidden data
         ui->objectsTable->setItem(row, 0, nameItem);
 
         // RA column
         QString raText = obj.ra.isNull() ? "" : QString::number(obj.ra.toDouble(), 'f', 6);
-        auto *raItem = new NumericTableWidgetItem(raText);
+        auto raItem = new NumericTableWidgetItem(raText);
         raItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
         ui->objectsTable->setItem(row, 1, raItem);
 
         // Dec column
         QString decText = obj.dec.isNull() ? "" : QString::number(obj.dec.toDouble(), 'f', 6);
-        auto *decItem = new NumericTableWidgetItem(decText);
+        auto decItem = new NumericTableWidgetItem(decText);
         decItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
         ui->objectsTable->setItem(row, 2, decItem);
 
@@ -142,14 +143,14 @@ void ObjectsTab::populateTable()
             ObjectInfo info = AstroCalc::getObjectInfo(lat, lon, obj.ra.toDouble(), obj.dec.toDouble());
             
             // Transit time column
-            auto *transitItem = new QTableWidgetItem(info.transitTime.toLocalTime().toString("hh:mm"));
+            auto transitItem = new QTableWidgetItem(info.transitTime.toLocalTime().toString("hh:mm"));
             transitItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
             ui->objectsTable->setItem(row, 3, transitItem);
 
             // Add marker to polar plot if altitude is positive (object is above horizon)
             if (info.altitude > 0)
             {
-                auto *marker = new QwtPolarMarker();
+                auto marker = new QwtPolarMarker();
                 
                 // Set position: azimuth (angular) and altitude
                 QwtPointPolar position(info.azimuth, info.altitude);
@@ -174,13 +175,19 @@ void ObjectsTab::populateTable()
         else
         {
             // Empty transit time if coordinates are missing
-            auto *transitItem = new QTableWidgetItem("");
+            auto transitItem = new QTableWidgetItem("");
             transitItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
             ui->objectsTable->setItem(row, 3, transitItem);
         }
 
+        //Comments
+        auto commentsItem = new QTableWidgetItem(obj.comments);
+        ui->objectsTable->setItem(row, 4, commentsItem);
+
         row++;
     }
+
+    ui->objectsTable->resizeColumnsToContents();
 
     // Draw constellation lines
     QwtPolarCurve *curve = nullptr;
@@ -211,16 +218,16 @@ void ObjectsTab::populateTable()
     ui->polarPlot->replot();
 }
 
-bool ObjectsTab::showObjectDialog(const QString &title, QString &name, QString &ra, QString &dec)
+bool ObjectsTab::showObjectDialog(const QString &title, QString &name, QString &ra, QString &dec, QString &comments)
 {
     QDialog dialog(this);
     dialog.setWindowTitle(title);
     dialog.setMinimumWidth(500);
 
-    auto *formLayout = new QFormLayout(&dialog);
+    const auto formLayout = new QFormLayout(&dialog);
 
     // Name field
-    auto *nameEdit = new QLineEdit(&dialog);
+    auto nameEdit = new QLineEdit(&dialog);
     nameEdit->setText(name);
     nameEdit->setPlaceholderText("Enter object name");
     formLayout->addRow("Name:", nameEdit);
@@ -237,8 +244,14 @@ bool ObjectsTab::showObjectDialog(const QString &title, QString &name, QString &
     m_dialogDecEdit->setPlaceholderText("Enter Dec in degrees (optional)");
     formLayout->addRow("Dec (degrees):", m_dialogDecEdit);
 
+    // Comments field
+    auto commentsEdit = new QLineEdit(&dialog);
+    commentsEdit->setText(comments);
+    commentsEdit->setPlaceholderText("Enter comment (optional)");
+    formLayout->addRow("Comments:", commentsEdit);
+
     // Coordinates Lookup button
-    auto *lookupButton = new QPushButton("Coordinates Lookup", &dialog);
+    const auto lookupButton = new QPushButton("Coordinates Lookup", &dialog);
     lookupButton->setToolTip("Query SIMBAD database for coordinates based on object name");
     formLayout->addRow("", lookupButton);
 
@@ -311,6 +324,7 @@ bool ObjectsTab::showObjectDialog(const QString &title, QString &name, QString &
         name = nameEdit->text().trimmed();
         ra = m_dialogRaEdit->text().trimmed();
         dec = m_dialogDecEdit->text().trimmed();
+        comments = commentsEdit->text().trimmed();
 
         // Clear the dialog pointers
         m_dialogRaEdit = nullptr;
@@ -328,9 +342,9 @@ bool ObjectsTab::showObjectDialog(const QString &title, QString &name, QString &
 
 void ObjectsTab::onAddButtonClicked()
 {
-    QString name, ra, dec;
+    QString name, ra, dec, comments;
 
-    if (!showObjectDialog("Add Object", name, ra, dec))
+    if (!showObjectDialog("Add Object", name, ra, dec, comments))
     {
         return;
     }
@@ -345,7 +359,7 @@ void ObjectsTab::onAddButtonClicked()
     const QVariant decVariant = decOk ? QVariant(decValue) : QVariant();
 
     // Insert into database using repository
-    if (QString errorMessage; !m_repository->addObject(name, raVariant, decVariant, errorMessage))
+    if (QString errorMessage; !m_repository->addObject(name, raVariant, decVariant, comments, errorMessage))
     {
         QMessageBox::warning(this, "Database Error",
                              QString("Failed to add object: %1").arg(errorMessage));
@@ -371,13 +385,15 @@ void ObjectsTab::onEditButtonClicked()
     const QString currentName = nameItem->text();
     const QString currentRa = ui->objectsTable->item(currentRow, 1)->text();
     const QString currentDec = ui->objectsTable->item(currentRow, 2)->text();
+    const QString currentComments = ui->objectsTable->item(currentRow, 4)->text();
 
     // Show dialog
     QString name = currentName;
     QString ra = currentRa;
     QString dec = currentDec;
+    QString comments = currentComments;
 
-    if (!showObjectDialog("Edit Object", name, ra, dec))
+    if (!showObjectDialog("Edit Object", name, ra, dec, comments))
     {
         return;
     }
@@ -392,7 +408,7 @@ void ObjectsTab::onEditButtonClicked()
     const QVariant decVariant = decOk ? QVariant(decValue) : QVariant();
 
     // Update in database using repository
-    if (QString errorMessage; !m_repository->updateObject(objectId, name, raVariant, decVariant, errorMessage))
+    if (QString errorMessage; !m_repository->updateObject(objectId, name, raVariant, decVariant,comments, errorMessage))
     {
         QMessageBox::warning(this, "Database Error",
                              QString("Failed to update object: %1").arg(errorMessage));

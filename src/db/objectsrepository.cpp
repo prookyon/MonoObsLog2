@@ -13,7 +13,7 @@ QVector<ObjectData> ObjectsRepository::getAllObjects(QString &errorMessage) cons
     QVector<ObjectData> objects;
 
     QSqlQuery query(m_dbManager->database());
-    query.prepare("SELECT id, name, ra, dec FROM objects ORDER BY name");
+    query.prepare("SELECT id, name, ra, dec, comments FROM objects ORDER BY name");
 
     if (!query.exec())
     {
@@ -29,18 +29,20 @@ QVector<ObjectData> ObjectsRepository::getAllObjects(QString &errorMessage) cons
         obj.name = query.value(1).toString();
         obj.ra = query.value(2);
         obj.dec = query.value(3);
+        obj.comments = query.value(4).toString();
         objects.append(obj);
     }
 
     return objects;
 }
 
-bool ObjectsRepository::addObject(const QString &name, const QVariant &ra, const QVariant &dec, QString &errorMessage) const {
+bool ObjectsRepository::addObject(const QString &name, const QVariant &ra, const QVariant &dec, const QString &comments, QString &errorMessage) const {
     QSqlQuery query(m_dbManager->database());
-    query.prepare("INSERT INTO objects (name, ra, dec) VALUES (:name, :ra, :dec)");
+    query.prepare("INSERT INTO objects (name, ra, dec, comments) VALUES (:name, :ra, :dec, :comments)");
     query.bindValue(":name", name);
     query.bindValue(":ra", ra);
     query.bindValue(":dec", dec);
+    query.bindValue(":comments", comments);
 
     if (!query.exec())
     {
@@ -52,13 +54,14 @@ bool ObjectsRepository::addObject(const QString &name, const QVariant &ra, const
     return true;
 }
 
-bool ObjectsRepository::updateObject(const int id, const QString &name, const QVariant &ra, const QVariant &dec, QString &errorMessage) const {
+bool ObjectsRepository::updateObject(const int id, const QString &name, const QVariant &ra, const QVariant &dec, const QString &comments, QString &errorMessage) const {
     QSqlQuery query(m_dbManager->database());
-    query.prepare("UPDATE objects SET name = :name, ra = :ra, dec = :dec WHERE id = :id");
+    query.prepare("UPDATE objects SET name = :name, ra = :ra, dec = :dec, comments = :comments WHERE id = :id");
     query.bindValue(":name", name);
     query.bindValue(":ra", ra);
     query.bindValue(":dec", dec);
     query.bindValue(":id", id);
+    query.bindValue(":comments", comments);
 
     if (!query.exec())
     {

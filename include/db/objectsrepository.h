@@ -14,6 +14,7 @@ struct ObjectData
     QString name;
     QVariant ra;  // Can be null
     QVariant dec; // Can be null
+    QString comments;
 };
 
 class ObjectsRepository : public QObject
@@ -26,8 +27,8 @@ public:
 
     // Query operations
     QVector<ObjectData> getAllObjects(QString &errorMessage) const;
-    bool addObject(const QString &name, const QVariant &ra, const QVariant &dec, QString &errorMessage) const;
-    bool updateObject(int id, const QString &name, const QVariant &ra, const QVariant &dec, QString &errorMessage) const;
+    bool addObject(const QString &name, const QVariant &ra, const QVariant &dec, const QString &comments, QString &errorMessage) const;
+    bool updateObject(int id, const QString &name, const QVariant &ra, const QVariant &dec, const QString &comments, QString &errorMessage) const;
     bool deleteObject(int id, QString &errorMessage) const;
 
 private:
