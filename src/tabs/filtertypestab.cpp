@@ -2,7 +2,6 @@
 #include "ui_filtertypes_tab.h"
 #include "db/databasemanager.h"
 #include "db/filtertypesrepository.h"
-#include <QDebug>
 #include <QMessageBox>
 #include <QDialog>
 #include <QFormLayout>
@@ -66,12 +65,12 @@ void FilterTypesTab::populateTable()
         ui->filterTypesTable->insertRow(row);
 
         // Name column
-        QTableWidgetItem *nameItem = new QTableWidgetItem(filterType.name);
+        const auto nameItem = new QTableWidgetItem(filterType.name);
         nameItem->setData(Qt::UserRole, filterType.id); // Store ID as hidden data
         ui->filterTypesTable->setItem(row, 0, nameItem);
 
         // Priority column
-        QTableWidgetItem *priorityItem = new QTableWidgetItem(QString::number(filterType.priority));
+        const auto priorityItem = new QTableWidgetItem(QString::number(filterType.priority));
         priorityItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
         ui->filterTypesTable->setItem(row, 1, priorityItem);
 
@@ -87,23 +86,23 @@ bool FilterTypesTab::showFilterTypeDialog(const QString &title, QString &name, i
     dialog.setWindowTitle(title);
     dialog.setMinimumWidth(400);
 
-    QFormLayout *formLayout = new QFormLayout(&dialog);
+    const auto formLayout = new QFormLayout(&dialog);
 
     // Name field
-    QLineEdit *nameEdit = new QLineEdit(&dialog);
+    const auto nameEdit = new QLineEdit(&dialog);
     nameEdit->setText(name);
     nameEdit->setPlaceholderText("Enter filter type name");
     formLayout->addRow("Name:", nameEdit);
 
     // Priority field
-    QSpinBox *prioritySpin = new QSpinBox(&dialog);
+    const auto prioritySpin = new QSpinBox(&dialog);
     prioritySpin->setMinimum(0);
     prioritySpin->setMaximum(100);
     prioritySpin->setValue(priority);
     formLayout->addRow("Priority:", prioritySpin);
 
     // Buttons
-    QDialogButtonBox *buttonBox = new QDialogButtonBox(
+    const auto buttonBox = new QDialogButtonBox(
         QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialog);
     formLayout->addRow(buttonBox);
 
@@ -111,7 +110,7 @@ bool FilterTypesTab::showFilterTypeDialog(const QString &title, QString &name, i
     connect(buttonBox, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
 
     // Validate name on OK
-    connect(buttonBox, &QDialogButtonBox::accepted, [&]()
+    connect(buttonBox, &QDialogButtonBox::accepted, &dialog, [nameEdit, &dialog]
             {
         if (nameEdit->text().trimmed().isEmpty()) {
             QMessageBox::warning(&dialog, "Validation Error", "Filter type name cannot be empty.");
@@ -123,7 +122,7 @@ bool FilterTypesTab::showFilterTypeDialog(const QString &title, QString &name, i
         name = nameEdit->text().trimmed();
         priority = prioritySpin->value();
 
-        return name.isEmpty() ? false : true;
+        return !name.isEmpty();
     }
 
     return false;
@@ -131,8 +130,8 @@ bool FilterTypesTab::showFilterTypeDialog(const QString &title, QString &name, i
 
 void FilterTypesTab::onAddFilterTypeButtonClicked()
 {
-    QString name = ui->nameLineEdit->text().trimmed();
-    int priority = ui->prioritySpinBox->value();
+    const QString name = ui->nameLineEdit->text().trimmed();
+    const int priority = ui->prioritySpinBox->value();
 
     // Validate inputs
     if (name.isEmpty())
@@ -142,8 +141,7 @@ void FilterTypesTab::onAddFilterTypeButtonClicked()
     }
 
     // Insert into database using repository
-    QString errorMessage;
-    if (!m_repository->addFilterType(name, priority, errorMessage))
+    if (QString errorMessage; !m_repository->addFilterType(name, priority, errorMessage))
     {
         QMessageBox::warning(this, "Database Error",
                              QString("Failed to add filter type: %1").arg(errorMessage));
@@ -160,7 +158,7 @@ void FilterTypesTab::onAddFilterTypeButtonClicked()
 void FilterTypesTab::onEditFilterTypeButtonClicked()
 {
     // Check if a row is selected
-    int currentRow = ui->filterTypesTable->currentRow();
+    const int currentRow = ui->filterTypesTable->currentRow();
     if (currentRow < 0)
     {
         QMessageBox::information(this, "No Selection", "Please select a filter type to edit.");
@@ -168,10 +166,10 @@ void FilterTypesTab::onEditFilterTypeButtonClicked()
     }
 
     // Get current filter type data (ID is stored in UserRole)
-    QTableWidgetItem *nameItem = ui->filterTypesTable->item(currentRow, 0);
-    int filterTypeId = nameItem->data(Qt::UserRole).toInt();
-    QString currentName = nameItem->text();
-    int currentPriority = ui->filterTypesTable->item(currentRow, 1)->text().toInt();
+    const QTableWidgetItem *nameItem = ui->filterTypesTable->item(currentRow, 0);
+    const int filterTypeId = nameItem->data(Qt::UserRole).toInt();
+    const QString currentName = nameItem->text();
+    const int currentPriority = ui->filterTypesTable->item(currentRow, 1)->text().toInt();
 
     // Show dialog
     QString name = currentName;
@@ -183,8 +181,7 @@ void FilterTypesTab::onEditFilterTypeButtonClicked()
     }
 
     // Update in database using repository
-    QString errorMessage;
-    if (!m_repository->updateFilterType(filterTypeId, name, priority, errorMessage))
+    if (QString errorMessage; !m_repository->updateFilterType(filterTypeId, name, priority, errorMessage))
     {
         QMessageBox::warning(this, "Database Error",
                              QString("Failed to update filter type: %1").arg(errorMessage));
@@ -197,7 +194,7 @@ void FilterTypesTab::onEditFilterTypeButtonClicked()
 void FilterTypesTab::onDeleteFilterTypeButtonClicked()
 {
     // Check if a row is selected
-    int currentRow = ui->filterTypesTable->currentRow();
+    const int currentRow = ui->filterTypesTable->currentRow();
     if (currentRow < 0)
     {
         QMessageBox::information(this, "No Selection", "Please select a filter type to delete.");
@@ -205,12 +202,12 @@ void FilterTypesTab::onDeleteFilterTypeButtonClicked()
     }
 
     // Get filter type data
-    QTableWidgetItem *nameItem = ui->filterTypesTable->item(currentRow, 0);
-    int filterTypeId = nameItem->data(Qt::UserRole).toInt();
-    QString filterTypeName = nameItem->text();
+    const QTableWidgetItem *nameItem = ui->filterTypesTable->item(currentRow, 0);
+    const int filterTypeId = nameItem->data(Qt::UserRole).toInt();
+    const QString filterTypeName = nameItem->text();
 
     // Confirm deletion
-    QMessageBox::StandardButton reply = QMessageBox::question(
+    const QMessageBox::StandardButton reply = QMessageBox::question(
         this,
         "Confirm Deletion",
         QString("Are you sure you want to delete the filter type '%1'?").arg(filterTypeName),
@@ -223,8 +220,7 @@ void FilterTypesTab::onDeleteFilterTypeButtonClicked()
     }
 
     // Delete from database using repository
-    QString errorMessage;
-    if (!m_repository->deleteFilterType(filterTypeId, errorMessage))
+    if (QString errorMessage; !m_repository->deleteFilterType(filterTypeId, errorMessage))
     {
         QMessageBox::warning(this, "Database Error",
                              QString("Failed to delete filter type: %1").arg(errorMessage));

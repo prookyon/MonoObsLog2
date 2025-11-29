@@ -23,7 +23,7 @@ class MonthlyStatsTab : public QWidget
 
 public:
     explicit MonthlyStatsTab(DatabaseManager *dbManager, QWidget *parent = nullptr);
-    ~MonthlyStatsTab();
+    ~MonthlyStatsTab() override;
 
     void initialize();
     void refreshData();

@@ -2,13 +2,11 @@
 #include "ui_telescopes_tab.h"
 #include "db/databasemanager.h"
 #include "db/telescopesrepository.h"
-#include <QDebug>
 #include <QMessageBox>
 #include <QDialog>
 #include <QFormLayout>
 #include <QLineEdit>
 #include <QDoubleSpinBox>
-#include <QSpinBox>
 #include <QDialogButtonBox>
 #include <QTableWidgetItem>
 #include <QPushButton>
@@ -68,27 +66,27 @@ void TelescopesTab::populateTable()
     }
 
     int row = 0;
-    for (const TelescopeData &tel : telescopes)
+    for (const auto &[id, name, aperture, fRatio, focalLength] : telescopes)
     {
         ui->telescopesTable->insertRow(row);
 
         // Name column
-        QTableWidgetItem *nameItem = new QTableWidgetItem(tel.name);
-        nameItem->setData(Qt::UserRole, tel.id); // Store ID as hidden data
+        const auto nameItem = new QTableWidgetItem(name);
+        nameItem->setData(Qt::UserRole, id); // Store ID as hidden data
         ui->telescopesTable->setItem(row, 0, nameItem);
 
         // Aperture column
-        QTableWidgetItem *apertureItem = new QTableWidgetItem(QString::number(tel.aperture));
+        const auto apertureItem = new QTableWidgetItem(QString::number(aperture));
         apertureItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
         ui->telescopesTable->setItem(row, 1, apertureItem);
 
         // F-ratio column
-        QTableWidgetItem *fRatioItem = new QTableWidgetItem(QString::number(tel.fRatio, 'f', 2));
+        const auto fRatioItem = new QTableWidgetItem(QString::number(fRatio, 'f', 2));
         fRatioItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
         ui->telescopesTable->setItem(row, 2, fRatioItem);
 
         // Focal Length column
-        QTableWidgetItem *focalLengthItem = new QTableWidgetItem(QString::number(tel.focalLength));
+        const auto focalLengthItem = new QTableWidgetItem(QString::number(focalLength));
         focalLengthItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
         ui->telescopesTable->setItem(row, 3, focalLengthItem);
 
@@ -104,22 +102,22 @@ bool TelescopesTab::showTelescopeDialog(const QString &title, QString &name, int
     dialog.setWindowTitle(title);
     dialog.setMinimumWidth(500);
 
-    QFormLayout *formLayout = new QFormLayout(&dialog);
+    const auto formLayout = new QFormLayout(&dialog);
 
     // Name field
-    QLineEdit *nameEdit = new QLineEdit(&dialog);
+    const auto nameEdit = new QLineEdit(&dialog);
     nameEdit->setText(name);
     nameEdit->setPlaceholderText("Enter telescope name");
     formLayout->addRow("Name:", nameEdit);
 
     // Aperture field
-    QSpinBox *apertureSpin = new QSpinBox(&dialog);
+    const auto apertureSpin = new QSpinBox(&dialog);
     apertureSpin->setMaximum(99999);
     apertureSpin->setValue(aperture);
     formLayout->addRow("Aperture (mm):", apertureSpin);
 
     // F-ratio field
-    QDoubleSpinBox *fRatioSpin = new QDoubleSpinBox(&dialog);
+    const auto fRatioSpin = new QDoubleSpinBox(&dialog);
     fRatioSpin->setMaximum(100.0);
     fRatioSpin->setDecimals(2);
     fRatioSpin->setSingleStep(0.1);
@@ -127,13 +125,13 @@ bool TelescopesTab::showTelescopeDialog(const QString &title, QString &name, int
     formLayout->addRow("F-ratio:", fRatioSpin);
 
     // Focal Length field
-    QSpinBox *focalLengthSpin = new QSpinBox(&dialog);
+    const auto focalLengthSpin = new QSpinBox(&dialog);
     focalLengthSpin->setMaximum(99999);
     focalLengthSpin->setValue(focalLength);
     formLayout->addRow("Focal Length (mm):", focalLengthSpin);
 
     // Buttons
-    QDialogButtonBox *buttonBox = new QDialogButtonBox(
+    const auto buttonBox = new QDialogButtonBox(
         QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialog);
     formLayout->addRow(buttonBox);
 
@@ -141,7 +139,7 @@ bool TelescopesTab::showTelescopeDialog(const QString &title, QString &name, int
     connect(buttonBox, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
 
     // Validate name on OK
-    connect(buttonBox, &QDialogButtonBox::accepted, [&]()
+    connect(buttonBox, &QDialogButtonBox::accepted, &dialog, [&dialog, nameEdit]
             {
         if (nameEdit->text().trimmed().isEmpty()) {
             QMessageBox::warning(&dialog, "Validation Error", "Telescope name cannot be empty.");
@@ -155,7 +153,7 @@ bool TelescopesTab::showTelescopeDialog(const QString &title, QString &name, int
         fRatio = fRatioSpin->value();
         focalLength = focalLengthSpin->value();
 
-        return name.isEmpty() ? false : true;
+        return !name.isEmpty();
     }
 
     return false;
@@ -163,10 +161,10 @@ bool TelescopesTab::showTelescopeDialog(const QString &title, QString &name, int
 
 void TelescopesTab::onAddTelescopeButtonClicked()
 {
-    QString name = ui->nameLineEdit->text().trimmed();
-    int aperture = ui->apertureSpinBox->value();
-    double fRatio = ui->fRatioSpinBox->value();
-    int focalLength = ui->focalLengthSpinBox->value();
+    const QString name = ui->nameLineEdit->text().trimmed();
+    const int aperture = ui->apertureSpinBox->value();
+    const double fRatio = ui->fRatioSpinBox->value();
+    const int focalLength = ui->focalLengthSpinBox->value();
 
     // Validate inputs
     if (name.isEmpty())
@@ -176,8 +174,7 @@ void TelescopesTab::onAddTelescopeButtonClicked()
     }
 
     // Insert into database using repository
-    QString errorMessage;
-    if (!m_repository->addTelescope(name, aperture, fRatio, focalLength, errorMessage))
+    if (QString errorMessage; !m_repository->addTelescope(name, aperture, fRatio, focalLength, errorMessage))
     {
         QMessageBox::warning(this, "Database Error",
                              QString("Failed to add telescope: %1").arg(errorMessage));
@@ -196,7 +193,7 @@ void TelescopesTab::onAddTelescopeButtonClicked()
 void TelescopesTab::onEditTelescopeButtonClicked()
 {
     // Check if a row is selected
-    int currentRow = ui->telescopesTable->currentRow();
+    const int currentRow = ui->telescopesTable->currentRow();
     if (currentRow < 0)
     {
         QMessageBox::information(this, "No Selection", "Please select a telescope to edit.");
@@ -204,12 +201,12 @@ void TelescopesTab::onEditTelescopeButtonClicked()
     }
 
     // Get current telescope data (ID is stored in UserRole)
-    QTableWidgetItem *nameItem = ui->telescopesTable->item(currentRow, 0);
-    int telescopeId = nameItem->data(Qt::UserRole).toInt();
-    QString currentName = nameItem->text();
-    int currentAperture = ui->telescopesTable->item(currentRow, 1)->text().toInt();
-    double currentFRatio = ui->telescopesTable->item(currentRow, 2)->text().toDouble();
-    int currentFocalLength = ui->telescopesTable->item(currentRow, 3)->text().toInt();
+    const QTableWidgetItem *nameItem = ui->telescopesTable->item(currentRow, 0);
+    const int telescopeId = nameItem->data(Qt::UserRole).toInt();
+    const QString currentName = nameItem->text();
+    const int currentAperture = ui->telescopesTable->item(currentRow, 1)->text().toInt();
+    const double currentFRatio = ui->telescopesTable->item(currentRow, 2)->text().toDouble();
+    const int currentFocalLength = ui->telescopesTable->item(currentRow, 3)->text().toInt();
 
     // Show dialog
     QString name = currentName;
@@ -223,8 +220,7 @@ void TelescopesTab::onEditTelescopeButtonClicked()
     }
 
     // Update in database using repository
-    QString errorMessage;
-    if (!m_repository->updateTelescope(telescopeId, name, aperture, fRatio, focalLength, errorMessage))
+    if (QString errorMessage; !m_repository->updateTelescope(telescopeId, name, aperture, fRatio, focalLength, errorMessage))
     {
         QMessageBox::warning(this, "Database Error",
                              QString("Failed to update telescope: %1").arg(errorMessage));
@@ -237,7 +233,7 @@ void TelescopesTab::onEditTelescopeButtonClicked()
 void TelescopesTab::onDeleteTelescopeButtonClicked()
 {
     // Check if a row is selected
-    int currentRow = ui->telescopesTable->currentRow();
+    const int currentRow = ui->telescopesTable->currentRow();
     if (currentRow < 0)
     {
         QMessageBox::information(this, "No Selection", "Please select a telescope to delete.");
@@ -245,12 +241,12 @@ void TelescopesTab::onDeleteTelescopeButtonClicked()
     }
 
     // Get telescope data
-    QTableWidgetItem *nameItem = ui->telescopesTable->item(currentRow, 0);
-    int telescopeId = nameItem->data(Qt::UserRole).toInt();
-    QString telescopeName = nameItem->text();
+    const QTableWidgetItem *nameItem = ui->telescopesTable->item(currentRow, 0);
+    const int telescopeId = nameItem->data(Qt::UserRole).toInt();
+    const QString telescopeName = nameItem->text();
 
     // Confirm deletion
-    QMessageBox::StandardButton reply = QMessageBox::question(
+    const QMessageBox::StandardButton reply = QMessageBox::question(
         this,
         "Confirm Deletion",
         QString("Are you sure you want to delete the telescope '%1'?").arg(telescopeName),
@@ -263,8 +259,7 @@ void TelescopesTab::onDeleteTelescopeButtonClicked()
     }
 
     // Delete from database using repository
-    QString errorMessage;
-    if (!m_repository->deleteTelescope(telescopeId, errorMessage))
+    if (QString errorMessage; !m_repository->deleteTelescope(telescopeId, errorMessage))
     {
         QMessageBox::warning(this, "Database Error",
                              QString("Failed to delete telescope: %1").arg(errorMessage));
@@ -274,14 +269,13 @@ void TelescopesTab::onDeleteTelescopeButtonClicked()
     refreshData();
 }
 
-void TelescopesTab::onApertureOrFocalLengthChanged()
-{
-    int aperture = ui->apertureSpinBox->value();
-    int focalLength = ui->focalLengthSpinBox->value();
+void TelescopesTab::onApertureOrFocalLengthChanged() const {
+    const int aperture = ui->apertureSpinBox->value();
+    const int focalLength = ui->focalLengthSpinBox->value();
 
     if (aperture > 0 && focalLength > 0)
     {
-        double fRatio = static_cast<double>(focalLength) / aperture;
+        const double fRatio = static_cast<double>(focalLength) / aperture;
         ui->fRatioSpinBox->setValue(fRatio);
     }
 }

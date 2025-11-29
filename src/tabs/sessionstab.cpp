@@ -1,11 +1,9 @@
 #include "tabs/sessionstab.h"
 #include "ui_sessions_tab.h"
 #include "settingsmanager.h"
-#include "db/databasemanager.h"
 #include "db/sessionsrepository.h"
 #include "numerictablewidgetitem.h"
 #include "astrocalc.h"
-#include <QDebug>
 #include <QMessageBox>
 #include <QDialog>
 #include <QFormLayout>
@@ -74,24 +72,24 @@ void SessionsTab::populateTable()
         ui->sessionsTable->insertRow(row);
 
         // Session Name column
-        QTableWidgetItem *nameItem = new QTableWidgetItem(session.name);
+        const auto nameItem = new QTableWidgetItem(session.name);
         nameItem->setData(Qt::UserRole, session.id); // Store ID as hidden data
         ui->sessionsTable->setItem(row, 0, nameItem);
 
         // Start Date column
         QString dateText = session.startDate.toString("yyyy-MM-dd");
-        QTableWidgetItem *dateItem = new QTableWidgetItem(dateText);
+        const auto dateItem = new QTableWidgetItem(dateText);
         ui->sessionsTable->setItem(row, 1, dateItem);
 
         // Moon Illumination column
         QString moonIllumText = session.moonIllumination.isNull() ? "" : QString::number(session.moonIllumination.toDouble(), 'f', 0);
-        NumericTableWidgetItem *moonIllumItem = new NumericTableWidgetItem(moonIllumText);
+        const auto moonIllumItem = new NumericTableWidgetItem(moonIllumText);
         moonIllumItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
 
         // Apply background color if moon illumination exceeds warning threshold
         if (!session.moonIllumination.isNull() && m_settingsManager)
         {
-            double illumination = session.moonIllumination.toDouble();
+            const double illumination = session.moonIllumination.toDouble();
             int warningThreshold = m_settingsManager->moonIlluminationWarningPercent();
             if (illumination > warningThreshold)
             {
@@ -104,12 +102,12 @@ void SessionsTab::populateTable()
 
         // Exposure Total (h) column
         QString exposureText = session.exposureTotal.isNull() ? "0" : QString::number(session.exposureTotal.toDouble(), 'f', 1);
-        NumericTableWidgetItem *exposureItem = new NumericTableWidgetItem(exposureText);
+        const auto exposureItem = new NumericTableWidgetItem(exposureText);
         exposureItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
         ui->sessionsTable->setItem(row, 3, exposureItem);
 
         // Comments column
-        QTableWidgetItem *commentsItem = new QTableWidgetItem(session.comments);
+        const auto commentsItem = new QTableWidgetItem(session.comments);
         ui->sessionsTable->setItem(row, 4, commentsItem);
 
         row++;
@@ -124,16 +122,16 @@ bool SessionsTab::showSessionDialog(const QString &title, QString &name, QString
     dialog.setWindowTitle(title);
     dialog.setMinimumWidth(500);
 
-    QFormLayout *formLayout = new QFormLayout(&dialog);
+    const auto formLayout = new QFormLayout(&dialog);
 
     // Name field
-    QLineEdit *nameEdit = new QLineEdit(&dialog);
+    const auto nameEdit = new QLineEdit(&dialog);
     nameEdit->setText(name);
     nameEdit->setPlaceholderText("Enter session name (unique)");
     formLayout->addRow("Session Name:", nameEdit);
 
     // Start Date field
-    QDateEdit *dateEdit = new QDateEdit(&dialog);
+    const auto dateEdit = new QDateEdit(&dialog);
     if (!startDate.isEmpty())
     {
         dateEdit->setDate(QDate::fromString(startDate, "yyyy-MM-dd"));
@@ -146,13 +144,13 @@ bool SessionsTab::showSessionDialog(const QString &title, QString &name, QString
     formLayout->addRow("Start Date:", dateEdit);
 
     // Comments field
-    QLineEdit *commentsEdit = new QLineEdit(&dialog);
+    const auto commentsEdit = new QLineEdit(&dialog);
     commentsEdit->setText(comments);
     commentsEdit->setPlaceholderText("Enter comments (optional)");
     formLayout->addRow("Comments:", commentsEdit);
 
     // Buttons
-    QDialogButtonBox *buttonBox = new QDialogButtonBox(
+    const auto buttonBox = new QDialogButtonBox(
         QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialog);
     formLayout->addRow(buttonBox);
 
@@ -160,7 +158,7 @@ bool SessionsTab::showSessionDialog(const QString &title, QString &name, QString
     connect(buttonBox, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
 
     // Validate name on OK
-    connect(buttonBox, &QDialogButtonBox::accepted, [&]()
+    connect(buttonBox, &QDialogButtonBox::accepted, &dialog, [&dialog, nameEdit]
             {
         if (nameEdit->text().trimmed().isEmpty()) {
             QMessageBox::warning(&dialog, "Validation Error", "Session name cannot be empty.");
@@ -181,13 +179,13 @@ bool SessionsTab::showSessionDialog(const QString &title, QString &name, QString
 
 void SessionsTab::onAddButtonClicked()
 {
-    QString name = ui->sessionNameLineEdit->text().trimmed();
-    QString startDate = ui->startDateEdit->date().toString("yyyy-MM-dd");
-    QString comments = ui->sessionCommentsLineEdit->text().trimmed();
+    const QString name = ui->sessionNameLineEdit->text().trimmed();
+    const QString startDate = ui->startDateEdit->date().toString("yyyy-MM-dd");
+    const QString comments = ui->sessionCommentsLineEdit->text().trimmed();
 
     double illumination, ra, dec;
-    double lat = m_settingsManager->latitude();
-    double lon = m_settingsManager->longitude();
+    const double lat = m_settingsManager->latitude();
+    const double lon = m_settingsManager->longitude();
     AstroCalc::moonInfoForDate(QDateTime::fromString(startDate, "yyyy-MM-dd").addDays(1), lat, lon, &illumination, &ra, &dec);
 
     // Insert into database using repository
@@ -210,7 +208,7 @@ void SessionsTab::onAddButtonClicked()
 void SessionsTab::onEditButtonClicked()
 {
     // Check if a row is selected
-    int currentRow = ui->sessionsTable->currentRow();
+    const int currentRow = ui->sessionsTable->currentRow();
     if (currentRow < 0)
     {
         QMessageBox::information(this, "No Selection", "Please select a session to edit.");
@@ -218,11 +216,11 @@ void SessionsTab::onEditButtonClicked()
     }
 
     // Get current session data (ID is stored in UserRole)
-    QTableWidgetItem *nameItem = ui->sessionsTable->item(currentRow, 0);
-    int sessionId = nameItem->data(Qt::UserRole).toInt();
-    QString currentName = nameItem->text();
-    QString currentDate = ui->sessionsTable->item(currentRow, 1)->text();
-    QString currentComments = ui->sessionsTable->item(currentRow, 6)->text();
+    const QTableWidgetItem *nameItem = ui->sessionsTable->item(currentRow, 0);
+    const int sessionId = nameItem->data(Qt::UserRole).toInt();
+    const QString currentName = nameItem->text();
+    const QString currentDate = ui->sessionsTable->item(currentRow, 1)->text();
+    const QString currentComments = ui->sessionsTable->item(currentRow, 6)->text();
 
     // Show dialog
     QString name = currentName;
@@ -235,8 +233,8 @@ void SessionsTab::onEditButtonClicked()
     }
 
     double illumination, ra, dec;
-    double lat = m_settingsManager->latitude();
-    double lon = m_settingsManager->longitude();
+    const double lat = m_settingsManager->latitude();
+    const double lon = m_settingsManager->longitude();
     AstroCalc::moonInfoForDate(QDateTime::fromString(startDate, "yyyy-MM-dd").addDays(1), lat, lon, &illumination, &ra, &dec);
 
     // Update in database using repository
@@ -254,7 +252,7 @@ void SessionsTab::onEditButtonClicked()
 void SessionsTab::onDeleteButtonClicked()
 {
     // Check if a row is selected
-    int currentRow = ui->sessionsTable->currentRow();
+    const int currentRow = ui->sessionsTable->currentRow();
     if (currentRow < 0)
     {
         QMessageBox::information(this, "No Selection", "Please select a session to delete.");
@@ -262,12 +260,12 @@ void SessionsTab::onDeleteButtonClicked()
     }
 
     // Get session data
-    QTableWidgetItem *nameItem = ui->sessionsTable->item(currentRow, 0);
-    int sessionId = nameItem->data(Qt::UserRole).toInt();
-    QString sessionName = nameItem->text();
+    const QTableWidgetItem *nameItem = ui->sessionsTable->item(currentRow, 0);
+    const int sessionId = nameItem->data(Qt::UserRole).toInt();
+    const QString sessionName = nameItem->text();
 
     // Confirm deletion
-    QMessageBox::StandardButton reply = QMessageBox::question(
+    const QMessageBox::StandardButton reply = QMessageBox::question(
         this,
         "Confirm Deletion",
         QString("Are you sure you want to delete the session '%1'?").arg(sessionName),
@@ -280,8 +278,7 @@ void SessionsTab::onDeleteButtonClicked()
     }
 
     // Delete from database using repository
-    QString errorMessage;
-    if (!m_repository->deleteSession(sessionId, errorMessage))
+    if (QString errorMessage; !m_repository->deleteSession(sessionId, errorMessage))
     {
         QMessageBox::warning(this, "Database Error",
                              QString("Failed to delete session: %1").arg(errorMessage));

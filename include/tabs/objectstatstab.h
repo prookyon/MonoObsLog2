@@ -18,13 +18,13 @@ class ObjectStatsTab : public QWidget
 
 public:
     explicit ObjectStatsTab(DatabaseManager *dbManager, QWidget *parent = nullptr);
-    ~ObjectStatsTab();
+    ~ObjectStatsTab() override;
 
     void initialize();
     void refreshData();
 
 private:
-    void applyConditionalFormatting(const QVector<double> &totals);
+    void applyConditionalFormatting(const QVector<double> &totals) const;
 
     Ui::ObjectStatsTab *ui;
     DatabaseManager *m_dbManager;

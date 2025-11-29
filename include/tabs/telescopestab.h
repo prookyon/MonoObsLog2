@@ -19,7 +19,7 @@ class TelescopesTab : public QWidget
 
 public:
     explicit TelescopesTab(DatabaseManager *dbManager, QWidget *parent = nullptr);
-    ~TelescopesTab();
+    ~TelescopesTab() override;
 
     void initialize();
     void refreshData();
@@ -28,7 +28,7 @@ private slots:
     void onAddTelescopeButtonClicked();
     void onEditTelescopeButtonClicked();
     void onDeleteTelescopeButtonClicked();
-    void onApertureOrFocalLengthChanged();
+    void onApertureOrFocalLengthChanged() const;
 
 private:
     void populateTable();

@@ -20,7 +20,7 @@ class FiltersTab : public QWidget
 
 public:
     explicit FiltersTab(DatabaseManager *dbManager, QWidget *parent = nullptr);
-    ~FiltersTab();
+    ~FiltersTab() override;
 
     void initialize();
     void refreshData();

@@ -19,7 +19,7 @@ class CamerasTab : public QWidget
 
 public:
     explicit CamerasTab(DatabaseManager *dbManager, QWidget *parent = nullptr);
-    ~CamerasTab();
+    ~CamerasTab() override;
 
     void initialize();
     void refreshData();

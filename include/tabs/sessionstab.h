@@ -20,7 +20,7 @@ class SessionsTab : public QWidget
 
 public:
     explicit SessionsTab(DatabaseManager *dbManager, SettingsManager *settingsManager, QWidget *parent = nullptr);
-    ~SessionsTab();
+    ~SessionsTab() override;
 
     void initialize();
     void refreshData();

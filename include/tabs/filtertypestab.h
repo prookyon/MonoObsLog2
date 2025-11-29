@@ -19,7 +19,7 @@ class FilterTypesTab : public QWidget
 
 public:
     explicit FilterTypesTab(DatabaseManager *dbManager, QWidget *parent = nullptr);
-    ~FilterTypesTab();
+    ~FilterTypesTab() override;
 
     void initialize();
     void refreshData();

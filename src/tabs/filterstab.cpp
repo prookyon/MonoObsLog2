@@ -3,7 +3,6 @@
 #include "db/databasemanager.h"
 #include "db/filtersrepository.h"
 #include "db/filtertypesrepository.h"
-#include <QDebug>
 #include <QMessageBox>
 #include <QDialog>
 #include <QFormLayout>
@@ -89,12 +88,12 @@ void FiltersTab::populateTable()
         ui->filtersTable->insertRow(row);
 
         // Name column
-        QTableWidgetItem *nameItem = new QTableWidgetItem(filter.name);
+        const auto nameItem = new QTableWidgetItem(filter.name);
         nameItem->setData(Qt::UserRole, filter.id); // Store ID as hidden data
         ui->filtersTable->setItem(row, 0, nameItem);
 
         // Type column
-        QTableWidgetItem *typeItem = new QTableWidgetItem(filter.filterTypeName);
+        const auto typeItem = new QTableWidgetItem(filter.filterTypeName);
         typeItem->setData(Qt::UserRole, filter.filterTypeId); // Store filter type ID
         ui->filtersTable->setItem(row, 1, typeItem);
 
@@ -110,16 +109,16 @@ bool FiltersTab::showFilterDialog(const QString &title, QString &name, int &filt
     dialog.setWindowTitle(title);
     dialog.setMinimumWidth(400);
 
-    QFormLayout *formLayout = new QFormLayout(&dialog);
+    const auto formLayout = new QFormLayout(&dialog);
 
     // Name field
-    QLineEdit *nameEdit = new QLineEdit(&dialog);
+    const auto nameEdit = new QLineEdit(&dialog);
     nameEdit->setText(name);
     nameEdit->setPlaceholderText("Enter filter name");
     formLayout->addRow("Name:", nameEdit);
 
     // Filter Type field
-    QComboBox *typeCombo = new QComboBox(&dialog);
+    const auto typeCombo = new QComboBox(&dialog);
 
     // Populate combo box with filter types
     QString errorMessage;
@@ -145,7 +144,7 @@ bool FiltersTab::showFilterDialog(const QString &title, QString &name, int &filt
     formLayout->addRow("Filter Type:", typeCombo);
 
     // Buttons
-    QDialogButtonBox *buttonBox = new QDialogButtonBox(
+    const auto buttonBox = new QDialogButtonBox(
         QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialog);
     formLayout->addRow(buttonBox);
 
@@ -153,8 +152,7 @@ bool FiltersTab::showFilterDialog(const QString &title, QString &name, int &filt
     connect(buttonBox, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
 
     // Validate name on OK
-    connect(buttonBox, &QDialogButtonBox::accepted, [&]()
-            {
+    connect(buttonBox, &QDialogButtonBox::accepted, &dialog, [nameEdit, &dialog] {
         if (nameEdit->text().trimmed().isEmpty()) {
             QMessageBox::warning(&dialog, "Validation Error", "Filter name cannot be empty.");
             dialog.done(QDialog::Rejected);
@@ -173,8 +171,8 @@ bool FiltersTab::showFilterDialog(const QString &title, QString &name, int &filt
 
 void FiltersTab::onAddFilterButtonClicked()
 {
-    QString name = ui->nameLineEdit->text().trimmed();
-    int filterTypeId = ui->typeComboBox->currentData().toInt();
+    const QString name = ui->nameLineEdit->text().trimmed();
+    const int filterTypeId = ui->typeComboBox->currentData().toInt();
 
     // Validate inputs
     if (name.isEmpty())
@@ -189,8 +187,7 @@ void FiltersTab::onAddFilterButtonClicked()
     }
 
     // Insert into database using repository
-    QString errorMessage;
-    if (!m_repository->addFilter(name, filterTypeId, errorMessage))
+    if (QString errorMessage; !m_repository->addFilter(name, filterTypeId, errorMessage))
     {
         QMessageBox::warning(this, "Database Error",
                              QString("Failed to add filter: %1").arg(errorMessage));
@@ -207,7 +204,7 @@ void FiltersTab::onAddFilterButtonClicked()
 void FiltersTab::onEditFilterButtonClicked()
 {
     // Check if a row is selected
-    int currentRow = ui->filtersTable->currentRow();
+    const int currentRow = ui->filtersTable->currentRow();
     if (currentRow < 0)
     {
         QMessageBox::information(this, "No Selection", "Please select a filter to edit.");
@@ -215,12 +212,12 @@ void FiltersTab::onEditFilterButtonClicked()
     }
 
     // Get current filter data (ID is stored in UserRole)
-    QTableWidgetItem *nameItem = ui->filtersTable->item(currentRow, 0);
-    int filterId = nameItem->data(Qt::UserRole).toInt();
-    QString currentName = nameItem->text();
+    const QTableWidgetItem *nameItem = ui->filtersTable->item(currentRow, 0);
+    const int filterId = nameItem->data(Qt::UserRole).toInt();
+    const QString currentName = nameItem->text();
 
-    QTableWidgetItem *typeItem = ui->filtersTable->item(currentRow, 1);
-    int currentFilterTypeId = typeItem->data(Qt::UserRole).toInt();
+    const QTableWidgetItem *typeItem = ui->filtersTable->item(currentRow, 1);
+    const int currentFilterTypeId = typeItem->data(Qt::UserRole).toInt();
 
     // Show dialog
     QString name = currentName;
@@ -232,8 +229,7 @@ void FiltersTab::onEditFilterButtonClicked()
     }
 
     // Update in database using repository
-    QString errorMessage;
-    if (!m_repository->updateFilter(filterId, name, filterTypeId, errorMessage))
+    if (QString errorMessage; !m_repository->updateFilter(filterId, name, filterTypeId, errorMessage))
     {
         QMessageBox::warning(this, "Database Error",
                              QString("Failed to update filter: %1").arg(errorMessage));
@@ -246,7 +242,7 @@ void FiltersTab::onEditFilterButtonClicked()
 void FiltersTab::onDeleteFilterButtonClicked()
 {
     // Check if a row is selected
-    int currentRow = ui->filtersTable->currentRow();
+    const int currentRow = ui->filtersTable->currentRow();
     if (currentRow < 0)
     {
         QMessageBox::information(this, "No Selection", "Please select a filter to delete.");
@@ -254,12 +250,12 @@ void FiltersTab::onDeleteFilterButtonClicked()
     }
 
     // Get filter data
-    QTableWidgetItem *nameItem = ui->filtersTable->item(currentRow, 0);
-    int filterId = nameItem->data(Qt::UserRole).toInt();
-    QString filterName = nameItem->text();
+    const QTableWidgetItem *nameItem = ui->filtersTable->item(currentRow, 0);
+    const int filterId = nameItem->data(Qt::UserRole).toInt();
+    const QString filterName = nameItem->text();
 
     // Confirm deletion
-    QMessageBox::StandardButton reply = QMessageBox::question(
+    const QMessageBox::StandardButton reply = QMessageBox::question(
         this,
         "Confirm Deletion",
         QString("Are you sure you want to delete the filter '%1'?").arg(filterName),
@@ -272,8 +268,7 @@ void FiltersTab::onDeleteFilterButtonClicked()
     }
 
     // Delete from database using repository
-    QString errorMessage;
-    if (!m_repository->deleteFilter(filterId, errorMessage))
+    if (QString errorMessage; !m_repository->deleteFilter(filterId, errorMessage))
     {
         QMessageBox::warning(this, "Database Error",
                              QString("Failed to delete filter: %1").arg(errorMessage));

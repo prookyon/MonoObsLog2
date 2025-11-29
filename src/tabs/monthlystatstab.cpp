@@ -3,7 +3,6 @@
 #include "db/databasemanager.h"
 #include <QSqlQuery>
 #include <QSqlError>
-#include <QDebug>
 #include <QMap>
 #include <QDate>
 #include <QMessageBox>
@@ -37,7 +36,7 @@ void MonthlyStatsTab::createChart()
     // Query database to get monthly exposure times
     QSqlQuery query(m_dbManager->database());
 
-    QString sql = R"(
+    const QString sql = R"(
         SELECT 
             strftime('%Y-%m', s.start_date) AS month,
             SUM(o.total_exposure) AS total_seconds
@@ -59,15 +58,15 @@ void MonthlyStatsTab::createChart()
     while (query.next())
     {
         QString month = query.value("month").toString();
-        int totalSeconds = query.value("total_seconds").toInt();
-        double totalHours = totalSeconds / 3600.0; // Convert seconds to hours
+        const int totalSeconds = query.value("total_seconds").toInt();
+        const double totalHours = totalSeconds / 3600.0; // Convert seconds to hours
         monthlyData[month] = totalHours;
     }
 
     if (monthlyData.isEmpty())
     {
         // No data to display - show empty chart
-        QChart *chart = new QChart();
+        const auto chart = new QChart();
         chart->setTitle("Monthly Cumulative Exposure Time");
         ui->chartView->setChart(chart);
         ui->chartView->setRenderHint(QPainter::Antialiasing);
@@ -75,7 +74,7 @@ void MonthlyStatsTab::createChart()
     }
 
     // Create bar set for the data
-    QBarSet *barSet = new QBarSet("Exposure Hours");
+   const auto barSet = new QBarSet("Exposure Hours");
     barSet->setColor(QColor(52, 152, 219)); // Nice blue color
 
     // Prepare categories (month labels) and values
@@ -100,30 +99,30 @@ void MonthlyStatsTab::createChart()
     }
 
     // Create bar series and add the bar set
-    QBarSeries *series = new QBarSeries();
+    const auto series = new QBarSeries();
     series->append(barSet);
 
     // Create chart
-    QChart *chart = new QChart();
+    const auto chart = new QChart();
     chart->addSeries(series);
     chart->setAnimationOptions(QChart::SeriesAnimations);
 
     // Create X axis with month categories
-    QBarCategoryAxis *axisX = new QBarCategoryAxis();
+    const auto axisX = new QBarCategoryAxis();
     axisX->append(categories);
     axisX->setTitleText("Month");
     chart->addAxis(axisX, Qt::AlignBottom);
     series->attachAxis(axisX);
 
     // Create Y axis for hours
-    QValueAxis *axisY = new QValueAxis();
+    const auto axisY = new QValueAxis();
     axisY->setTitleText("Exposure Time (hours)");
     axisY->setLabelFormat("%.0f");
     axisY->setTickInterval(10.0);
 
     // Set Y axis range with some padding
     double maxHours = 0;
-    for (double hours : monthlyData.values())
+    for (const double hours : monthlyData.values())
     {
         if (hours > maxHours)
             maxHours = hours;

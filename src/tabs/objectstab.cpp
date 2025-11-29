@@ -253,10 +253,10 @@ bool ObjectsTab::showObjectDialog(const QString &title, QString &name, QString &
     }
 
     // Use QPointer to safely track the button
-    QPointer<QPushButton> safeButtonPtr(lookupButton);
+    QPointer safeButtonPtr(lookupButton);
 
     // Connect lookup button
-    connect(lookupButton, &QPushButton::clicked, [&, nameEdit, safeButtonPtr] {
+    connect(lookupButton, &QPushButton::clicked, &dialog, [&dialog, nameEdit, safeButtonPtr, this] {
         const QString objectName = nameEdit->text().trimmed();
         if (objectName.isEmpty()) {
             QMessageBox::warning(&dialog, "Input Error", "Please enter an object name first.");
@@ -277,7 +277,7 @@ bool ObjectsTab::showObjectDialog(const QString &title, QString &name, QString &
     connect(buttonBox, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
 
     // Validate name on OK
-    connect(buttonBox, &QDialogButtonBox::accepted, [&] {
+    connect(buttonBox, &QDialogButtonBox::accepted, &dialog, [&dialog, nameEdit] {
         if (nameEdit->text().trimmed().isEmpty()) {
             QMessageBox::warning(&dialog, "Validation Error", "Object name cannot be empty.");
             dialog.done(QDialog::Rejected);

@@ -35,7 +35,7 @@ void ObjectStatsTab::refreshData()
     ui->objectStatsTable->setRowCount(0);
     ui->objectStatsTable->setColumnCount(0);
 
-    QSqlDatabase &db = m_dbManager->database();
+    const QSqlDatabase &db = m_dbManager->database();
 
     // First, get all filter types ordered by priority
     QSqlQuery filterTypesQuery(db);
@@ -120,13 +120,13 @@ void ObjectStatsTab::refreshData()
     {
         int objectId = exposureQuery.value(0).toInt();
         int filterTypeId = exposureQuery.value(1).toInt();
-        int totalExposure = exposureQuery.value(2).toInt();
+        const int totalExposure = exposureQuery.value(2).toInt();
         exposureMap[qMakePair(objectId, filterTypeId)] = totalExposure;
     }
 
     // Setup table: columns = Object Name + Filter Types + Total
-    int numCols = 1 + filterTypeNames.size() + 1; // Object Name column + filter type columns + Total column
-    int numRows = objectNames.size();
+    const int numCols = static_cast<int>( 1 + filterTypeNames.size() + 1); // Object Name column + filter type columns + Total column
+    const int numRows = static_cast<int>( objectNames.size());
 
     ui->objectStatsTable->setRowCount(numRows);
     ui->objectStatsTable->setColumnCount(numCols);
@@ -148,7 +148,7 @@ void ObjectStatsTab::refreshData()
         QString objectName = objectNames[row];
 
         // First column: Object name
-        QTableWidgetItem *objectItem = new QTableWidgetItem(objectName);
+        const auto objectItem = new QTableWidgetItem(objectName);
         objectItem->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
         ui->objectStatsTable->setItem(row, 0, objectItem);
 
@@ -158,19 +158,19 @@ void ObjectStatsTab::refreshData()
         for (int col = 0; col < filterTypeNames.size(); ++col)
         {
             int filterTypeId = filterTypeIds[col];
-            int exposure = exposureMap.value(qMakePair(objectId, filterTypeId), 0);
+            const int exposure = exposureMap.value(qMakePair(objectId, filterTypeId), 0);
 
             rowTotal += exposure;
 
             // Format exposure time in seconds
             QString exposureText = exposure > 0 ? QString::number(exposure) : "";
-            NumericTableWidgetItem *item = new NumericTableWidgetItem(exposureText);
+            const auto item = new NumericTableWidgetItem(exposureText);
             item->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
             ui->objectStatsTable->setItem(row, col + 1, item);
         }
 
         // Last column: Row total
-        NumericTableWidgetItem *totalItem = new NumericTableWidgetItem(QString::number(rowTotal));
+        const auto totalItem = new NumericTableWidgetItem(QString::number(rowTotal));
         totalItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
         QFont boldFont = totalItem->font();
         boldFont.setBold(true);
@@ -188,16 +188,15 @@ void ObjectStatsTab::refreshData()
     applyConditionalFormatting(totals);
 }
 
-void ObjectStatsTab::applyConditionalFormatting(const QVector<double> &totals)
-{
+void ObjectStatsTab::applyConditionalFormatting(const QVector<double> &totals) const {
     if (totals.isEmpty())
     {
         return;
     }
 
     // Find min and max values
-    double minVal = *std::min_element(totals.begin(), totals.end());
-    double maxVal = *std::max_element(totals.begin(), totals.end());
+    const double minVal = *std::ranges::min_element(totals);
+    const double maxVal = *std::ranges::max_element(totals);
 
     if (maxVal / minVal <= 2.0)
     {
@@ -205,15 +204,15 @@ void ObjectStatsTab::applyConditionalFormatting(const QVector<double> &totals)
         return;
     }
 
-    int totalColIdx = ui->objectStatsTable->columnCount() - 1; // Last column is Total
+    const int totalColIdx = ui->objectStatsTable->columnCount() - 1; // Last column is Total
 
     // Apply color gradient from red (min) to green (max)
     for (int row = 0; row < totals.size(); ++row)
     {
-        double value = totals[row];
+        const double value = totals[row];
 
         // Normalize value between 0 and 1
-        double normalized = (value - minVal) / (maxVal - minVal);
+        const double normalized = (value - minVal) / (maxVal - minVal);
 
         // Map to hue values: Red -> Yellow -> Green
         // 0.0 -> Red (0°), 0.5 -> Yellow (60°), 1.0 -> Green (120°)
@@ -226,17 +225,16 @@ void ObjectStatsTab::applyConditionalFormatting(const QVector<double> &totals)
         else
         {
             // Yellow to Green
-            hue = static_cast<int>(60 + ((normalized - 0.5) * 2 * 60)); // 60° -> 120°
+            hue = static_cast<int>(60 + (normalized - 0.5) * 2 * 60); // 60° -> 120°
         }
 
         // For pastel: high value, low-to-medium saturation
-        int saturation = static_cast<int>(40 * 255 / 100); // 0-255, lower = more pastel
-        int valueHsv = static_cast<int>(95 * 255 / 100);   // 0-255, brightness
+        constexpr int saturation = 40 * 255 / 100; // 0-255, lower = more pastel
+        constexpr int valueHsv = 95 * 255 / 100;   // 0-255, brightness
 
         QColor color = QColor::fromHsv(hue, saturation, valueHsv);
 
-        QTableWidgetItem *item = ui->objectStatsTable->item(row, totalColIdx);
-        if (item)
+        if (QTableWidgetItem *item = ui->objectStatsTable->item(row, totalColIdx))
         {
             item->setBackground(color);
         }
