@@ -22,6 +22,7 @@ public:
     [[nodiscard]] QString databasePath() const;
     [[nodiscard]] QString style() const;
     [[nodiscard]] Qt::ColorScheme colorScheme() const;
+    [[nodiscard]] QString sessionsFolderTemplate() const;
 
     // Setters
     void setMoonIlluminationWarningPercent(int value);
@@ -31,6 +32,7 @@ public:
     void setDatabasePath(const QString &value);
     void setStyle(const QString &value);
     void setColorScheme(Qt::ColorScheme value);
+    void setSessionsFolderTemplate(const QString &value);
 
     // Save settings to file
     bool saveSettings();
@@ -55,6 +57,7 @@ private:
     QString m_databasePath;
     QString m_style;
     Qt::ColorScheme m_colorScheme;
+    QString m_sessionsFolderTemplate;
 
     bool m_initialized;
 };

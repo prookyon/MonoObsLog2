@@ -13,6 +13,7 @@ SettingsManager::SettingsManager(QObject *parent)
       m_databasePath(""),
       m_style(""),
       m_colorScheme(Qt::ColorScheme::Unknown),
+      m_sessionsFolderTemplate(""),
       m_initialized(false)
 {
 }
@@ -83,6 +84,7 @@ bool SettingsManager::createDefaultSettings()
     m_longitude = 0.0;
     m_style = "";                             // use Qt default at first
     m_colorScheme = Qt::ColorScheme::Unknown; // use Qt default at first
+    m_sessionsFolderTemplate = "";
     // Note: m_databasePath has no default - must be set by user
 
     // Create JSON object with default values
@@ -93,6 +95,7 @@ bool SettingsManager::createDefaultSettings()
     jsonObj["longitude"] = m_longitude;
     jsonObj["style"] = m_style;
     jsonObj["color_scheme"] = static_cast<int>(m_colorScheme);
+    jsonObj["sessions_folder_template"] = m_sessionsFolderTemplate;
     // Do not add database_path to default settings
 
     // Write to file
@@ -148,6 +151,7 @@ bool SettingsManager::loadSettings()
     m_databasePath = jsonObj.value("database_path").toString("");
     m_style = jsonObj.value("style").toString("");
     m_colorScheme = static_cast<Qt::ColorScheme>(jsonObj.value("color_scheme").toInt(static_cast<int>(Qt::ColorScheme::Unknown)));
+    m_sessionsFolderTemplate = jsonObj.value("sessions_folder_template").toString("");
 
     return true;
 }
@@ -162,6 +166,7 @@ bool SettingsManager::saveSettings()
     jsonObj["database_path"] = m_databasePath;
     jsonObj["style"] = m_style;
     jsonObj["color_scheme"] = static_cast<int>(m_colorScheme);
+    jsonObj["sessions_folder_template"] = m_sessionsFolderTemplate;
 
     const QJsonDocument doc(jsonObj);
     QFile file(getSettingsFilePath());
@@ -222,6 +227,10 @@ Qt::ColorScheme SettingsManager::colorScheme() const
     return m_colorScheme;
 }
 
+QString SettingsManager::sessionsFolderTemplate() const {
+    return m_sessionsFolderTemplate;
+}
+
 // Setters
 void SettingsManager::setMoonIlluminationWarningPercent(const int value)
 {
@@ -276,5 +285,11 @@ void SettingsManager::setColorScheme(const Qt::ColorScheme value)
     if (m_colorScheme != value)
     {
         m_colorScheme = value;
+    }
+}
+
+void SettingsManager::setSessionsFolderTemplate(const QString &value) {
+    if (m_sessionsFolderTemplate != value) {
+        m_sessionsFolderTemplate = value;
     }
 }

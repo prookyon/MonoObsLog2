@@ -69,6 +69,8 @@ void SettingsTab::loadSettingsToUI()
             {
                 const auto colorScheme = ui->colorSchemeComboBox->itemData(index).value<Qt::ColorScheme>();
                 qApp->styleHints()->setColorScheme(colorScheme); });
+
+    ui->sessionsFolderEdit->setText(m_settingsManager->sessionsFolderTemplate());
 }
 
 void SettingsTab::onSaveButtonClicked()
@@ -86,6 +88,7 @@ void SettingsTab::onSaveButtonClicked()
     const double longitude = ui->longitudeSpinBox->value();
     const QString style = ui->styleComboBox->currentText();
     const auto colorScheme = ui->colorSchemeComboBox->currentData().value<Qt::ColorScheme>();
+    const QString sessionsFolderTemplate = ui->sessionsFolderEdit->text();
 
     // Update settings manager
     m_settingsManager->setMoonIlluminationWarningPercent(moonIllumination);
@@ -94,6 +97,7 @@ void SettingsTab::onSaveButtonClicked()
     m_settingsManager->setLongitude(longitude);
     m_settingsManager->setStyle(style);
     m_settingsManager->setColorScheme(colorScheme);
+    m_settingsManager->setSessionsFolderTemplate(sessionsFolderTemplate);
 
     // Save to file
     if (!m_settingsManager->saveSettings())
