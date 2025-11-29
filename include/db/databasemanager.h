@@ -7,7 +7,7 @@
 #include "ER.h"
 #include <expected>
 
-#define OBSLOGDBVERSION 1
+#define OBSLOGDBVERSION 2
 
 class DatabaseManager : public QObject
 {
@@ -32,6 +32,7 @@ signals:
 private:
     [[nodiscard]] bool createTables() const;
     [[nodiscard]] bool tableExists(const QString &tableName) const;
+    std::expected<void, ER> runMigrations(int fromVersion, int toVersion) const;
 
 
     QSqlDatabase m_database;

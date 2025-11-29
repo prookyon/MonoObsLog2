@@ -3,6 +3,7 @@
 #include <QSqlError>
 #include <QDebug>
 #include <QFile>
+#include <vector>
 
 DatabaseManager::DatabaseManager(QObject *parent)
     : QObject(parent), m_initialized(false)
@@ -48,7 +49,22 @@ std::expected<void, ER> DatabaseManager::initialize(const QString &dbPath)
         return std::unexpected(ER::Critical(result.error().errorMessage ));
     }
 
-    if (result.value() > getSupportedDbVersion()) {
+    int actual = result.value();
+
+    if (actual < getSupportedDbVersion()) {
+        if (auto migResult = runMigrations(actual, getSupportedDbVersion()); !migResult) {
+            return std::unexpected(migResult.error());
+        }
+        // Update the database version
+        QSqlQuery query(m_database);
+        query.prepare(R"(UPDATE internal SET value = :version WHERE key = "DBVERSION")");
+        query.bindValue(":version", getSupportedDbVersion());
+        if (!query.exec()) {
+            return std::unexpected(ER::Critical(QString("Failed to update DB version: %1").arg(query.lastError().text())));
+        }
+    }
+
+    if (actual > getSupportedDbVersion()) {
         m_initialized = true;
         emit databaseInitialized();
         return std::unexpected(ER::Error(QString("Database is from newer version of application. This can have unknown consequences.") ));
@@ -154,7 +170,8 @@ bool DatabaseManager::createTables() const {
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL UNIQUE,
             ra REAL,
-            dec REAL
+            dec REAL,
+            comments TEXT
         )
     )";
 
@@ -247,4 +264,26 @@ std::expected<int, ER> DatabaseManager::getActualDbVersion() const {
 
     query.next();
     return query.value(0).toInt();
+}
+
+std::expected<void, ER> DatabaseManager::runMigrations(const int fromVersion, const int toVersion) const {
+    const std::vector<std::vector<QString>> migrations = {
+        {}, // index 0: no migration
+        {}, // index 1: no migration (initial version)
+        {R"(ALTER TABLE objects ADD COLUMN comments TEXT;)"}
+    };
+
+    for (int v = fromVersion + 1; v <= toVersion; ++v) {
+        for (const auto& sql : migrations[v]) {
+            if (QSqlQuery query(m_database); !query.exec(sql)) {
+                return std::unexpected(
+                    ER::Critical(
+                        QString("Migration to version %1 failed: %2")
+                        .arg(v)
+                        .arg(query.lastError().text())
+                ));
+            }
+        }
+    }
+    return {};
 }
