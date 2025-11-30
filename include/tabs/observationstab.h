@@ -2,6 +2,8 @@
 #define OBSERVATIONSTAB_H
 
 #include <QWidget>
+#include <QValidator>
+#include <QComboBox>
 
 QT_BEGIN_NAMESPACE
 namespace Ui
@@ -52,6 +54,62 @@ private:
     QMenu *m_exportMenu;
     QMenu *m_rightClickMenu{};
     int m_currentFilterObjectId; // -1 for "All Objects"
+};
+
+class ComboBoxItemValidator : public QValidator
+{
+    Q_OBJECT
+
+public:
+    explicit ComboBoxItemValidator(QComboBox* combo, QObject* parent = nullptr)
+        : QValidator(parent), m_combo(combo) {}
+
+    State validate(QString& input, int& pos) const override
+    {
+        Q_UNUSED(pos);
+
+        if (input.isEmpty()) {
+            return Intermediate;
+        }
+
+        // 2. Check for an Exact Match
+        // Qt::MatchFixedString ensures strict matching, CaseInsensitive is usually better for UX
+        int index = m_combo->findText(input, Qt::MatchFixedString);
+
+        // If found exactly, it is valid
+        if (index != -1) {
+            return Acceptable;
+        }
+
+        // 3. Check for Partial Match (Intermediate)
+        // We loop through items to see if the input is a prefix of any item
+        for (int i = 0; i < m_combo->count(); ++i) {
+            QString itemText = m_combo->itemText(i);
+
+            // Check if item starts with input (Case Sensitive for strictness)
+            if (itemText.startsWith(input, Qt::CaseInsensitive)) {
+                return Intermediate;
+            }
+        }
+
+        // 4. No match found at all
+        return Invalid;
+    }
+
+    void fixup(QString& input) const override
+    {
+        // auto-correct to the first matching entry
+        for (int i = 0; i < m_combo->count(); ++i) {
+            const QString item = m_combo->itemText(i);
+            if (item.startsWith(input, Qt::CaseInsensitive)) {
+                input = item;
+                return;
+            }
+        }
+    }
+
+private:
+    QComboBox* m_combo;
 };
 
 #endif // OBSERVATIONSTAB_H

@@ -22,6 +22,8 @@
 #include <QDateTime>
 #include <OpenXLSX.hpp>
 #include <QDesktopServices>
+#include <QSortFilterProxyModel>
+#include <QCompleter>
 
 ObservationsTab::ObservationsTab(DatabaseManager *dbManager, SettingsManager *settingsManager, QWidget *parent)
     : QWidget(parent), ui(new Ui::ObservationsTab), m_dbManager(dbManager), m_settingsManager(settingsManager),
@@ -82,6 +84,20 @@ void ObservationsTab::initialize()
     ui->observationsTable->setColumnWidth(9, 80);   // Moon Illumination
     ui->observationsTable->setColumnWidth(10, 80);  // Angular Separation
     ui->observationsTable->setColumnWidth(11, 200); // Comments
+
+    ui->objectComboBox->setFocusPolicy(Qt::StrongFocus);
+    ui->objectComboBox->setEditable(true);
+    ui->objectComboBox->setInsertPolicy(QComboBox::NoInsert);
+    const auto filterModel = new QSortFilterProxyModel(ui->objectComboBox);
+    filterModel->setFilterCaseSensitivity(Qt::CaseInsensitive);
+    filterModel->setSourceModel(ui->objectComboBox->model());
+    const auto completer = new QCompleter(filterModel,ui->objectComboBox);
+    completer->setCompletionMode(QCompleter::UnfilteredPopupCompletion);
+    ui->objectComboBox->setCompleter(completer);
+    connect(ui->objectComboBox->lineEdit(),&QLineEdit::textEdited, filterModel, &QSortFilterProxyModel::setFilterFixedString);
+
+    const auto validator = new ComboBoxItemValidator(ui->objectComboBox, this);
+    ui->objectComboBox->lineEdit()->setValidator(validator);
 
     // Initialize data
     refreshData();
