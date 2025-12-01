@@ -12,7 +12,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QChartView" name="chartView" native="true">
+    <widget class="QwtPlot" name="chartView" native="true">
      <property name="enabled">
       <bool>true</bool>
      </property>
@@ -28,9 +28,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>QChartView</class>
+   <class>QwtPlot</class>
    <extends>QWidget</extends>
-   <header>qchartview.h</header>
+   <header>qwt_plot.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

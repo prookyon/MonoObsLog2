@@ -2,11 +2,9 @@
 #define MONTHLYSTATSTAB_H
 
 #include <QWidget>
-#include <QtCharts/QChart>
-#include <QtCharts/QBarSeries>
-#include <QtCharts/QBarSet>
-#include <QtCharts/QBarCategoryAxis>
-#include <QtCharts/QValueAxis>
+#include <qwt_plot.h>
+#include <qwt_plot_barchart.h>
+#include <qwt_scale_draw.h>
 
 QT_BEGIN_NAMESPACE
 namespace Ui

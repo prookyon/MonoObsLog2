@@ -7,6 +7,8 @@
 #include <QDate>
 #include <QMessageBox>
 #include <QGraphicsLayout>
+#include <QwtText>
+#include <utility>
 
 MonthlyStatsTab::MonthlyStatsTab(DatabaseManager *dbManager, QWidget *parent)
     : QWidget(parent), ui(new Ui::MonthlyStatsTab), m_dbManager(dbManager)
@@ -66,19 +68,14 @@ void MonthlyStatsTab::createChart()
     if (monthlyData.isEmpty())
     {
         // No data to display - show empty chart
-        const auto chart = new QChart();
-        chart->setTitle("Monthly Cumulative Exposure Time");
-        ui->chartView->setChart(chart);
-        ui->chartView->setRenderHint(QPainter::Antialiasing);
+        ui->chartView->setTitle("Monthly Cumulative Exposure Time");
         return;
     }
 
-    // Create bar set for the data
-   const auto barSet = new QBarSet("Exposure Hours");
-    barSet->setColor(QColor(52, 152, 219)); // Nice blue color
-
     // Prepare categories (month labels) and values
     QStringList categories;
+    QVector<QPointF> data;
+    int index = 0;
     for (auto it = monthlyData.constBegin(); it != monthlyData.constEnd(); ++it)
     {
         QString monthStr = it.key();
@@ -95,30 +92,39 @@ void MonthlyStatsTab::createChart()
             categories << monthStr;
         }
 
-        *barSet << hours;
+        data << QPointF(index++, hours);
     }
 
-    // Create bar series and add the bar set
-    const auto series = new QBarSeries();
-    series->append(barSet);
+    // Create bar chart
+    const auto barChart = new QwtPlotBarChart();
+    barChart->setSamples(data);
+    //barChart->setBrush(QColor(52, 152, 219)); // Nice blue color
+    barChart->attach(ui->chartView);
 
-    // Create chart
-    const auto chart = new QChart();
-    chart->addSeries(series);
-    chart->setAnimationOptions(QChart::SeriesAnimations);
+    // Custom scale draw for X axis labels
+    class MonthScaleDraw : public QwtScaleDraw {
+    public:
+        explicit MonthScaleDraw(QStringList labels) : m_labels(std::move(labels)) {
+        }
 
-    // Create X axis with month categories
-    const auto axisX = new QBarCategoryAxis();
-    axisX->append(categories);
-    axisX->setTitleText("Month");
-    chart->addAxis(axisX, Qt::AlignBottom);
-    series->attachAxis(axisX);
+        QwtText label(double v) const override {
+            int i = qRound(v);
+            if (i >= 0 && i < m_labels.size())
+                return m_labels[i];
+            return {};
+        }
 
-    // Create Y axis for hours
-    const auto axisY = new QValueAxis();
-    axisY->setTitleText("Exposure Time (hours)");
-    axisY->setLabelFormat("%.0f");
-    axisY->setTickInterval(10.0);
+    private:
+        QStringList m_labels;
+    };
+
+    const auto scaleDraw = new MonthScaleDraw(categories);
+    scaleDraw->enableComponent( QwtScaleDraw::Backbone, false );
+    scaleDraw->enableComponent( QwtScaleDraw::Ticks, false );
+
+    ui->chartView->setAxisScaleDraw(QwtPlot::xBottom, scaleDraw);
+    ui->chartView->setAxisTitle(QwtPlot::xBottom, "Month");
+    ui->chartView->setAxisTitle(QwtPlot::yLeft, "Exposure Time (hours)");
 
     // Set Y axis range with some padding
     double maxHours = 0;
@@ -127,22 +133,13 @@ void MonthlyStatsTab::createChart()
         if (hours > maxHours)
             maxHours = hours;
     }
-    axisY->setRange(0, maxHours * 1.05); // Add padding at top
+    ui->chartView->setAxisScale(QwtPlot::yLeft, 0, maxHours * 1.05);
 
-    chart->addAxis(axisY, Qt::AlignLeft);
-    series->setLabelsFormat("@value h");
-    series->setLabelsPrecision(3);
-    series->setLabelsVisible(true);
-    series->attachAxis(axisY);
+    ui->chartView->setTitle("Monthly Cumulative Exposure Time");
 
-    chart->legend()->setVisible(false);
-    chart->setBackgroundRoundness(0);
-
-    // Set chart to view
-    ui->chartView->setFrameShape(QFrame::NoFrame);
-    ui->chartView->setChart(chart);
-    chart->layout()->setContentsMargins(0, 0, 0, 0);
-    chart->setBackgroundRoundness(0);
+    // Set margins
+    ui->chartView->setContentsMargins(0, 0, 0, 0);
     ui->verticalLayout->setContentsMargins(0, 0, 0, 0);
-    ui->chartView->setRenderHint(QPainter::Antialiasing);
+
+    ui->chartView->replot();
 }

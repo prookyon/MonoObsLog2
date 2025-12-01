@@ -12,7 +12,7 @@ set(CMAKE_AUTOUIC_SEARCH_PATHS uifiles)
 
 find_package(PkgConfig REQUIRED)
 
-find_package(Qt6 REQUIRED COMPONENTS Core Widgets Sql Network Charts PrintSupport)
+find_package(Qt6 REQUIRED COMPONENTS Core Widgets Sql Network)
 
 # Find libzip
 find_package(libzip CONFIG REQUIRED)
@@ -112,8 +112,6 @@ target_link_libraries(${PROJECT_NAME}
     Qt6::Widgets
     Qt6::Sql
     Qt6::Network
-    Qt6::Charts
-    Qt6::PrintSupport
     libzip::zip
     supernovas::core
     PkgConfig::Qwt
