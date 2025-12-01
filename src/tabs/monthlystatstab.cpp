@@ -8,6 +8,8 @@
 #include <QMessageBox>
 #include <QGraphicsLayout>
 #include <QwtText>
+#include <QwtPlotMarker>
+#include <qwt_column_symbol.h>
 #include <utility>
 
 MonthlyStatsTab::MonthlyStatsTab(DatabaseManager *dbManager, QWidget *parent)
@@ -35,6 +37,8 @@ void MonthlyStatsTab::refreshData()
 
 void MonthlyStatsTab::createChart()
 {
+    ui->chartView->detachItems();
+
     // Query database to get monthly exposure times
     QSqlQuery query(m_dbManager->database());
 
@@ -65,6 +69,14 @@ void MonthlyStatsTab::createChart()
         monthlyData[month] = totalHours;
     }
 
+    // test for extreme amount of data
+    /*for (int i = 1; i < 120; i++) {
+        auto month = QDateTime::currentDateTime().addMonths(i);
+        auto key = month.toString("yyyy-MM");
+        auto value = static_cast<double>( rand()%100) + 0.1;
+        monthlyData[key] = value;
+    }*/
+
     if (monthlyData.isEmpty())
     {
         // No data to display - show empty chart
@@ -75,6 +87,7 @@ void MonthlyStatsTab::createChart()
     // Prepare categories (month labels) and values
     QStringList categories;
     QVector<QPointF> data;
+    double maxHours = 0;
     int index = 0;
     for (auto it = monthlyData.constBegin(); it != monthlyData.constEnd(); ++it)
     {
@@ -93,13 +106,29 @@ void MonthlyStatsTab::createChart()
         }
 
         data << QPointF(index++, hours);
+        if (hours > maxHours)
+            maxHours = hours;
     }
 
     // Create bar chart
     const auto barChart = new QwtPlotBarChart();
     barChart->setSamples(data);
-    //barChart->setBrush(QColor(52, 152, 219)); // Nice blue color
+    const auto symbol = new QwtColumnSymbol(QwtColumnSymbol::Box);
+    symbol->setPalette(QColor(63, 148, 224));
+    barChart->setSymbol(symbol);
     barChart->attach(ui->chartView);
+
+    // Add value labels on top of each bar
+    for (auto i : data) {
+        double x = i.x();
+        double y = i.y();
+        QString labelText = QString::number(y, 'f', 1);
+        const auto marker = new QwtPlotMarker();
+        marker->setLabel(labelText);
+        marker->setLabelAlignment(Qt::AlignCenter);
+        marker->setValue(x, y + 0.03 * maxHours);
+        marker->attach(ui->chartView);
+    }
 
     // Custom scale draw for X axis labels
     class MonthScaleDraw : public QwtScaleDraw {
@@ -120,19 +149,13 @@ void MonthlyStatsTab::createChart()
 
     const auto scaleDraw = new MonthScaleDraw(categories);
     scaleDraw->enableComponent( QwtScaleDraw::Backbone, false );
-    scaleDraw->enableComponent( QwtScaleDraw::Ticks, false );
-
+    //scaleDraw->enableComponent( QwtScaleDraw::Ticks, false );
+    ui->chartView->setAxisMaxMinor(QwtPlot::xBottom, 0);
     ui->chartView->setAxisScaleDraw(QwtPlot::xBottom, scaleDraw);
     ui->chartView->setAxisTitle(QwtPlot::xBottom, "Month");
     ui->chartView->setAxisTitle(QwtPlot::yLeft, "Exposure Time (hours)");
 
     // Set Y axis range with some padding
-    double maxHours = 0;
-    for (const double hours : monthlyData.values())
-    {
-        if (hours > maxHours)
-            maxHours = hours;
-    }
     ui->chartView->setAxisScale(QwtPlot::yLeft, 0, maxHours * 1.05);
 
     ui->chartView->setTitle("Monthly Cumulative Exposure Time");
