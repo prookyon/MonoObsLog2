@@ -10,6 +10,7 @@
 #include <QwtText>
 #include <QwtPlotMarker>
 #include <qwt_column_symbol.h>
+#include <qwt_scale_engine.h>
 #include <utility>
 
 MonthlyStatsTab::MonthlyStatsTab(DatabaseManager *dbManager, QWidget *parent)
@@ -70,7 +71,7 @@ void MonthlyStatsTab::createChart()
     }
 
     // test for extreme amount of data
-    /*for (int i = 1; i < 120; i++) {
+    /*for (int i = 1; i < 24; i++) {
         auto month = QDateTime::currentDateTime().addMonths(i);
         auto key = month.toString("yyyy-MM");
         auto value = static_cast<double>( rand()%100) + 0.1;
@@ -115,6 +116,8 @@ void MonthlyStatsTab::createChart()
     barChart->setSamples(data);
     const auto symbol = new QwtColumnSymbol(QwtColumnSymbol::Box);
     symbol->setPalette(QColor(63, 148, 224));
+    symbol->setFrameStyle(QwtColumnSymbol::Plain);
+    symbol->setLineWidth(0);
     barChart->setSymbol(symbol);
     barChart->attach(ui->chartView);
 
@@ -147,13 +150,31 @@ void MonthlyStatsTab::createChart()
         QStringList m_labels;
     };
 
+    // Custom Scale Engine
+    class MyScaleEngine : public QwtLinearScaleEngine {
+      public:
+        void autoScale(int maxNumSteps, double &x1, double &x2, double &stepSize) const override {
+            if (x2 < 24)
+                stepSize = 1.0;
+            else if (x2 < 48)
+                stepSize = 3.0;
+            else
+                stepSize = 6.0;
+        };
+    };
+
     const auto scaleDraw = new MonthScaleDraw(categories);
     scaleDraw->enableComponent( QwtScaleDraw::Backbone, false );
     //scaleDraw->enableComponent( QwtScaleDraw::Ticks, false );
     ui->chartView->setAxisMaxMinor(QwtPlot::xBottom, 0);
+    ui->chartView->setAxisMaxMinor(QwtPlot::yLeft, 0);
     ui->chartView->setAxisScaleDraw(QwtPlot::xBottom, scaleDraw);
     ui->chartView->setAxisTitle(QwtPlot::xBottom, "Month");
     ui->chartView->setAxisTitle(QwtPlot::yLeft, "Exposure Time (hours)");
+    ui->chartView->canvas()->setContentsMargins(0,0,0,0);
+    const auto scaleEngine = new MyScaleEngine();
+    scaleEngine->setAttribute(QwtScaleEngine::Floating);
+    ui->chartView->setAxisScaleEngine(QwtPlot::xBottom,scaleEngine);
 
     // Set Y axis range with some padding
     ui->chartView->setAxisScale(QwtPlot::yLeft, 0, maxHours * 1.05);
@@ -161,7 +182,7 @@ void MonthlyStatsTab::createChart()
     ui->chartView->setTitle("Monthly Cumulative Exposure Time");
 
     // Set margins
-    ui->chartView->setContentsMargins(0, 0, 0, 0);
+    ui->chartView->setContentsMargins(0, 0, 20, 0);
     ui->verticalLayout->setContentsMargins(0, 0, 0, 0);
 
     ui->chartView->replot();
