@@ -24,6 +24,7 @@ struct ObservationData
     QString sessionName;
     QString sessionDate;
     QString objectName;
+    QString objectComments;
     QString cameraName;
     QString telescopeName;
     QString filterName;

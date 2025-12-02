@@ -64,7 +64,7 @@ void ObjectStatsTab::refreshData()
     // Get all objects that have observations
     QSqlQuery objectsQuery(db);
     objectsQuery.prepare(R"(
-        SELECT DISTINCT o.id, o.name
+        SELECT DISTINCT o.id, o.name, o.comments
         FROM objects o
         INNER JOIN observations obs ON obs.object_id = o.id
         ORDER BY o.name
@@ -83,7 +83,10 @@ void ObjectStatsTab::refreshData()
     while (objectsQuery.next())
     {
         objectIds.append(objectsQuery.value(0).toInt());
-        objectNames.append(objectsQuery.value(1).toString());
+        QString name = objectsQuery.value(1).toString();
+        if (!objectsQuery.value(2).toString().isEmpty())
+            name.append(" / " + objectsQuery.value(2).toString());
+        objectNames.append(name);
     }
 
     // If no objects or filter types, show empty table

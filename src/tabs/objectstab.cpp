@@ -231,7 +231,7 @@ bool ObjectsTab::showObjectDialog(const QString &title, QString &name, QString &
     // Name field
     auto nameEdit = new QLineEdit(&dialog);
     nameEdit->setText(name);
-    nameEdit->setPlaceholderText("Enter object name");
+    nameEdit->setPlaceholderText("Enter object name (duplicate name only allowed with different comment)");
     formLayout->addRow("Name:", nameEdit);
 
     // RA field

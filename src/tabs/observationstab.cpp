@@ -145,12 +145,16 @@ void ObservationsTab::populateComboBoxes() const {
     }
 
     // Populate Objects
-    if (query.exec("SELECT id, name FROM objects ORDER BY name"))
+    if (query.exec("SELECT id, name, comments FROM objects ORDER BY name"))
     {
         while (query.next())
         {
-            int id = query.value("id").toInt();
+            const int id = query.value("id").toInt();
             QString name = query.value("name").toString();
+            QString comments = query.value("comments").toString();
+            if (!comments.isEmpty()) {
+                name.append(" / " + comments);
+            }
             ui->objectComboBox->addItem(name, id);
         }
     }
@@ -202,6 +206,7 @@ void ObservationsTab::populateComboBoxes() const {
 }
 
 void ObservationsTab::populateObjectFilter() const {
+    // TODO: Store object ID instead of name. Then it would be possible to filter for objects that have same name but different comment.
     QStringList objectNames;
     objectNames << "< All Objects >";
 
@@ -265,7 +270,8 @@ void ObservationsTab::populateTable()
         ui->observationsTable->setItem(row, 1, dateItem);
 
         // Object
-        const auto objectItem = new QTableWidgetItem(obs.objectName);
+        auto name = obs.objectComments.isEmpty() ? obs.objectName : obs.objectName + " / " + obs.objectComments;
+        const auto objectItem = new QTableWidgetItem(name);
         ui->observationsTable->setItem(row, 2, objectItem);
 
         // Camera

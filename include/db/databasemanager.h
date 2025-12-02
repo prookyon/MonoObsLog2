@@ -7,7 +7,7 @@
 #include "ER.h"
 #include <expected>
 
-#define OBSLOGDBVERSION 2
+#define OBSLOGDBVERSION 3
 
 class DatabaseManager : public QObject
 {

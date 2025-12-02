@@ -25,7 +25,7 @@ QVector<ObservationData> ObservationsRepository::getAllObservations(QString &err
             o.id, o.image_count, o.exposure_length, o.total_exposure, o.comments,
             o.session_id, o.object_id, o.camera_id, o.telescope_id, o.filter_id,
             s.name AS session_name, s.start_date AS session_date,
-            obj.name AS object_name, obj.ra AS object_ra, obj.dec AS object_dec,
+            obj.name AS object_name, obj.ra AS object_ra, obj.dec AS object_dec, obj.comments AS object_comments,
             c.name AS camera_name,
             t.name AS telescope_name,
             f.name AS filter_name,
@@ -62,6 +62,7 @@ QVector<ObservationData> ObservationsRepository::getAllObservations(QString &err
         obs.sessionName = query.value("session_name").toString();
         obs.sessionDate = query.value("session_date").toString();
         obs.objectName = query.value("object_name").toString();
+        obs.objectComments = query.value("object_comments").toString();
         obs.cameraName = query.value("camera_name").toString();
         obs.telescopeName = query.value("telescope_name").toString();
         obs.filterName = query.value("filter_name").toString();
@@ -96,7 +97,7 @@ QVector<ObservationData> ObservationsRepository::getObservationsByObject(const i
             o.id, o.image_count, o.exposure_length, o.total_exposure, o.comments,
             o.session_id, o.object_id, o.camera_id, o.telescope_id, o.filter_id,
             s.name AS session_name, s.start_date AS session_date,
-            obj.name AS object_name, obj.ra AS object_ra, obj.dec AS object_dec,
+            obj.name AS object_name, obj.ra AS object_ra, obj.dec AS object_dec, obj.comments AS object_comments,
             c.name AS camera_name,
             t.name AS telescope_name,
             f.name AS filter_name,
@@ -137,6 +138,7 @@ QVector<ObservationData> ObservationsRepository::getObservationsByObject(const i
         obs.sessionName = query.value("session_name").toString();
         obs.sessionDate = query.value("session_date").toString();
         obs.objectName = query.value("object_name").toString();
+        obs.objectComments = query.value("object_comments").toString();
         obs.cameraName = query.value("camera_name").toString();
         obs.telescopeName = query.value("telescope_name").toString();
         obs.filterName = query.value("filter_name").toString();

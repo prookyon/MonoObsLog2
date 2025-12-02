@@ -168,12 +168,26 @@ bool DatabaseManager::createTables() const {
     sql = R"(
         CREATE TABLE objects (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL UNIQUE,
+            name TEXT NOT NULL,
             ra REAL,
             dec REAL,
             comments TEXT
         )
     )";
+
+    if (!query.exec(sql))
+    {
+        qDebug() << "Failed to create objects table:" << query.lastError().text();
+        return false;
+    }
+
+    // Create the "Smart" Unique Index
+    // "IFNULL(comments, '')" treats a NULL comment effectively as an empty string.
+    // This prevents duplicates like ('Star', NULL) vs ('Star', NULL).
+    sql = R"(
+            CREATE UNIQUE INDEX "idx_objects_name_comments"
+            ON "objects" ("name", IFNULL("comments", ''));
+            )";
 
     if (!query.exec(sql))
     {
@@ -270,18 +284,43 @@ std::expected<void, ER> DatabaseManager::runMigrations(const int fromVersion, co
     const std::vector<std::vector<QString>> migrations = {
         {}, // index 0: no migration
         {}, // index 1: no migration (initial version)
-        {R"(ALTER TABLE objects ADD COLUMN comments TEXT;)"}
-    };
+        {R"(ALTER TABLE objects ADD COLUMN comments TEXT;)"},
+        {R"(PRAGMA foreign_keys = OFF;
+            BEGIN TRANSACTION;
+            CREATE TABLE "objects_new" (
+                "id"       INTEGER PRIMARY KEY AUTOINCREMENT,
+                "name"     TEXT NOT NULL,
+                "ra"       REAL,
+                "dec"      REAL,
+                "comments" TEXT
+            );
+            INSERT INTO "objects_new" ("id", "name", "ra", "dec", "comments")
+            SELECT "id", "name", "ra", "dec", "comments"
+            FROM "objects";
+            DROP TABLE "objects";
+            ALTER TABLE "objects_new" RENAME TO "objects";
+            CREATE UNIQUE INDEX "idx_objects_name_comments"
+            ON "objects" ("name", IFNULL("comments", ''));
+            COMMIT;
+            PRAGMA foreign_key_check;
+            PRAGMA foreign_keys = ON;)"}
+            };
 
     for (int v = fromVersion + 1; v <= toVersion; ++v) {
-        for (const auto& sql : migrations[v]) {
-            if (QSqlQuery query(m_database); !query.exec(sql)) {
-                return std::unexpected(
-                    ER::Critical(
-                        QString("Migration to version %1 failed: %2")
-                        .arg(v)
-                        .arg(query.lastError().text())
-                ));
+        for (const auto &sql: migrations[v]) {
+            auto statements = sql.split(";");
+            for (const auto &stmt: statements) {
+                if (stmt.length() == 0)
+                    continue;
+
+                if (QSqlQuery query(m_database); !query.exec(stmt)) {
+                    return std::unexpected(
+                        ER::Critical(
+                            QString("Migration to version %1 failed: %2")
+                            .arg(v)
+                            .arg(query.lastError().text())
+                        ));
+                }
             }
         }
     }
