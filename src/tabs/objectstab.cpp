@@ -26,6 +26,7 @@
 #include <qwt_polar_panner.h>
 #include <qwt_polar_magnifier.h>
 #include <qwt_scale_div.h>
+#include <qwt_polar_canvas.h>
 
 ObjectsTab::ObjectsTab(DatabaseManager *dbManager, SettingsManager *settingsManager, QWidget *parent)
     : QWidget(parent), ui(new Ui::ObjectsTab), m_dbManager(dbManager), m_settingsManager(settingsManager), m_repository(nullptr), m_simbadQuery(nullptr), m_dialogRaEdit(nullptr), m_dialogDecEdit(nullptr)
@@ -78,6 +79,7 @@ void ObjectsTab::initialize()
 
     m_panner = new QwtPolarPanner( ui->polarPlot->canvas() );
     m_panner->setEnabled( true );
+    ui->polarPlot->canvas()->setCursor(QCursor(Qt::SizeAllCursor));
 
     m_zoomer = new QwtPolarMagnifier( ui->polarPlot->canvas() );
     m_zoomer->setEnabled( true );

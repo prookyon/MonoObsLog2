@@ -6,7 +6,6 @@
 #include <QMap>
 #include <QDate>
 #include <QMessageBox>
-#include <QGraphicsLayout>
 #include <QwtText>
 #include <QwtPlotMarker>
 #include <qwt_column_symbol.h>
@@ -92,8 +91,8 @@ void MonthlyStatsTab::createChart()
     int index = 0;
     for (auto it = monthlyData.constBegin(); it != monthlyData.constEnd(); ++it)
     {
-        QString monthStr = it.key();
-        double hours = it.value();
+        const QString& monthStr = it.key();
+        const double hours = it.value();
 
         // Format month as "MMM YYYY" (e.g., "Jan 2024")
         QDate date = QDate::fromString(monthStr + "-01", "yyyy-MM-dd");
@@ -139,7 +138,7 @@ void MonthlyStatsTab::createChart()
         explicit MonthScaleDraw(QStringList labels) : m_labels(std::move(labels)) {
         }
 
-        QwtText label(double v) const override {
+        QwtText label(const double v) const override {
             int i = qRound(v);
             if (i >= 0 && i < m_labels.size())
                 return m_labels[i];
@@ -150,7 +149,7 @@ void MonthlyStatsTab::createChart()
         QStringList m_labels;
     };
 
-    // Custom Scale Engine
+    // Custom Scale Engine for sensible label steps
     class MyScaleEngine : public QwtLinearScaleEngine {
       public:
         void autoScale(int maxNumSteps, double &x1, double &x2, double &stepSize) const override {
@@ -160,7 +159,7 @@ void MonthlyStatsTab::createChart()
                 stepSize = 3.0;
             else
                 stepSize = 6.0;
-        };
+        }
     };
 
     const auto scaleDraw = new MonthScaleDraw(categories);
@@ -184,6 +183,8 @@ void MonthlyStatsTab::createChart()
     // Set margins
     ui->chartView->setContentsMargins(0, 0, 20, 0);
     ui->verticalLayout->setContentsMargins(0, 0, 0, 0);
+
+    ui->chartView->canvas()->setCursor(QCursor(Qt::ArrowCursor));
 
     ui->chartView->replot();
 }
