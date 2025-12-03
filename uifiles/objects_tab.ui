@@ -162,7 +162,7 @@
   <customwidget>
    <class>QwtPolarPlot</class>
    <extends>QWidget</extends>
-   <header>qwt_polar_plot.h</header>
+   <header>qwt/qwt_polar_plot.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

@@ -10,16 +10,14 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOUIC_SEARCH_PATHS uifiles)
 
-find_package(PkgConfig REQUIRED)
-
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets Sql Network)
 
 # Find libzip
 find_package(libzip CONFIG REQUIRED)
 find_package(supernovas CONFIG REQUIRED)
 find_package(OpenXLSX CONFIG REQUIRED)
+find_package(unofficial-qwt CONFIG REQUIRED)
 
-pkg_search_module(Qwt REQUIRED IMPORTED_TARGET Qt6Qwt6)
 
 
 set(PROJECT_SOURCES
@@ -114,7 +112,7 @@ target_link_libraries(${PROJECT_NAME}
     Qt6::Network
     libzip::zip
     supernovas::core
-    PkgConfig::Qwt
+    unofficial::qwt::qwt
     OpenXLSX::OpenXLSX
 )
 
@@ -141,7 +139,6 @@ if(WIN32)
                 file(INSTALL DESTINATION \"${CMAKE_CURRENT_BINARY_DIR}/../deploy\" TYPE FILE FILES \"\${f}\")
             endforeach()
         ")
-        install(FILES "${COMPILER_DIR}/qwt-qt6.dll" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/../deploy")
         set(WINDEPLOYQT "${Qt6_DIR}/../../../bin/windeployqt.exe")
         set(DEPLOYEDEXE "${CMAKE_CURRENT_BINARY_DIR}/../deploy/${PROJECT_NAME}${CMAKE_EXECUTABLE_SUFFIX}")
         install(CODE "
@@ -149,6 +146,7 @@ if(WIN32)
                 COMMAND \"${WINDEPLOYQT}\"
                 \"${DEPLOYEDEXE}\"
                 --compiler-runtime
+                --force
             )
         ")
     endif ()
