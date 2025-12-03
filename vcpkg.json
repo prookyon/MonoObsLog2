@@ -1,23 +1,15 @@
 {
-  "name": "monoobslog",
-  "version-string": "1.0.0",
-  "dependencies": [
-    {
-      "name": "libzip",
-      "version>=": "1.11.4"
-    },
-    {
-      "name": "supernovas",
-      "version>=": "1.5.0#1"
-    },
-    {
-      "name": "openxlsx",
-      "version>=": "2025-07-14"
-    },
-    {
-      "name": "qwt",
-      "version>=": "6.3.0"
-    }
-  ],
-  "builtin-baseline": "61a1513d1523eabae8ebbd11836241719004d60e"
+  "name" : "monoobslog",
+  "version-string" : "1.0.0",
+  "dependencies" : [ {
+    "name" : "libzip",
+    "version>=" : "1.11.4"
+  }, {
+    "name" : "openxlsx",
+    "version>=" : "2025-07-14"
+  }, {
+    "name" : "qwt",
+    "version>=" : "6.3.0"
+  } ],
+  "builtin-baseline" : "61a1513d1523eabae8ebbd11836241719004d60e"
 }

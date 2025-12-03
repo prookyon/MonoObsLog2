@@ -5,6 +5,10 @@ project(MonoObsLog VERSION 1.0.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# temporarily use git version
+# TODO: go back to vcpkg once 1.5.1 is pushed there
+add_subdirectory(libraries/SuperNOVAS EXCLUDE_FROM_ALL)
+
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
@@ -14,7 +18,8 @@ find_package(Qt6 REQUIRED COMPONENTS Core Widgets Sql Network)
 
 # Find libzip
 find_package(libzip CONFIG REQUIRED)
-find_package(supernovas CONFIG REQUIRED)
+# temporarily use git version
+#find_package(supernovas CONFIG REQUIRED)
 find_package(OpenXLSX CONFIG REQUIRED)
 find_package(unofficial-qwt CONFIG REQUIRED)
 

@@ -17,7 +17,9 @@ Also, the installation script in CMake uses the included windeployqt from there 
 Used for zipping backups. Downloaded from Vcpkg.
 
 ## supernovas
-Used for all astrometric calculations (transit times, Moon positions, Sky plot positions etc.). Download from Vcpkg. It's C package so need to wrap the include in `extern "C"`.
+Used for all astrometric calculations (transit times, Moon positions, Sky plot positions etc.). ~~Download from Vcpkg.~~
+Currently included by cloning git repo to libraries/ to be able to use latest version with some fixes. Could be used via Vcpkg after repo is updated there. 
+It's C package so need to wrap the include in `extern "C"`.
 
 ## OpenXLSX
 Used for Excel export. Download from Vcpkg.
