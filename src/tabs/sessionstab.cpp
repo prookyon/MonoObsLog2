@@ -234,7 +234,7 @@ void SessionsTab::onEditButtonClicked()
     const int sessionId = nameItem->data(Qt::UserRole).toInt();
     const QString currentName = nameItem->text();
     const QString currentDate = ui->sessionsTable->item(currentRow, 1)->text();
-    const QString currentComments = ui->sessionsTable->item(currentRow, 6)->text();
+    const QString currentComments = ui->sessionsTable->item(currentRow, 4)->text();
 
     // Show dialog
     QString name = currentName;
