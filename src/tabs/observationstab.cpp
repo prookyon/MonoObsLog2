@@ -633,7 +633,7 @@ void ObservationsTab::onEditObservationButtonClicked()
     QString errorMessage;
     QVector<ObservationData> allObs = m_repository->getAllObservations(errorMessage);
 
-    ObservationData currentObs;
+    ObservationData currentObs{};
     bool found = false;
     for (const ObservationData &obs : allObs)
     {

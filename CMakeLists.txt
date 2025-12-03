@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.31)
+cmake_minimum_required(VERSION 3.16)
 
 project(MonoObsLog VERSION 1.0.0 LANGUAGES CXX)
 
@@ -7,7 +7,13 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # temporarily use git version
 # TODO: go back to vcpkg once 1.5.1 is pushed there
-add_subdirectory(libraries/SuperNOVAS EXCLUDE_FROM_ALL)
+include(FetchContent)
+FetchContent_Declare(
+        supernovas
+        GIT_REPOSITORY https://github.com/Smithsonian/SuperNOVAS.git
+        GIT_TAG        v1.5.1-rc1
+)
+FetchContent_MakeAvailable(supernovas)
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
