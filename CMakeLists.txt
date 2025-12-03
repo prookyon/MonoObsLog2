@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.31)
 
-project(mgwObsLog VERSION 1.0.0 LANGUAGES CXX)
+project(MonoObsLog VERSION 1.0.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -116,29 +116,29 @@ target_link_libraries(${PROJECT_NAME}
     OpenXLSX::OpenXLSX
 )
 
-# Set Windows subsystem to Windows (not console)
-if(WIN32)
+
+if (WIN32)
+    # Set Windows subsystem to Windows (not console)
     set_target_properties(${PROJECT_NAME} PROPERTIES WIN32_EXECUTABLE TRUE)
-#    add_custom_command(
-#        TARGET ${PROJECT_NAME}
-#        POST_BUILD
-#        COMMAND ${Qt6_DIR}/../../../bin/windeployqt.exe
-#        ARGS ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}${CMAKE_EXECUTABLE_SUFFIX} --compiler-runtime
-#    )
-    if(CMAKE_BUILD_TYPE STREQUAL Release)
-        cmake_path(GET CMAKE_CXX_COMPILER PARENT_PATH COMPILER_DIR)
-        install(CODE "
-            file(GLOB EXE_FILES \"${CMAKE_CURRENT_BINARY_DIR}/*.exe\")
-            foreach(f \${EXE_FILES})
-                file(INSTALL DESTINATION \"${CMAKE_CURRENT_BINARY_DIR}/../deploy\" TYPE FILE FILES \"\${f}\")
-            endforeach()
-        ")
-        install(CODE "
-            file(GLOB EXE_FILES \"${CMAKE_CURRENT_BINARY_DIR}/*.dll\")
-            foreach(f \${EXE_FILES})
-                file(INSTALL DESTINATION \"${CMAKE_CURRENT_BINARY_DIR}/../deploy\" TYPE FILE FILES \"\${f}\")
-            endforeach()
-        ")
+
+    # Adds necessary files to run program from build directory
+    # --force to overwrite Qt6 dll-s created as part of Qwt build process
+    set(WINDEPLOYQT "${QT6_INSTALL_PREFIX}/bin/windeployqt.exe")
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${WINDEPLOYQT} ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}${CMAKE_EXECUTABLE_SUFFIX} --compiler-runtime --force)
+
+    # Install commands to create the deploy folder
+    if (CMAKE_BUILD_TYPE STREQUAL Release)
+        install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}${CMAKE_EXECUTABLE_SUFFIX} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/../deploy)
+        install(FILES ${CMAKE_CURRENT_BINARY_DIR}/zip.dll DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/../deploy)
+        install(FILES ${CMAKE_CURRENT_BINARY_DIR}/bz2.dll DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/../deploy)
+        install(FILES ${CMAKE_CURRENT_BINARY_DIR}/zlib1.dll DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/../deploy)
+        install(FILES ${CMAKE_CURRENT_BINARY_DIR}/core.dll DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/../deploy)
+        install(FILES ${CMAKE_CURRENT_BINARY_DIR}/qwt.dll DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/../deploy)
+        install(FILES ${CMAKE_CURRENT_BINARY_DIR}/OpenXLSX.dll DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/../deploy)
+        install(FILES ${CMAKE_CURRENT_BINARY_DIR}/nowide.dll DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/../deploy)
+        install(FILES ${CMAKE_CURRENT_BINARY_DIR}/pugixml.dll DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/../deploy)
+
         set(WINDEPLOYQT "${Qt6_DIR}/../../../bin/windeployqt.exe")
         set(DEPLOYEDEXE "${CMAKE_CURRENT_BINARY_DIR}/../deploy/${PROJECT_NAME}${CMAKE_EXECUTABLE_SUFFIX}")
         install(CODE "
@@ -150,4 +150,4 @@ if(WIN32)
             )
         ")
     endif ()
-endif()
+endif ()
