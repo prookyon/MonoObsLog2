@@ -41,7 +41,7 @@ void SimbadQuery::queryObject(const QString &objectName)
 
     // Create network request
     QNetworkRequest request(url);
-    request.setHeader(QNetworkRequest::UserAgentHeader, "mgwObsLog/1.0");
+    request.setHeader(QNetworkRequest::UserAgentHeader, "MonoObsLog/1.0");
 
     // Send GET request
     m_currentReply = m_networkManager->get(request);

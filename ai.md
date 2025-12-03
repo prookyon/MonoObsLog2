@@ -358,9 +358,3 @@ if (!backupManager.checkAndBackupIfNeeded(dbPath, errorMessage)) {
 - Qt6Network - HTTP requests (SIMBAD integration)
 - libzip - Zip archive creation (database backups)
 - Standard C++17 - smart pointers, std::make_unique
-
-## Generated Files (Do Not Edit)
-
-- `build/mgwObsLog_autogen/` - MOC and UIC output
-- `build/mgwObsLog_autogen/include/ui_*.h` - UI class definitions
-- `build/mgwObsLog_autogen/*/moc_*.cpp` - Meta-object code

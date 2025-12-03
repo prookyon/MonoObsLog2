@@ -2,10 +2,10 @@
 // Created by prook on 28.11.2025.
 //
 
-#ifndef MGWOBSLOG_RESULT_H
-#define MGWOBSLOG_RESULT_H
+#ifndef MONOOBSLOG_RESULT_H
+#define MONOOBSLOG_RESULT_H
 
-#endif //MGWOBSLOG_RESULT_H
+#endif //MONOOBSLOG_RESULT_H
 
 #include <QString>
 

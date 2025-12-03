@@ -136,7 +136,7 @@ The class parses SIMBAD's VOTable XML format response:
 - **URL**: `https://simbad.u-strasbg.fr/simbad/sim-id`
 - **Method**: GET
 - **Format**: VOTable (Virtual Observatory Table format)
-- **User Agent**: mgwObsLog/1.0
+- **User Agent**: MonoObsLog/1.0
 
 ## Troubleshooting
 

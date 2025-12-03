@@ -30,8 +30,8 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    MainWindow(const QString &dbPath = "mgw_observations.db", QWidget *parent = nullptr);
-    ~MainWindow();
+    explicit MainWindow(const QString &dbPath = "observations.db", QWidget *parent = nullptr);
+    ~MainWindow() override;
 
 private:
     void initializeTabs();

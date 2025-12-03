@@ -17,7 +17,7 @@ public:
     explicit DatabaseManager(QObject *parent = nullptr);
     ~DatabaseManager() override;
 
-    std::expected<void, ER> initialize(const QString &dbPath = "mgw_observations.db");
+    std::expected<void, ER> initialize(const QString &dbPath = "observations.db");
     [[nodiscard]] bool isOpen() const;
     QSqlDatabase &database();
 

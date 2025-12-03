@@ -1,5 +1,5 @@
 {
-  "name" : "mgwobslog",
+  "name" : "monoobslog",
   "version-string" : "1.0.0",
   "dependencies" : [ {
     "name" : "libzip"
