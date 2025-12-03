@@ -5,6 +5,8 @@
 #include <QString>
 #include <QVariant>
 #include <QVector>
+#include "ER.h"
+#include <expected>
 
 class DatabaseManager;
 
@@ -27,10 +29,10 @@ public:
     ~CamerasRepository() override = default;
 
     // Query operations
-    QVector<CameraData> getAllCameras(QString &errorMessage) const;
-    bool addCamera(const QString &name, const QString &sensor, double pixelSize, int width, int height, QString &errorMessage) const;
-    bool updateCamera(int id, const QString &name, const QString &sensor, double pixelSize, int width, int height, QString &errorMessage) const;
-    bool deleteCamera(int id, QString &errorMessage) const;
+    std::expected<QVector<CameraData>, ER> getAllCameras() const;
+    std::expected<void, ER> addCamera(const QString &name, const QString &sensor, double pixelSize, int width, int height) const;
+    std::expected<void, ER> updateCamera(int id, const QString &name, const QString &sensor, double pixelSize, int width, int height) const;
+    std::expected<void, ER> deleteCamera(int id) const;
 
 private:
     DatabaseManager *m_dbManager;

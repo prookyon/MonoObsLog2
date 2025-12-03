@@ -5,6 +5,8 @@
 #include <QString>
 #include <QVariant>
 #include <QVector>
+#include <expected>
+#include "ER.h"
 
 class DatabaseManager;
 
@@ -25,10 +27,10 @@ public:
     ~FiltersRepository() override = default;
 
     // Query operations
-    QVector<FilterData> getAllFilters(QString &errorMessage) const;
-    bool addFilter(const QString &name, int filterTypeId, QString &errorMessage) const;
-    bool updateFilter(int id, const QString &name, int filterTypeId, QString &errorMessage) const;
-    bool deleteFilter(int id, QString &errorMessage) const;
+    std::expected<QVector<FilterData>, ER> getAllFilters() const;
+    std::expected<void, ER> addFilter(const QString &name, int filterTypeId) const;
+    std::expected<void, ER> updateFilter(int id, const QString &name, int filterTypeId) const;
+    std::expected<void, ER> deleteFilter(int id) const;
 
 private:
     DatabaseManager *m_dbManager;

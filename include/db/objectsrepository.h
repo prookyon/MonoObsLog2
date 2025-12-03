@@ -5,6 +5,8 @@
 #include <QString>
 #include <QVariant>
 #include <QVector>
+#include <expected>
+#include "ER.h"
 
 class DatabaseManager;
 
@@ -26,10 +28,10 @@ public:
     ~ObjectsRepository() override = default;
 
     // Query operations
-    QVector<ObjectData> getAllObjects(QString &errorMessage) const;
-    bool addObject(const QString &name, const QVariant &ra, const QVariant &dec, const QString &comments, QString &errorMessage) const;
-    bool updateObject(int id, const QString &name, const QVariant &ra, const QVariant &dec, const QString &comments, QString &errorMessage) const;
-    bool deleteObject(int id, QString &errorMessage) const;
+    std::expected<QVector<ObjectData>, ER> getAllObjects() const;
+    std::expected<void, ER> addObject(const QString &name, const QVariant &ra, const QVariant &dec, const QString &comments) const;
+    std::expected<void, ER> updateObject(int id, const QString &name, const QVariant &ra, const QVariant &dec, const QString &comments) const;
+    std::expected<void, ER> deleteObject(int id) const;
 
 private:
     DatabaseManager *m_dbManager;

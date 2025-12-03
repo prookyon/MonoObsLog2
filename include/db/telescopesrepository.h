@@ -2,6 +2,9 @@
 #define TELESCOPESREPOSITORY_H
 
 #include <QVariant>
+#include <QVector>
+#include <expected>
+#include "ER.h"
 
 class DatabaseManager;
 
@@ -23,10 +26,10 @@ public:
     ~TelescopesRepository() override = default;
 
     // Query operations
-    QVector<TelescopeData> getAllTelescopes(QString &errorMessage) const;
-    bool addTelescope(const QString &name, int aperture, double fRatio, int focalLength, QString &errorMessage) const;
-    bool updateTelescope(int id, const QString &name, int aperture, double fRatio, int focalLength, QString &errorMessage) const;
-    bool deleteTelescope(int id, QString &errorMessage) const;
+    std::expected<QVector<TelescopeData>, ER> getAllTelescopes() const;
+    std::expected<void, ER> addTelescope(const QString &name, int aperture, double fRatio, int focalLength) const;
+    std::expected<void, ER> updateTelescope(int id, const QString &name, int aperture, double fRatio, int focalLength) const;
+    std::expected<void, ER> deleteTelescope(int id) const;
 
 private:
     DatabaseManager *m_dbManager;

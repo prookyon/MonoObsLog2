@@ -2,6 +2,9 @@
 #define SESSIONSREPOSITORY_H
 
 #include <QDate>
+#include <QVector>
+#include <expected>
+#include "ER.h"
 
 class DatabaseManager;
 
@@ -26,10 +29,10 @@ public:
     ~SessionsRepository() override = default;
 
     // Query operations
-    QVector<SessionData> getAllSessions(QString &errorMessage) const;
-    bool addSession(const QString &name, const QDate &startDate, const QString &comments, const double &moonIllumination, const double &moonRa, const double &moonDec, QString &errorMessage) const;
-    bool updateSession(int id, const QString &name, const QDate &startDate, const QString &comments, const double &moonIllumination, const double &moonRa, const double &moonDec, QString &errorMessage) const;
-    bool deleteSession(int id, QString &errorMessage) const;
+    std::expected<QVector<SessionData>, ER> getAllSessions() const;
+    std::expected<void, ER> addSession(const QString &name, const QDate &startDate, const QString &comments, const double &moonIllumination, const double &moonRa, const double &moonDec) const;
+    std::expected<void, ER> updateSession(int id, const QString &name, const QDate &startDate, const QString &comments, const double &moonIllumination, const double &moonRa, const double &moonDec) const;
+    std::expected<void, ER> deleteSession(int id) const;
 
 private:
     DatabaseManager *m_dbManager;

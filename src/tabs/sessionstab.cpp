@@ -70,15 +70,14 @@ void SessionsTab::populateTable()
     ui->sessionsTable->setSortingEnabled(false);
     ui->sessionsTable->setRowCount(0);
 
-    QString errorMessage;
-    QVector<SessionData> sessions = m_repository->getAllSessions(errorMessage);
-
-    if (!errorMessage.isEmpty())
+    auto sessionsResult = m_repository->getAllSessions();
+    if (!sessionsResult)
     {
         QMessageBox::warning(this, "Database Error",
-                             QString("Failed to load sessions: %1").arg(errorMessage));
+                             QString("Failed to load sessions: %1").arg(sessionsResult.error().errorMessage));
         return;
     }
+    QVector<SessionData> sessions = sessionsResult.value();
 
     int row = 0;
     for (const SessionData &session : sessions)
@@ -203,11 +202,11 @@ void SessionsTab::onAddButtonClicked()
     AstroCalc::moonInfoForDate(QDateTime::fromString(startDate, "yyyy-MM-dd").addDays(1), lat, lon, &illumination, &ra, &dec);
 
     // Insert into database using repository
-    QString errorMessage;
-    if (!m_repository->addSession(name, QDate::fromString(startDate, "yyyy-MM-dd"), comments, illumination, ra, dec, errorMessage))
+    auto addResult = m_repository->addSession(name, QDate::fromString(startDate, "yyyy-MM-dd"), comments, illumination, ra, dec);
+    if (!addResult)
     {
         QMessageBox::warning(this, "Database Error",
-                             QString("Failed to add session: %1").arg(errorMessage));
+                             QString("Failed to add session: %1").arg(addResult.error().errorMessage));
         return;
     }
 
@@ -252,11 +251,11 @@ void SessionsTab::onEditButtonClicked()
     AstroCalc::moonInfoForDate(QDateTime::fromString(startDate, "yyyy-MM-dd").addDays(1), lat, lon, &illumination, &ra, &dec);
 
     // Update in database using repository
-    QString errorMessage;
-    if (!m_repository->updateSession(sessionId, name, QDate::fromString(startDate, "yyyy-MM-dd"), comments, illumination, ra, dec, errorMessage))
+    auto updateResult = m_repository->updateSession(sessionId, name, QDate::fromString(startDate, "yyyy-MM-dd"), comments, illumination, ra, dec);
+    if (!updateResult)
     {
         QMessageBox::warning(this, "Database Error",
-                             QString("Failed to update session: %1").arg(errorMessage));
+                             QString("Failed to update session: %1").arg(updateResult.error().errorMessage));
         return;
     }
 
@@ -292,10 +291,11 @@ void SessionsTab::onDeleteButtonClicked()
     }
 
     // Delete from database using repository
-    if (QString errorMessage; !m_repository->deleteSession(sessionId, errorMessage))
+    auto deleteResult = m_repository->deleteSession(sessionId);
+    if (!deleteResult)
     {
         QMessageBox::warning(this, "Database Error",
-                             QString("Failed to delete session: %1").arg(errorMessage));
+                             QString("Failed to delete session: %1").arg(deleteResult.error().errorMessage));
         return;
     }
 

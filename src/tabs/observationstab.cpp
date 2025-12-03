@@ -233,26 +233,32 @@ void ObservationsTab::populateTable()
     ui->observationsTable->setSortingEnabled(false);
     ui->observationsTable->setRowCount(0);
 
-    QString errorMessage;
     QVector<ObservationData> observations;
 
     // Get observations based on current filter
     if (m_currentFilterObjectId == -1)
     {
         // Show all observations
-        observations = m_repository->getAllObservations(errorMessage);
+        auto allObsResult = m_repository->getAllObservations();
+        if (!allObsResult)
+        {
+            QMessageBox::warning(this, "Database Error",
+                                 QString("Failed to load observations: %1").arg(allObsResult.error().errorMessage));
+            return;
+        }
+        observations = allObsResult.value();
     }
     else
     {
         // Show filtered observations
-        observations = m_repository->getObservationsByObject(m_currentFilterObjectId, errorMessage);
-    }
-
-    if (!errorMessage.isEmpty())
-    {
-        QMessageBox::warning(this, "Database Error",
-                             QString("Failed to load observations: %1").arg(errorMessage));
-        return;
+        auto filteredObsResult = m_repository->getObservationsByObject(m_currentFilterObjectId);
+        if (!filteredObsResult)
+        {
+            QMessageBox::warning(this, "Database Error",
+                                 QString("Failed to load observations: %1").arg(filteredObsResult.error().errorMessage));
+            return;
+        }
+        observations = filteredObsResult.value();
     }
 
     int row = 0;
@@ -597,12 +603,11 @@ void ObservationsTab::onAddObservationButtonClicked()
     }
 
     // Add to database using repository
-    if (QString errorMessage; !m_repository->addObservation(imageCount, exposureLength, comments,
-                                                            sessionId, objectId, cameraId, telescopeId, filterId,
-                                                            errorMessage))
-    {
+    auto result = m_repository->addObservation(imageCount, exposureLength, comments,
+                                               sessionId, objectId, cameraId, telescopeId, filterId);
+    if (!result) {
         QMessageBox::warning(this, "Database Error",
-                             QString("Failed to add observation: %1").arg(errorMessage));
+                             QString("Failed to add observation: %1").arg(result.error().errorMessage));
         return;
     }
 
@@ -630,9 +635,15 @@ void ObservationsTab::onEditObservationButtonClicked()
     const int observationId = sessionItem->data(Qt::UserRole).toInt();
 
     // Find the observation data
-    QString errorMessage;
-    QVector<ObservationData> allObs = m_repository->getAllObservations(errorMessage);
+    auto allObsResult = m_repository->getAllObservations();
+    if (!allObsResult)
+    {
+        QMessageBox::warning(this, "Database Error",
+                             QString("Failed to load observations: %1").arg(allObsResult.error().errorMessage));
+        return;
+    }
 
+    QVector<ObservationData> allObs = allObsResult.value();
     ObservationData currentObs{};
     bool found = false;
     for (const ObservationData &obs : allObs)
@@ -668,12 +679,12 @@ void ObservationsTab::onEditObservationButtonClicked()
     }
 
     // Update in database
-    if (!m_repository->updateObservation(observationId, imageCount, exposureLength, comments,
-                                         sessionId, objectId, cameraId, telescopeId, filterId,
-                                         errorMessage))
+    auto updateResult = m_repository->updateObservation(observationId, imageCount, exposureLength, comments,
+                                                       sessionId, objectId, cameraId, telescopeId, filterId);
+    if (!updateResult)
     {
         QMessageBox::warning(this, "Database Error",
-                             QString("Failed to update observation: %1").arg(errorMessage));
+                             QString("Failed to update observation: %1").arg(updateResult.error().errorMessage));
         return;
     }
 
@@ -711,10 +722,11 @@ void ObservationsTab::onDeleteObservationButtonClicked()
     }
 
     // Delete from database
-    if (QString errorMessage; !m_repository->deleteObservation(observationId, errorMessage))
+    auto deleteResult = m_repository->deleteObservation(observationId);
+    if (!deleteResult)
     {
         QMessageBox::warning(this, "Database Error",
-                             QString("Failed to delete observation: %1").arg(errorMessage));
+                             QString("Failed to delete observation: %1").arg(deleteResult.error().errorMessage));
         return;
     }
 
@@ -748,23 +760,29 @@ void ObservationsTab::onExportToHtmlClicked()
     templateFile.close();
 
     // Get current observations (respecting filter)
-    QString errorMessage;
     QVector<ObservationData> observations;
 
     if (m_currentFilterObjectId == -1)
     {
-        observations = m_repository->getAllObservations(errorMessage);
+        auto allObsResult = m_repository->getAllObservations();
+        if (!allObsResult)
+        {
+            QMessageBox::warning(this, "Export Error",
+                                 QString("Failed to load observations: %1").arg(allObsResult.error().errorMessage));
+            return;
+        }
+        observations = allObsResult.value();
     }
     else
     {
-        observations = m_repository->getObservationsByObject(m_currentFilterObjectId, errorMessage);
-    }
-
-    if (!errorMessage.isEmpty())
-    {
-        QMessageBox::warning(this, "Export Error",
-                             "Failed to load observations: " + errorMessage);
-        return;
+        auto filteredObsResult = m_repository->getObservationsByObject(m_currentFilterObjectId);
+        if (!filteredObsResult)
+        {
+            QMessageBox::warning(this, "Export Error",
+                                 QString("Failed to load observations: %1").arg(filteredObsResult.error().errorMessage));
+            return;
+        }
+        observations = filteredObsResult.value();
     }
 
     // Generate table rows HTML
@@ -860,23 +878,29 @@ void ObservationsTab::onExportToExcelClicked() {
     }
 
     // Get current observations (respecting filter)
-    QString errorMessage;
     QVector<ObservationData> observations;
 
     if (m_currentFilterObjectId == -1)
     {
-        observations = m_repository->getAllObservations(errorMessage);
+        auto allObsResult = m_repository->getAllObservations();
+        if (!allObsResult)
+        {
+            QMessageBox::warning(this, "Export Error",
+                                 QString("Failed to load observations: %1").arg(allObsResult.error().errorMessage));
+            return;
+        }
+        observations = allObsResult.value();
     }
     else
     {
-        observations = m_repository->getObservationsByObject(m_currentFilterObjectId, errorMessage);
-    }
-
-    if (!errorMessage.isEmpty())
-    {
-        QMessageBox::warning(this, "Export Error",
-                             "Failed to load observations: " + errorMessage);
-        return;
+        auto filteredObsResult = m_repository->getObservationsByObject(m_currentFilterObjectId);
+        if (!filteredObsResult)
+        {
+            QMessageBox::warning(this, "Export Error",
+                                 QString("Failed to load observations: %1").arg(filteredObsResult.error().errorMessage));
+            return;
+        }
+        observations = filteredObsResult.value();
     }
 
     try

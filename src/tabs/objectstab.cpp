@@ -101,15 +101,14 @@ void ObjectsTab::populateTable()
     ui->objectsTable->setSortingEnabled(false);
     ui->objectsTable->setRowCount(0);
 
-    QString errorMessage;
-    QVector<ObjectData> objects = m_repository->getAllObjects(errorMessage);
-
-    if (!errorMessage.isEmpty())
+    auto objectsResult = m_repository->getAllObjects();
+    if (!objectsResult)
     {
         QMessageBox::warning(this, "Database Error",
-                             QString("Failed to load objects: %1").arg(errorMessage));
+                             QString("Failed to load objects: %1").arg(objectsResult.error().errorMessage));
         return;
     }
+    QVector<ObjectData> objects = objectsResult.value();
 
     // Clear existing markers and curves from polar plot
     ui->polarPlot->detachItems(QwtPolarItem::Rtti_PolarMarker);
@@ -361,10 +360,11 @@ void ObjectsTab::onAddButtonClicked()
     const QVariant decVariant = decOk ? QVariant(decValue) : QVariant();
 
     // Insert into database using repository
-    if (QString errorMessage; !m_repository->addObject(name, raVariant, decVariant, comments, errorMessage))
+    auto addResult = m_repository->addObject(name, raVariant, decVariant, comments);
+    if (!addResult)
     {
         QMessageBox::warning(this, "Database Error",
-                             QString("Failed to add object: %1").arg(errorMessage));
+                             QString("Failed to add object: %1").arg(addResult.error().errorMessage));
         return;
     }
 
@@ -410,10 +410,11 @@ void ObjectsTab::onEditButtonClicked()
     const QVariant decVariant = decOk ? QVariant(decValue) : QVariant();
 
     // Update in database using repository
-    if (QString errorMessage; !m_repository->updateObject(objectId, name, raVariant, decVariant,comments, errorMessage))
+    auto updateResult = m_repository->updateObject(objectId, name, raVariant, decVariant, comments);
+    if (!updateResult)
     {
         QMessageBox::warning(this, "Database Error",
-                             QString("Failed to update object: %1").arg(errorMessage));
+                             QString("Failed to update object: %1").arg(updateResult.error().errorMessage));
         return;
     }
 
@@ -449,10 +450,11 @@ void ObjectsTab::onDeleteButtonClicked()
     }
 
     // Delete from database using repository
-    if (QString errorMessage; !m_repository->deleteObject(objectId, errorMessage))
+    auto deleteResult = m_repository->deleteObject(objectId);
+    if (!deleteResult)
     {
         QMessageBox::warning(this, "Database Error",
-                             QString("Failed to delete object: %1").arg(errorMessage));
+                             QString("Failed to delete object: %1").arg(deleteResult.error().errorMessage));
         return;
     }
 

@@ -4,6 +4,8 @@
 #include <QObject>
 #include <QString>
 #include <QVector>
+#include <expected>
+#include "ER.h"
 
 class DatabaseManager;
 
@@ -41,15 +43,15 @@ public:
     ~ObservationsRepository() override = default;
 
     // Query operations
-    QVector<ObservationData> getAllObservations(QString &errorMessage) const;
-    QVector<ObservationData> getObservationsByObject(int objectId, QString &errorMessage) const;
-    bool addObservation(int imageCount, int exposureLength, const QString &comments,
-                        int sessionId, int objectId, int cameraId, int telescopeId,
-                        int filterId, QString &errorMessage) const;
-    bool updateObservation(int id, int imageCount, int exposureLength, const QString &comments,
-                           int sessionId, int objectId, int cameraId, int telescopeId,
-                           int filterId, QString &errorMessage) const;
-    bool deleteObservation(int id, QString &errorMessage) const;
+    std::expected<QVector<ObservationData>, ER> getAllObservations() const;
+    std::expected<QVector<ObservationData>, ER> getObservationsByObject(int objectId) const;
+    std::expected<void, ER> addObservation(int imageCount, int exposureLength, const QString &comments,
+                                        int sessionId, int objectId, int cameraId, int telescopeId,
+                                        int filterId) const;
+    std::expected<void, ER> updateObservation(int id, int imageCount, int exposureLength, const QString &comments,
+                                            int sessionId, int objectId, int cameraId, int telescopeId,
+                                            int filterId) const;
+    std::expected<void, ER> deleteObservation(int id) const;
 
 private:
     DatabaseManager *m_dbManager;

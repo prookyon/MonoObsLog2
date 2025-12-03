@@ -49,15 +49,14 @@ void FilterTypesTab::populateTable()
     ui->filterTypesTable->setSortingEnabled(false);
     ui->filterTypesTable->setRowCount(0);
 
-    QString errorMessage;
-    QVector<FilterTypeData> filterTypes = m_repository->getAllFilterTypes(errorMessage);
-
-    if (!errorMessage.isEmpty())
+    auto filterTypesResult = m_repository->getAllFilterTypes();
+    if (!filterTypesResult)
     {
         QMessageBox::warning(this, "Database Error",
-                             QString("Failed to load filter types: %1").arg(errorMessage));
+                             QString("Failed to load filter types: %1").arg(filterTypesResult.error().errorMessage));
         return;
     }
+    QVector<FilterTypeData> filterTypes = filterTypesResult.value();
 
     int row = 0;
     for (const FilterTypeData &filterType : filterTypes)
@@ -141,10 +140,11 @@ void FilterTypesTab::onAddFilterTypeButtonClicked()
     }
 
     // Insert into database using repository
-    if (QString errorMessage; !m_repository->addFilterType(name, priority, errorMessage))
+    auto addResult = m_repository->addFilterType(name, priority);
+    if (!addResult)
     {
         QMessageBox::warning(this, "Database Error",
-                             QString("Failed to add filter type: %1").arg(errorMessage));
+                             QString("Failed to add filter type: %1").arg(addResult.error().errorMessage));
         return;
     }
 
@@ -181,10 +181,11 @@ void FilterTypesTab::onEditFilterTypeButtonClicked()
     }
 
     // Update in database using repository
-    if (QString errorMessage; !m_repository->updateFilterType(filterTypeId, name, priority, errorMessage))
+    auto updateResult = m_repository->updateFilterType(filterTypeId, name, priority);
+    if (!updateResult)
     {
         QMessageBox::warning(this, "Database Error",
-                             QString("Failed to update filter type: %1").arg(errorMessage));
+                             QString("Failed to update filter type: %1").arg(updateResult.error().errorMessage));
         return;
     }
 
@@ -220,10 +221,11 @@ void FilterTypesTab::onDeleteFilterTypeButtonClicked()
     }
 
     // Delete from database using repository
-    if (QString errorMessage; !m_repository->deleteFilterType(filterTypeId, errorMessage))
+    auto deleteResult = m_repository->deleteFilterType(filterTypeId);
+    if (!deleteResult)
     {
         QMessageBox::warning(this, "Database Error",
-                             QString("Failed to delete filter type: %1").arg(errorMessage));
+                             QString("Failed to delete filter type: %1").arg(deleteResult.error().errorMessage));
         return;
     }
 

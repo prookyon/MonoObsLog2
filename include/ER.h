@@ -5,7 +5,7 @@
 #ifndef MONOOBSLOG_RESULT_H
 #define MONOOBSLOG_RESULT_H
 
-#endif //MONOOBSLOG_RESULT_H
+
 
 #include <QString>
 
@@ -32,3 +32,5 @@ struct ER {
         return {ErrorSeverity::Critical, msg};
     }
 };
+
+#endif //MONOOBSLOG_RESULT_H

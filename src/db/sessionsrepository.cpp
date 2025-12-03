@@ -9,7 +9,7 @@ SessionsRepository::SessionsRepository(DatabaseManager *dbManager, QObject *pare
 {
 }
 
-QVector<SessionData> SessionsRepository::getAllSessions(QString &errorMessage) const {
+std::expected<QVector<SessionData>, ER> SessionsRepository::getAllSessions() const {
     QVector<SessionData> sessions;
 
     QSqlQuery query(m_dbManager->database());
@@ -31,9 +31,9 @@ QVector<SessionData> SessionsRepository::getAllSessions(QString &errorMessage) c
 
     if (!query.exec())
     {
-        errorMessage = query.lastError().text();
+        QString errorMessage = query.lastError().text();
         qDebug() << "Failed to query sessions:" << errorMessage;
-        return sessions;
+        return std::unexpected(ER::Error(errorMessage));
     }
 
     while (query.next())
@@ -53,7 +53,7 @@ QVector<SessionData> SessionsRepository::getAllSessions(QString &errorMessage) c
     return sessions;
 }
 
-bool SessionsRepository::addSession(const QString &name, const QDate &startDate, const QString &comments, const double &moonIllumination, const double &moonRa, const double &moonDec, QString &errorMessage) const {
+std::expected<void, ER> SessionsRepository::addSession(const QString &name, const QDate &startDate, const QString &comments, const double &moonIllumination, const double &moonRa, const double &moonDec) const {
     QSqlQuery query(m_dbManager->database());
     query.prepare("INSERT INTO sessions (name, start_date, moon_illumination, moon_ra, moon_dec, comments) VALUES (:name, :start_date, :moon_illumination, :moon_ra, :moon_dec, :comments)");
     query.bindValue(":name", name);
@@ -65,15 +65,15 @@ bool SessionsRepository::addSession(const QString &name, const QDate &startDate,
 
     if (!query.exec())
     {
-        errorMessage = query.lastError().text();
+        QString errorMessage = query.lastError().text();
         qDebug() << "Failed to insert session:" << errorMessage;
-        return false;
+        return std::unexpected(ER::Error(errorMessage));
     }
 
-    return true;
+    return {};
 }
 
-bool SessionsRepository::updateSession(int id, const QString &name, const QDate &startDate, const QString &comments, const double &moonIllumination, const double &moonRa, const double &moonDec, QString &errorMessage) const {
+std::expected<void, ER> SessionsRepository::updateSession(int id, const QString &name, const QDate &startDate, const QString &comments, const double &moonIllumination, const double &moonRa, const double &moonDec) const {
     QSqlQuery query(m_dbManager->database());
     query.prepare("UPDATE sessions SET name = :name, start_date = :start_date, comments = :comments, moon_illumination = :moon_illumination, moon_ra = :moon_ra, moon_dec = :moon_dec WHERE id = :id");
     query.bindValue(":name", name);
@@ -86,25 +86,25 @@ bool SessionsRepository::updateSession(int id, const QString &name, const QDate 
 
     if (!query.exec())
     {
-        errorMessage = query.lastError().text();
+        QString errorMessage = query.lastError().text();
         qDebug() << "Failed to update session:" << errorMessage;
-        return false;
+        return std::unexpected(ER::Error(errorMessage));
     }
 
-    return true;
+    return {};
 }
 
-bool SessionsRepository::deleteSession(int id, QString &errorMessage) const {
+std::expected<void, ER> SessionsRepository::deleteSession(int id) const {
     QSqlQuery query(m_dbManager->database());
     query.prepare("DELETE FROM sessions WHERE id = :id");
     query.bindValue(":id", id);
 
     if (!query.exec())
     {
-        errorMessage = query.lastError().text();
+        QString errorMessage = query.lastError().text();
         qDebug() << "Failed to delete session:" << errorMessage;
-        return false;
+        return std::unexpected(ER::Error(errorMessage));
     }
 
-    return true;
+    return {};
 }

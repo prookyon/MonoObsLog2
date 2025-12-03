@@ -51,15 +51,14 @@ void FiltersTab::populateFilterTypeComboBox()
 {
     ui->typeComboBox->clear();
 
-    QString errorMessage;
-    QVector<FilterTypeData> filterTypes = m_filterTypesRepository->getAllFilterTypes(errorMessage);
-
-    if (!errorMessage.isEmpty())
+    auto filterTypesResult = m_filterTypesRepository->getAllFilterTypes();
+    if (!filterTypesResult)
     {
         QMessageBox::warning(this, "Database Error",
-                             QString("Failed to load filter types: %1").arg(errorMessage));
+                             QString("Failed to load filter types: %1").arg(filterTypesResult.error().errorMessage));
         return;
     }
+    QVector<FilterTypeData> filterTypes = filterTypesResult.value();
 
     for (const FilterTypeData &filterType : filterTypes)
     {
@@ -72,15 +71,14 @@ void FiltersTab::populateTable()
     ui->filtersTable->setSortingEnabled(false);
     ui->filtersTable->setRowCount(0);
 
-    QString errorMessage;
-    QVector<FilterData> filters = m_repository->getAllFilters(errorMessage);
-
-    if (!errorMessage.isEmpty())
+    auto filtersResult = m_repository->getAllFilters();
+    if (!filtersResult)
     {
         QMessageBox::warning(this, "Database Error",
-                             QString("Failed to load filters: %1").arg(errorMessage));
+                             QString("Failed to load filters: %1").arg(filtersResult.error().errorMessage));
         return;
     }
+    QVector<FilterData> filters = filtersResult.value();
 
     int row = 0;
     for (const FilterData &filter : filters)
@@ -121,15 +119,14 @@ bool FiltersTab::showFilterDialog(const QString &title, QString &name, int &filt
     const auto typeCombo = new QComboBox(&dialog);
 
     // Populate combo box with filter types
-    QString errorMessage;
-    QVector<FilterTypeData> filterTypes = m_filterTypesRepository->getAllFilterTypes(errorMessage);
-
-    if (!errorMessage.isEmpty())
+    auto filterTypesResult = m_filterTypesRepository->getAllFilterTypes();
+    if (!filterTypesResult)
     {
         QMessageBox::warning(&dialog, "Database Error",
-                             QString("Failed to load filter types: %1").arg(errorMessage));
+                             QString("Failed to load filter types: %1").arg(filterTypesResult.error().errorMessage));
         return false;
     }
+    QVector<FilterTypeData> filterTypes = filterTypesResult.value();
 
     int selectedIndex = 0;
     for (int i = 0; i < filterTypes.size(); ++i)
@@ -187,10 +184,11 @@ void FiltersTab::onAddFilterButtonClicked()
     }
 
     // Insert into database using repository
-    if (QString errorMessage; !m_repository->addFilter(name, filterTypeId, errorMessage))
+    auto addResult = m_repository->addFilter(name, filterTypeId);
+    if (!addResult)
     {
         QMessageBox::warning(this, "Database Error",
-                             QString("Failed to add filter: %1").arg(errorMessage));
+                             QString("Failed to add filter: %1").arg(addResult.error().errorMessage));
         return;
     }
 
@@ -229,10 +227,11 @@ void FiltersTab::onEditFilterButtonClicked()
     }
 
     // Update in database using repository
-    if (QString errorMessage; !m_repository->updateFilter(filterId, name, filterTypeId, errorMessage))
+    auto updateResult = m_repository->updateFilter(filterId, name, filterTypeId);
+    if (!updateResult)
     {
         QMessageBox::warning(this, "Database Error",
-                             QString("Failed to update filter: %1").arg(errorMessage));
+                             QString("Failed to update filter: %1").arg(updateResult.error().errorMessage));
         return;
     }
 
@@ -268,10 +267,11 @@ void FiltersTab::onDeleteFilterButtonClicked()
     }
 
     // Delete from database using repository
-    if (QString errorMessage; !m_repository->deleteFilter(filterId, errorMessage))
+    auto deleteResult = m_repository->deleteFilter(filterId);
+    if (!deleteResult)
     {
         QMessageBox::warning(this, "Database Error",
-                             QString("Failed to delete filter: %1").arg(errorMessage));
+                             QString("Failed to delete filter: %1").arg(deleteResult.error().errorMessage));
         return;
     }
 

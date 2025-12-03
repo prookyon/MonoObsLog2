@@ -9,7 +9,7 @@ FiltersRepository::FiltersRepository(DatabaseManager *dbManager, QObject *parent
 {
 }
 
-QVector<FilterData> FiltersRepository::getAllFilters(QString &errorMessage) const {
+std::expected<QVector<FilterData>, ER> FiltersRepository::getAllFilters() const {
     QVector<FilterData> filters;
 
     QSqlQuery query(m_dbManager->database());
@@ -19,9 +19,9 @@ QVector<FilterData> FiltersRepository::getAllFilters(QString &errorMessage) cons
 
     if (!query.exec())
     {
-        errorMessage = query.lastError().text();
+        QString errorMessage = query.lastError().text();
         qDebug() << "Failed to query filters:" << errorMessage;
-        return filters;
+        return std::unexpected(ER::Error(errorMessage));
     }
 
     while (query.next())
@@ -37,7 +37,7 @@ QVector<FilterData> FiltersRepository::getAllFilters(QString &errorMessage) cons
     return filters;
 }
 
-bool FiltersRepository::addFilter(const QString &name, const int filterTypeId, QString &errorMessage) const {
+std::expected<void, ER> FiltersRepository::addFilter(const QString &name, int filterTypeId) const {
     QSqlQuery query(m_dbManager->database());
     query.prepare("INSERT INTO filters (name, filter_type_id) VALUES (:name, :filter_type_id)");
     query.bindValue(":name", name);
@@ -45,15 +45,15 @@ bool FiltersRepository::addFilter(const QString &name, const int filterTypeId, Q
 
     if (!query.exec())
     {
-        errorMessage = query.lastError().text();
+        QString errorMessage = query.lastError().text();
         qDebug() << "Failed to insert filter:" << errorMessage;
-        return false;
+        return std::unexpected(ER::Error(errorMessage));
     }
 
-    return true;
+    return {};
 }
 
-bool FiltersRepository::updateFilter(const int id, const QString &name, const int filterTypeId, QString &errorMessage) const {
+std::expected<void, ER> FiltersRepository::updateFilter(int id, const QString &name, int filterTypeId) const {
     QSqlQuery query(m_dbManager->database());
     query.prepare("UPDATE filters SET name = :name, filter_type_id = :filter_type_id WHERE id = :id");
     query.bindValue(":name", name);
@@ -62,25 +62,25 @@ bool FiltersRepository::updateFilter(const int id, const QString &name, const in
 
     if (!query.exec())
     {
-        errorMessage = query.lastError().text();
+        QString errorMessage = query.lastError().text();
         qDebug() << "Failed to update filter:" << errorMessage;
-        return false;
+        return std::unexpected(ER::Error(errorMessage));
     }
 
-    return true;
+    return {};
 }
 
-bool FiltersRepository::deleteFilter(const int id, QString &errorMessage) const {
+std::expected<void, ER> FiltersRepository::deleteFilter(int id) const {
     QSqlQuery query(m_dbManager->database());
     query.prepare("DELETE FROM filters WHERE id = :id");
     query.bindValue(":id", id);
 
     if (!query.exec())
     {
-        errorMessage = query.lastError().text();
+        QString errorMessage = query.lastError().text();
         qDebug() << "Failed to delete filter:" << errorMessage;
-        return false;
+        return std::unexpected(ER::Error(errorMessage));
     }
 
-    return true;
+    return {};
 }

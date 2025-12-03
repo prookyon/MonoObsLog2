@@ -3,13 +3,14 @@
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QDebug>
+#include <ER.h>
 
 CamerasRepository::CamerasRepository(DatabaseManager *dbManager, QObject *parent)
     : QObject(parent), m_dbManager(dbManager)
 {
 }
 
-QVector<CameraData> CamerasRepository::getAllCameras(QString &errorMessage) const {
+std::expected<QVector<CameraData>, ER> CamerasRepository::getAllCameras() const {
     QVector<CameraData> cameras;
 
     QSqlQuery query(m_dbManager->database());
@@ -17,9 +18,9 @@ QVector<CameraData> CamerasRepository::getAllCameras(QString &errorMessage) cons
 
     if (!query.exec())
     {
-        errorMessage = query.lastError().text();
+        QString errorMessage = query.lastError().text();
         qDebug() << "Failed to query cameras:" << errorMessage;
-        return cameras;
+        return std::unexpected(ER::Error(errorMessage));
     }
 
     while (query.next())
@@ -37,7 +38,7 @@ QVector<CameraData> CamerasRepository::getAllCameras(QString &errorMessage) cons
     return cameras;
 }
 
-bool CamerasRepository::addCamera(const QString &name, const QString &sensor, const double pixelSize, const int width, const int height, QString &errorMessage) const {
+std::expected<void, ER> CamerasRepository::addCamera(const QString &name, const QString &sensor, double pixelSize, int width, int height) const {
     QSqlQuery query(m_dbManager->database());
     query.prepare("INSERT INTO cameras (name, sensor, pixel_size, width, height) VALUES (:name, :sensor, :pixel_size, :width, :height)");
     query.bindValue(":name", name);
@@ -48,15 +49,15 @@ bool CamerasRepository::addCamera(const QString &name, const QString &sensor, co
 
     if (!query.exec())
     {
-        errorMessage = query.lastError().text();
+        QString errorMessage = query.lastError().text();
         qDebug() << "Failed to insert camera:" << errorMessage;
-        return false;
+        return std::unexpected(ER::Error(errorMessage));
     }
 
-    return true;
+    return {};
 }
 
-bool CamerasRepository::updateCamera(const int id, const QString &name, const QString &sensor, const double pixelSize, const int width, const int height, QString &errorMessage) const {
+std::expected<void, ER> CamerasRepository::updateCamera(int id, const QString &name, const QString &sensor, double pixelSize, int width, int height) const {
     QSqlQuery query(m_dbManager->database());
     query.prepare("UPDATE cameras SET name = :name, sensor = :sensor, pixel_size = :pixel_size, width = :width, height = :height WHERE id = :id");
     query.bindValue(":name", name);
@@ -68,25 +69,25 @@ bool CamerasRepository::updateCamera(const int id, const QString &name, const QS
 
     if (!query.exec())
     {
-        errorMessage = query.lastError().text();
+        QString errorMessage = query.lastError().text();
         qDebug() << "Failed to update camera:" << errorMessage;
-        return false;
+        return std::unexpected(ER::Error(errorMessage));
     }
 
-    return true;
+    return {};
 }
 
-bool CamerasRepository::deleteCamera(const int id, QString &errorMessage) const {
+std::expected<void, ER> CamerasRepository::deleteCamera(int id) const {
     QSqlQuery query(m_dbManager->database());
     query.prepare("DELETE FROM cameras WHERE id = :id");
     query.bindValue(":id", id);
 
     if (!query.exec())
     {
-        errorMessage = query.lastError().text();
+        QString errorMessage = query.lastError().text();
         qDebug() << "Failed to delete camera:" << errorMessage;
-        return false;
+        return std::unexpected(ER::Error(errorMessage));
     }
 
-    return true;
+    return {};
 }

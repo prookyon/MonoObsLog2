@@ -13,15 +13,14 @@ ObservationsRepository::ObservationsRepository(DatabaseManager *dbManager, QObje
 {
 }
 
-QVector<ObservationData> ObservationsRepository::getAllObservations(QString &errorMessage) const {
+std::expected<QVector<ObservationData>, ER> ObservationsRepository::getAllObservations() const {
     QVector<ObservationData> observations;
-    errorMessage.clear();
 
     QSqlQuery query(m_dbManager->database());
 
     // Join with related tables to get names and calculate angular separation
     const QString sql = R"(
-        SELECT 
+        SELECT
             o.id, o.image_count, o.exposure_length, o.total_exposure, o.comments,
             o.session_id, o.object_id, o.camera_id, o.telescope_id, o.filter_id,
             s.name AS session_name, s.start_date AS session_date,
@@ -42,8 +41,8 @@ QVector<ObservationData> ObservationsRepository::getAllObservations(QString &err
 
     if (!query.exec(sql))
     {
-        errorMessage = QString("Query failed: %1").arg(query.lastError().text());
-        return observations;
+        QString errorMessage = QString("Query failed: %1").arg(query.lastError().text());
+        return std::unexpected(ER::Error(errorMessage));
     }
 
     while (query.next())
@@ -86,14 +85,13 @@ QVector<ObservationData> ObservationsRepository::getAllObservations(QString &err
     return observations;
 }
 
-QVector<ObservationData> ObservationsRepository::getObservationsByObject(const int objectId, QString &errorMessage) const {
+std::expected<QVector<ObservationData>, ER> ObservationsRepository::getObservationsByObject(int objectId) const {
     QVector<ObservationData> observations;
-    errorMessage.clear();
 
     QSqlQuery query(m_dbManager->database());
 
     const QString sql = R"(
-        SELECT 
+        SELECT
             o.id, o.image_count, o.exposure_length, o.total_exposure, o.comments,
             o.session_id, o.object_id, o.camera_id, o.telescope_id, o.filter_id,
             s.name AS session_name, s.start_date AS session_date,
@@ -118,8 +116,8 @@ QVector<ObservationData> ObservationsRepository::getObservationsByObject(const i
 
     if (!query.exec())
     {
-        errorMessage = QString("Query failed: %1").arg(query.lastError().text());
-        return observations;
+        QString errorMessage = QString("Query failed: %1").arg(query.lastError().text());
+        return std::unexpected(ER::Error(errorMessage));
     }
 
     while (query.next())
@@ -163,11 +161,9 @@ QVector<ObservationData> ObservationsRepository::getObservationsByObject(const i
     return observations;
 }
 
-bool ObservationsRepository::addObservation(const int imageCount, const int exposureLength, const QString &comments,
-                                            const int sessionId, const int objectId, const int cameraId, const int telescopeId,
-                                            const int filterId, QString &errorMessage) const {
-    errorMessage.clear();
-
+std::expected<void, ER> ObservationsRepository::addObservation(int imageCount, int exposureLength, const QString &comments,
+                                            int sessionId, int objectId, int cameraId, int telescopeId,
+                                            int filterId) const {
     // Calculate total exposure
     const int totalExposure = imageCount * exposureLength;
 
@@ -191,24 +187,22 @@ bool ObservationsRepository::addObservation(const int imageCount, const int expo
 
     if (!query.exec())
     {
-        errorMessage = QString("Failed to add observation: %1").arg(query.lastError().text());
-        return false;
+        QString errorMessage = QString("Failed to add observation: %1").arg(query.lastError().text());
+        return std::unexpected(ER::Error(errorMessage));
     }
 
-    return true;
+    return {};
 }
 
-bool ObservationsRepository::updateObservation(const int id, const int imageCount, const int exposureLength, const QString &comments,
-                                               const int sessionId, const int objectId, const int cameraId, const int telescopeId,
-                                               const int filterId, QString &errorMessage) const {
-    errorMessage.clear();
-
+std::expected<void, ER> ObservationsRepository::updateObservation(int id, int imageCount, int exposureLength, const QString &comments,
+                                                int sessionId, int objectId, int cameraId, int telescopeId,
+                                                int filterId) const {
     // Calculate total exposure
     const int totalExposure = imageCount * exposureLength;
 
     QSqlQuery query(m_dbManager->database());
     query.prepare(R"(
-        UPDATE observations 
+        UPDATE observations
         SET image_count = :imageCount,
             exposure_length = :exposureLength,
             total_exposure = :totalExposure,
@@ -234,25 +228,23 @@ bool ObservationsRepository::updateObservation(const int id, const int imageCoun
 
     if (!query.exec())
     {
-        errorMessage = QString("Failed to update observation: %1").arg(query.lastError().text());
-        return false;
+        QString errorMessage = QString("Failed to update observation: %1").arg(query.lastError().text());
+        return std::unexpected(ER::Error(errorMessage));
     }
 
-    return true;
+    return {};
 }
 
-bool ObservationsRepository::deleteObservation(const int id, QString &errorMessage) const {
-    errorMessage.clear();
-
+std::expected<void, ER> ObservationsRepository::deleteObservation(int id) const {
     QSqlQuery query(m_dbManager->database());
     query.prepare("DELETE FROM observations WHERE id = :id");
     query.bindValue(":id", id);
 
     if (!query.exec())
     {
-        errorMessage = QString("Failed to delete observation: %1").arg(query.lastError().text());
-        return false;
+        QString errorMessage = QString("Failed to delete observation: %1").arg(query.lastError().text());
+        return std::unexpected(ER::Error(errorMessage));
     }
 
-    return true;
+    return {};
 }

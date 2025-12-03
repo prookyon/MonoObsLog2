@@ -52,15 +52,14 @@ void CamerasTab::populateTable()
     ui->camerasTable->setSortingEnabled(false);
     ui->camerasTable->setRowCount(0);
 
-    QString errorMessage;
-    QVector<CameraData> cameras = m_repository->getAllCameras(errorMessage);
-
-    if (!errorMessage.isEmpty())
+    auto camerasResult = m_repository->getAllCameras();
+    if (!camerasResult)
     {
         QMessageBox::warning(this, "Database Error",
-                             QString("Failed to load cameras: %1").arg(errorMessage));
+                             QString("Failed to load cameras: %1").arg(camerasResult.error().errorMessage));
         return;
     }
+    QVector<CameraData> cameras = camerasResult.value();
 
     int row = 0;
     for (const auto &[id, name, sensor, pixelSize, width, height] : cameras)
@@ -192,10 +191,11 @@ void CamerasTab::onAddCameraButtonClicked()
     }
 
     // Insert into database using repository
-    if (QString errorMessage; !m_repository->addCamera(name, sensor, pixelSize, width, height, errorMessage))
+    auto addResult = m_repository->addCamera(name, sensor, pixelSize, width, height);
+    if (!addResult)
     {
         QMessageBox::warning(this, "Database Error",
-                             QString("Failed to add camera: %1").arg(errorMessage));
+                             QString("Failed to add camera: %1").arg(addResult.error().errorMessage));
         return;
     }
 
@@ -241,10 +241,11 @@ void CamerasTab::onEditCameraButtonClicked()
     }
 
     // Update in database using repository
-    if (QString errorMessage; !m_repository->updateCamera(cameraId, name, sensor, pixelSize, width, height, errorMessage))
+    auto updateResult = m_repository->updateCamera(cameraId, name, sensor, pixelSize, width, height);
+    if (!updateResult)
     {
         QMessageBox::warning(this, "Database Error",
-                             QString("Failed to update camera: %1").arg(errorMessage));
+                             QString("Failed to update camera: %1").arg(updateResult.error().errorMessage));
         return;
     }
 
@@ -280,10 +281,11 @@ void CamerasTab::onDeleteCameraButtonClicked()
     }
 
     // Delete from database using repository
-    if (QString errorMessage; !m_repository->deleteCamera(cameraId, errorMessage))
+    auto deleteResult = m_repository->deleteCamera(cameraId);
+    if (!deleteResult)
     {
         QMessageBox::warning(this, "Database Error",
-                             QString("Failed to delete camera: %1").arg(errorMessage));
+                             QString("Failed to delete camera: %1").arg(deleteResult.error().errorMessage));
         return;
     }
 

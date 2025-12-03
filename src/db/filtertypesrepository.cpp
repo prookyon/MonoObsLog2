@@ -9,7 +9,7 @@ FilterTypesRepository::FilterTypesRepository(DatabaseManager *dbManager, QObject
 {
 }
 
-QVector<FilterTypeData> FilterTypesRepository::getAllFilterTypes(QString &errorMessage) const {
+std::expected<QVector<FilterTypeData>, ER> FilterTypesRepository::getAllFilterTypes() const {
     QVector<FilterTypeData> filterTypes;
 
     QSqlQuery query(m_dbManager->database());
@@ -17,9 +17,9 @@ QVector<FilterTypeData> FilterTypesRepository::getAllFilterTypes(QString &errorM
 
     if (!query.exec())
     {
-        errorMessage = query.lastError().text();
+        QString errorMessage = query.lastError().text();
         qDebug() << "Failed to query filter types:" << errorMessage;
-        return filterTypes;
+        return std::unexpected(ER::Error(errorMessage));
     }
 
     while (query.next())
@@ -34,7 +34,7 @@ QVector<FilterTypeData> FilterTypesRepository::getAllFilterTypes(QString &errorM
     return filterTypes;
 }
 
-bool FilterTypesRepository::addFilterType(const QString &name, const int priority, QString &errorMessage) const {
+std::expected<void, ER> FilterTypesRepository::addFilterType(const QString &name, int priority) const {
     QSqlQuery query(m_dbManager->database());
     query.prepare("INSERT INTO filter_types (name, priority) VALUES (:name, :priority)");
     query.bindValue(":name", name);
@@ -42,15 +42,15 @@ bool FilterTypesRepository::addFilterType(const QString &name, const int priorit
 
     if (!query.exec())
     {
-        errorMessage = query.lastError().text();
+        QString errorMessage = query.lastError().text();
         qDebug() << "Failed to insert filter type:" << errorMessage;
-        return false;
+        return std::unexpected(ER::Error(errorMessage));
     }
 
-    return true;
+    return {};
 }
 
-bool FilterTypesRepository::updateFilterType(const int id, const QString &name, const int priority, QString &errorMessage) const {
+std::expected<void, ER> FilterTypesRepository::updateFilterType(int id, const QString &name, int priority) const {
     QSqlQuery query(m_dbManager->database());
     query.prepare("UPDATE filter_types SET name = :name, priority = :priority WHERE id = :id");
     query.bindValue(":name", name);
@@ -59,25 +59,25 @@ bool FilterTypesRepository::updateFilterType(const int id, const QString &name, 
 
     if (!query.exec())
     {
-        errorMessage = query.lastError().text();
+        QString errorMessage = query.lastError().text();
         qDebug() << "Failed to update filter type:" << errorMessage;
-        return false;
+        return std::unexpected(ER::Error(errorMessage));
     }
 
-    return true;
+    return {};
 }
 
-bool FilterTypesRepository::deleteFilterType(const int id, QString &errorMessage) const {
+std::expected<void, ER> FilterTypesRepository::deleteFilterType(int id) const {
     QSqlQuery query(m_dbManager->database());
     query.prepare("DELETE FROM filter_types WHERE id = :id");
     query.bindValue(":id", id);
 
     if (!query.exec())
     {
-        errorMessage = query.lastError().text();
+        QString errorMessage = query.lastError().text();
         qDebug() << "Failed to delete filter type:" << errorMessage;
-        return false;
+        return std::unexpected(ER::Error(errorMessage));
     }
 
-    return true;
+    return {};
 }

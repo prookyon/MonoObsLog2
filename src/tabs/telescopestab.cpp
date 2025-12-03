@@ -55,15 +55,14 @@ void TelescopesTab::populateTable()
     ui->telescopesTable->setSortingEnabled(false);
     ui->telescopesTable->setRowCount(0);
 
-    QString errorMessage;
-    QVector<TelescopeData> telescopes = m_repository->getAllTelescopes(errorMessage);
-
-    if (!errorMessage.isEmpty())
+    auto telescopesResult = m_repository->getAllTelescopes();
+    if (!telescopesResult)
     {
         QMessageBox::warning(this, "Database Error",
-                             QString("Failed to load telescopes: %1").arg(errorMessage));
+                             QString("Failed to load telescopes: %1").arg(telescopesResult.error().errorMessage));
         return;
     }
+    QVector<TelescopeData> telescopes = telescopesResult.value();
 
     int row = 0;
     for (const auto &[id, name, aperture, fRatio, focalLength] : telescopes)
@@ -174,10 +173,11 @@ void TelescopesTab::onAddTelescopeButtonClicked()
     }
 
     // Insert into database using repository
-    if (QString errorMessage; !m_repository->addTelescope(name, aperture, fRatio, focalLength, errorMessage))
+    auto addResult = m_repository->addTelescope(name, aperture, fRatio, focalLength);
+    if (!addResult)
     {
         QMessageBox::warning(this, "Database Error",
-                             QString("Failed to add telescope: %1").arg(errorMessage));
+                             QString("Failed to add telescope: %1").arg(addResult.error().errorMessage));
         return;
     }
 
@@ -220,10 +220,11 @@ void TelescopesTab::onEditTelescopeButtonClicked()
     }
 
     // Update in database using repository
-    if (QString errorMessage; !m_repository->updateTelescope(telescopeId, name, aperture, fRatio, focalLength, errorMessage))
+    auto updateResult = m_repository->updateTelescope(telescopeId, name, aperture, fRatio, focalLength);
+    if (!updateResult)
     {
         QMessageBox::warning(this, "Database Error",
-                             QString("Failed to update telescope: %1").arg(errorMessage));
+                             QString("Failed to update telescope: %1").arg(updateResult.error().errorMessage));
         return;
     }
 
@@ -259,10 +260,11 @@ void TelescopesTab::onDeleteTelescopeButtonClicked()
     }
 
     // Delete from database using repository
-    if (QString errorMessage; !m_repository->deleteTelescope(telescopeId, errorMessage))
+    auto deleteResult = m_repository->deleteTelescope(telescopeId);
+    if (!deleteResult)
     {
         QMessageBox::warning(this, "Database Error",
-                             QString("Failed to delete telescope: %1").arg(errorMessage));
+                             QString("Failed to delete telescope: %1").arg(deleteResult.error().errorMessage));
         return;
     }
 

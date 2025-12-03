@@ -9,7 +9,7 @@ TelescopesRepository::TelescopesRepository(DatabaseManager *dbManager, QObject *
 {
 }
 
-QVector<TelescopeData> TelescopesRepository::getAllTelescopes(QString &errorMessage) const {
+std::expected<QVector<TelescopeData>, ER> TelescopesRepository::getAllTelescopes() const {
     QVector<TelescopeData> telescopes;
 
     QSqlQuery query(m_dbManager->database());
@@ -17,9 +17,9 @@ QVector<TelescopeData> TelescopesRepository::getAllTelescopes(QString &errorMess
 
     if (!query.exec())
     {
-        errorMessage = query.lastError().text();
+        QString errorMessage = query.lastError().text();
         qDebug() << "Failed to query telescopes:" << errorMessage;
-        return telescopes;
+        return std::unexpected(ER::Error(errorMessage));
     }
 
     while (query.next())
@@ -36,7 +36,7 @@ QVector<TelescopeData> TelescopesRepository::getAllTelescopes(QString &errorMess
     return telescopes;
 }
 
-bool TelescopesRepository::addTelescope(const QString &name, int aperture, double fRatio, int focalLength, QString &errorMessage) const {
+std::expected<void, ER> TelescopesRepository::addTelescope(const QString &name, int aperture, double fRatio, int focalLength) const {
     QSqlQuery query(m_dbManager->database());
     query.prepare("INSERT INTO telescopes (name, aperture, f_ratio, focal_length) VALUES (:name, :aperture, :f_ratio, :focal_length)");
     query.bindValue(":name", name);
@@ -46,15 +46,15 @@ bool TelescopesRepository::addTelescope(const QString &name, int aperture, doubl
 
     if (!query.exec())
     {
-        errorMessage = query.lastError().text();
+        QString errorMessage = query.lastError().text();
         qDebug() << "Failed to insert telescope:" << errorMessage;
-        return false;
+        return std::unexpected(ER::Error(errorMessage));
     }
 
-    return true;
+    return {};
 }
 
-bool TelescopesRepository::updateTelescope(int id, const QString &name, int aperture, double fRatio, int focalLength, QString &errorMessage) const {
+std::expected<void, ER> TelescopesRepository::updateTelescope(int id, const QString &name, int aperture, double fRatio, int focalLength) const {
     QSqlQuery query(m_dbManager->database());
     query.prepare("UPDATE telescopes SET name = :name, aperture = :aperture, f_ratio = :f_ratio, focal_length = :focal_length WHERE id = :id");
     query.bindValue(":name", name);
@@ -65,25 +65,25 @@ bool TelescopesRepository::updateTelescope(int id, const QString &name, int aper
 
     if (!query.exec())
     {
-        errorMessage = query.lastError().text();
+        QString errorMessage = query.lastError().text();
         qDebug() << "Failed to update telescope:" << errorMessage;
-        return false;
+        return std::unexpected(ER::Error(errorMessage));
     }
 
-    return true;
+    return {};
 }
 
-bool TelescopesRepository::deleteTelescope(int id, QString &errorMessage) const {
+std::expected<void, ER> TelescopesRepository::deleteTelescope(int id) const {
     QSqlQuery query(m_dbManager->database());
     query.prepare("DELETE FROM telescopes WHERE id = :id");
     query.bindValue(":id", id);
 
     if (!query.exec())
     {
-        errorMessage = query.lastError().text();
+        QString errorMessage = query.lastError().text();
         qDebug() << "Failed to delete telescope:" << errorMessage;
-        return false;
+        return std::unexpected(ER::Error(errorMessage));
     }
 
-    return true;
+    return {};
 }
