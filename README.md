@@ -35,6 +35,8 @@ This was an Excel workbook, then a Python application and now in C++ Qt6.
   [Link to download page with several versions](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170#latest-supported-redistributable-version)
   
   [Direct link to X64 version](https://aka.ms/vc14/vc_redist.x64.exe)
+  
+  x64 installer is also included in release package.
 - I have not tested on anything else than Windows 11
 
 ## Installation
@@ -87,4 +89,4 @@ See [BUILD.md](BUILD.md)
 ## Misc
 - **UI Framework**: Qt6
 - **Database**: SQLite3
-- **Coding**: Some of the code is written by using AI coding agents. I don't blindly trust what they spit out, but there certainly can be some weird choices in architecture and code logic. It's a hobby project, so I appreciate the time it saves me. No, I'm not a professional C++ developer so don't run this program on a space station life support system controller 🙂
+- **Coding**: Some of the code is written by using AI coding agents. I don't blindly trust what they spit out, but there certainly can be some weird choices in architecture and code logic. It's a hobby project, so I appreciate the time it saves me. No, I'm not a professional C++ developer so don't run this program on mission-critical systems 🙂
