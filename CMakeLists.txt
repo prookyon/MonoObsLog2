@@ -13,7 +13,13 @@ FetchContent_Declare(
         GIT_REPOSITORY https://github.com/Smithsonian/SuperNOVAS.git
         GIT_TAG        v1.5.1-rc1
 )
-FetchContent_MakeAvailable(supernovas)
+#FetchContent_MakeAvailable(supernovas)
+FetchContent_GetProperties(supernovas)
+if(NOT supernovas_POPULATED)
+    FetchContent_Populate(supernovas)
+    # The EXCLUDE_FROM_ALL argument prevents install rules from running
+    add_subdirectory(${supernovas_SOURCE_DIR} ${supernovas_BINARY_DIR} EXCLUDE_FROM_ALL)
+endif()
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
