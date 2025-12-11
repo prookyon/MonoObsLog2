@@ -26,7 +26,10 @@ Used for Excel export. Download from Vcpkg.
 
 ## Qwt
 Used for the polar plot (Qt6 internal one does not directly support custom text labels - and various recommended workarounds I just could not get working on a polar plot )
-Download from Vcpkg.
+~~Download from Vcpkg.~~
+
+Building qwt with vcpkg is pain. It pulls the whole Msys2 / Qt6 and rebuilds it. Plus builds just broke after latest MSVC update.
+So now I'm building it per Qwt Windows install instructions from source zip (using qmake / nmake) and just link to it in Cmake.
 
 # Building deployment package
 Install is only defined for **Release** build. It copies executable and some dependencies to `deploy` folder and then runs Qt6 `windeployqt` on the executable there.

@@ -6,10 +6,10 @@
 #include <QMap>
 #include <QDate>
 #include <QMessageBox>
-#include <qwt/QwtText>
-#include <qwt/QwtPlotMarker>
-#include <qwt/qwt_column_symbol.h>
-#include <qwt/qwt_scale_engine.h>
+#include <qwt_text.h>
+#include <qwt_plot_marker.h>
+#include <qwt_column_symbol.h>
+#include <qwt_scale_engine.h>
 #include <utility>
 
 MonthlyStatsTab::MonthlyStatsTab(DatabaseManager *dbManager, QWidget *parent)

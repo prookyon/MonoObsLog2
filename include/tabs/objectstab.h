@@ -3,11 +3,11 @@
 
 #include <QWidget>
 #include <QLineEdit>
-#include <qwt/qwt_polar_plot.h>
-#include <qwt/qwt_polar_marker.h>
-#include <qwt/qwt_polar_panner.h>
-#include <qwt/qwt_polar_magnifier.h>
-#include <qwt/qwt_polar_curve.h>
+#include <qwt_polar_plot.h>
+#include <qwt_polar_marker.h>
+#include <qwt_polar_panner.h>
+#include <qwt_polar_magnifier.h>
+#include <qwt_polar_curve.h>
 
 QT_BEGIN_NAMESPACE
 namespace Ui

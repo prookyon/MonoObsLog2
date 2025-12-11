@@ -7,9 +7,6 @@
   }, {
     "name" : "openxlsx",
     "version>=" : "2025-07-14"
-  }, {
-    "name" : "qwt",
-    "version>=" : "6.3.0"
   } ],
   "builtin-baseline" : "61a1513d1523eabae8ebbd11836241719004d60e"
 }

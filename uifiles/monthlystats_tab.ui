@@ -30,7 +30,7 @@
   <customwidget>
    <class>QwtPlot</class>
    <extends>QWidget</extends>
-   <header>qwt/qwt_plot.h</header>
+   <header>qwt_plot.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

@@ -33,7 +33,32 @@ find_package(libzip CONFIG REQUIRED)
 # temporarily use git version
 #find_package(supernovas CONFIG REQUIRED)
 find_package(OpenXLSX CONFIG REQUIRED)
-find_package(unofficial-qwt CONFIG REQUIRED)
+#find_package(unofficial-qwt CONFIG REQUIRED)
+add_library(qwt SHARED IMPORTED)
+
+# 2. Set Properties for RELEASE Configuration
+set_property(TARGET qwt APPEND PROPERTY IMPORTED_CONFIGURATIONS RELEASE)
+set_target_properties(qwt PROPERTIES
+        # The path to the runtime DLL
+        IMPORTED_LOCATION_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/../qwt-6.3.0/lib/qwt.dll"
+        # The path to the import .lib file (required for linking on Windows)
+        IMPORTED_IMPLIB_RELEASE   "${CMAKE_CURRENT_SOURCE_DIR}/../qwt-6.3.0/lib/qwt.lib"
+)
+
+# 3. Set Properties for DEBUG Configuration
+set_property(TARGET qwt APPEND PROPERTY IMPORTED_CONFIGURATIONS DEBUG)
+set_target_properties(qwt PROPERTIES
+        # The path to the debug runtime DLL
+        IMPORTED_LOCATION_DEBUG "${CMAKE_CURRENT_SOURCE_DIR}/../qwt-6.3.0/lib/qwtd.dll"
+        # The path to the debug import .lib file
+        IMPORTED_IMPLIB_DEBUG   "${CMAKE_CURRENT_SOURCE_DIR}/../qwt-6.3.0/lib/qwtd.lib"
+)
+
+# 4. Set Include Directories
+# "INTERFACE" means "consumers of this library need this path"
+set_target_properties(qwt PROPERTIES
+        INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/../qwt-6.3.0/src"
+)
 
 
 
@@ -129,8 +154,8 @@ target_link_libraries(${PROJECT_NAME}
     Qt6::Network
     libzip::zip
     supernovas::core
-    unofficial::qwt::qwt
     OpenXLSX::OpenXLSX
+    qwt
 )
 
 
@@ -138,11 +163,18 @@ if (WIN32)
     # Set Windows subsystem to Windows (not console)
     set_target_properties(${PROJECT_NAME} PROPERTIES WIN32_EXECUTABLE TRUE)
 
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            $<TARGET_FILE:qwt>
+            $<TARGET_FILE_DIR:${PROJECT_NAME}>
+    )
+
     # Adds necessary files to run program from build directory
     # --force to overwrite Qt6 dll-s created as part of Qwt build process
     set(WINDEPLOYQT "${QT6_INSTALL_PREFIX}/bin/windeployqt.exe")
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND ${WINDEPLOYQT} ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}${CMAKE_EXECUTABLE_SUFFIX} --compiler-runtime --force)
+
 
     # Install commands to create the deploy folder
     if (CMAKE_BUILD_TYPE STREQUAL Release)

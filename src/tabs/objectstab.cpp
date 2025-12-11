@@ -16,17 +16,17 @@
 #include <QTableWidgetItem>
 #include <QPushButton>
 #include <QPointer>
-#include <qwt/qwt_polar_grid.h>
-#include <qwt/qwt_polar_marker.h>
-#include <qwt/qwt_polar_curve.h>
-#include <qwt/qwt_point_polar.h>
-#include <qwt/qwt_series_data.h>
-#include <qwt/qwt_text.h>
-#include <qwt/qwt_symbol.h>
-#include <qwt/qwt_polar_panner.h>
-#include <qwt/qwt_polar_magnifier.h>
-#include <qwt/qwt_scale_div.h>
-#include <qwt/qwt_polar_canvas.h>
+#include <qwt_polar_grid.h>
+#include <qwt_polar_marker.h>
+#include <qwt_polar_curve.h>
+#include <qwt_point_polar.h>
+#include <qwt_series_data.h>
+#include <qwt_text.h>
+#include <qwt_symbol.h>
+#include <qwt_polar_panner.h>
+#include <qwt_polar_magnifier.h>
+#include <qwt_scale_div.h>
+#include <qwt_polar_canvas.h>
 
 ObjectsTab::ObjectsTab(DatabaseManager *dbManager, SettingsManager *settingsManager, QWidget *parent)
     : QWidget(parent), ui(new Ui::ObjectsTab), m_dbManager(dbManager), m_settingsManager(settingsManager), m_repository(nullptr), m_simbadQuery(nullptr), m_dialogRaEdit(nullptr), m_dialogDecEdit(nullptr)
