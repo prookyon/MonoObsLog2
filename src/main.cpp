@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
 
     // Set application information
     QApplication::setApplicationName("MonoObsLog");
-    QApplication::setApplicationVersion("0.6.0");
+    QApplication::setApplicationVersion("1.0.0");
     QApplication::setOrganizationName("Prookyon");
     QApplication::setWindowIcon(QIcon(":/images/icon.ico"));
 
