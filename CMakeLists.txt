@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.28)
 
 project(MonoObsLog VERSION 1.0.0 LANGUAGES CXX)
 
@@ -11,15 +11,10 @@ include(FetchContent)
 FetchContent_Declare(
         supernovas
         GIT_REPOSITORY https://github.com/Smithsonian/SuperNOVAS.git
-        GIT_TAG        v1.5.1-rc1
+        GIT_TAG        v1.5.1
+        EXCLUDE_FROM_ALL
 )
-#FetchContent_MakeAvailable(supernovas)
-FetchContent_GetProperties(supernovas)
-if(NOT supernovas_POPULATED)
-    FetchContent_Populate(supernovas)
-    # The EXCLUDE_FROM_ALL argument prevents install rules from running
-    add_subdirectory(${supernovas_SOURCE_DIR} ${supernovas_BINARY_DIR} EXCLUDE_FROM_ALL)
-endif()
+FetchContent_MakeAvailable(supernovas)
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
