@@ -28,33 +28,8 @@ find_package(libzip CONFIG REQUIRED)
 # temporarily use git version
 #find_package(supernovas CONFIG REQUIRED)
 find_package(OpenXLSX CONFIG REQUIRED)
-#find_package(unofficial-qwt CONFIG REQUIRED)
-add_library(qwt SHARED IMPORTED)
 
-# 2. Set Properties for RELEASE Configuration
-set_property(TARGET qwt APPEND PROPERTY IMPORTED_CONFIGURATIONS RELEASE)
-set_target_properties(qwt PROPERTIES
-        # The path to the runtime DLL
-        IMPORTED_LOCATION_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/../qwt-6.3.0/lib/qwt.dll"
-        # The path to the import .lib file (required for linking on Windows)
-        IMPORTED_IMPLIB_RELEASE   "${CMAKE_CURRENT_SOURCE_DIR}/../qwt-6.3.0/lib/qwt.lib"
-)
-
-# 3. Set Properties for DEBUG Configuration
-set_property(TARGET qwt APPEND PROPERTY IMPORTED_CONFIGURATIONS DEBUG)
-set_target_properties(qwt PROPERTIES
-        # The path to the debug runtime DLL
-        IMPORTED_LOCATION_DEBUG "${CMAKE_CURRENT_SOURCE_DIR}/../qwt-6.3.0/lib/qwtd.dll"
-        # The path to the debug import .lib file
-        IMPORTED_IMPLIB_DEBUG   "${CMAKE_CURRENT_SOURCE_DIR}/../qwt-6.3.0/lib/qwtd.lib"
-)
-
-# 4. Set Include Directories
-# "INTERFACE" means "consumers of this library need this path"
-set_target_properties(qwt PROPERTIES
-        INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/../qwt-6.3.0/src"
-)
-
+include("${CMAKE_CURRENT_LIST_DIR}/cmake/Qwt.cmake")
 
 
 set(PROJECT_SOURCES
@@ -150,7 +125,7 @@ target_link_libraries(${PROJECT_NAME}
     libzip::zip
     supernovas::core
     OpenXLSX::OpenXLSX
-    qwt
+    Qwt::Qwt
 )
 
 
@@ -160,7 +135,7 @@ if (WIN32)
 
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            $<TARGET_FILE:qwt>
+            $<TARGET_FILE:Qwt::Qwt>
             $<TARGET_FILE_DIR:${PROJECT_NAME}>
     )
 
@@ -179,7 +154,7 @@ if (WIN32)
         install(FILES ${CMAKE_CURRENT_BINARY_DIR}/zlib1.dll DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/../deploy)
         # temporarily use git version
         #install(FILES ${CMAKE_CURRENT_BINARY_DIR}/core.dll DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/../deploy)
-        install(FILES ${CMAKE_CURRENT_BINARY_DIR}/qwt.dll DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/../deploy)
+        install(FILES $<TARGET_FILE:Qwt::Qwt> DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/../deploy)
         install(FILES ${CMAKE_CURRENT_BINARY_DIR}/OpenXLSX.dll DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/../deploy)
         install(FILES ${CMAKE_CURRENT_BINARY_DIR}/nowide.dll DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/../deploy)
         install(FILES ${CMAKE_CURRENT_BINARY_DIR}/pugixml.dll DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/../deploy)
