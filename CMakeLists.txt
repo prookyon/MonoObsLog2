@@ -5,8 +5,6 @@ project(MonoObsLog VERSION 1.0.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# temporarily use git version
-# TODO: go back to vcpkg once 1.5.1 is pushed there
 include(FetchContent)
 FetchContent_Declare(
         supernovas
@@ -23,10 +21,7 @@ set(CMAKE_AUTOUIC_SEARCH_PATHS uifiles)
 
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets Sql Network)
 
-# Find libzip
 find_package(libzip CONFIG REQUIRED)
-# temporarily use git version
-#find_package(supernovas CONFIG REQUIRED)
 find_package(OpenXLSX CONFIG REQUIRED)
 
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/Qwt.cmake")
@@ -155,8 +150,6 @@ if (WIN32)
         install(FILES ${CMAKE_CURRENT_BINARY_DIR}/zip.dll DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/../deploy)
         install(FILES ${CMAKE_CURRENT_BINARY_DIR}/bz2.dll DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/../deploy)
         install(FILES ${CMAKE_CURRENT_BINARY_DIR}/zlib1.dll DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/../deploy)
-        # temporarily use git version
-        #install(FILES ${CMAKE_CURRENT_BINARY_DIR}/core.dll DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/../deploy)
         install(FILES $<TARGET_FILE:Qwt::Qwt> DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/../deploy)
         install(FILES ${CMAKE_CURRENT_BINARY_DIR}/OpenXLSX.dll DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/../deploy)
         install(FILES ${CMAKE_CURRENT_BINARY_DIR}/nowide.dll DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/../deploy)
