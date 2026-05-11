@@ -1,10 +1,21 @@
 cmake_minimum_required(VERSION 3.28)
 
+if (POLICY CMP0207)
+    cmake_policy(SET CMP0207 NEW)
+endif ()
+
 project(MonoObsLog VERSION 1.0.0 LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 23)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(PROJECT_DEFAULT_INSTALL_PREFIX "${CMAKE_CURRENT_SOURCE_DIR}/deploy")
+if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT
+        OR CMAKE_INSTALL_PREFIX STREQUAL "C:/Program Files (x86)/${PROJECT_NAME}")
+    set(CMAKE_INSTALL_PREFIX "${PROJECT_DEFAULT_INSTALL_PREFIX}" CACHE PATH
+            "Install path prefix, prepended onto install directories."
+            FORCE
+    )
+endif ()
 
+include(GNUInstallDirs)
 include(FetchContent)
 FetchContent_Declare(
         supernovas
@@ -110,6 +121,8 @@ add_executable(${PROJECT_NAME}
     ${app_icon_resource_windows}
 )
 
+target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_23)
+
 target_include_directories(${PROJECT_NAME}
         PRIVATE
         "${CMAKE_CURRENT_SOURCE_DIR}/include"
@@ -133,37 +146,49 @@ if (WIN32)
 
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            $<TARGET_FILE:Qwt::Qwt>
+            $<TARGET_RUNTIME_DLLS:${PROJECT_NAME}>
             $<TARGET_FILE_DIR:${PROJECT_NAME}>
+            COMMAND_EXPAND_LISTS
     )
 
     # Adds necessary files to run program from build directory
     # --force to overwrite Qt6 dll-s created as part of Qwt build process
     set(WINDEPLOYQT "${QT6_INSTALL_PREFIX}/bin/windeployqt.exe")
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-    COMMAND ${WINDEPLOYQT} ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}${CMAKE_EXECUTABLE_SUFFIX} --compiler-runtime --force)
+            COMMAND ${WINDEPLOYQT}
+            $<TARGET_FILE:${PROJECT_NAME}>
+            --compiler-runtime
+            --force
+    )
 
+    install(TARGETS ${PROJECT_NAME}
+            RUNTIME_DEPENDENCY_SET ${PROJECT_NAME}_runtime_dependencies
+            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    )
 
-    # Install commands to create the deploy folder
-    if (CMAKE_BUILD_TYPE STREQUAL Release)
-        install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}${CMAKE_EXECUTABLE_SUFFIX} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/../deploy)
-        install(FILES ${CMAKE_CURRENT_BINARY_DIR}/zip.dll DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/../deploy)
-        install(FILES ${CMAKE_CURRENT_BINARY_DIR}/bz2.dll DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/../deploy)
-        install(FILES ${CMAKE_CURRENT_BINARY_DIR}/zlib1.dll DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/../deploy)
-        install(FILES $<TARGET_FILE:Qwt::Qwt> DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/../deploy)
-        install(FILES ${CMAKE_CURRENT_BINARY_DIR}/OpenXLSX.dll DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/../deploy)
-        install(FILES ${CMAKE_CURRENT_BINARY_DIR}/nowide.dll DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/../deploy)
-        install(FILES ${CMAKE_CURRENT_BINARY_DIR}/pugixml.dll DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/../deploy)
+    install(CODE [[
+        if (POLICY CMP0207)
+            cmake_policy(SET CMP0207 NEW)
+        endif ()
+    ]])
 
-        set(WINDEPLOYQT "${Qt6_DIR}/../../../bin/windeployqt.exe")
-        set(DEPLOYEDEXE "${CMAKE_CURRENT_BINARY_DIR}/../deploy/${PROJECT_NAME}${CMAKE_EXECUTABLE_SUFFIX}")
-        install(CODE "
-             execute_process(
-                COMMAND \"${WINDEPLOYQT}\"
-                \"${DEPLOYEDEXE}\"
-                --compiler-runtime
-                --force
-            )
-        ")
-    endif ()
+    install(RUNTIME_DEPENDENCY_SET ${PROJECT_NAME}_runtime_dependencies
+            PRE_EXCLUDE_REGEXES
+            [[api-ms-.*]]
+            [[ext-ms-.*]]
+            POST_EXCLUDE_REGEXES
+            [[.*[Ww][Ii][Nn][Dd][Oo][Ww][Ss][/\\].*]]
+            [[.*[Ss][Yy][Ss][Tt][Ee][Mm]32[/\\].*]]
+            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    )
+
+    qt_generate_deploy_app_script(
+            TARGET ${PROJECT_NAME}
+            OUTPUT_SCRIPT qt_deploy_script
+            NO_UNSUPPORTED_PLATFORM_ERROR
+            DEPLOY_TOOL_OPTIONS
+            --compiler-runtime
+            --force
+    )
+    install(SCRIPT ${qt_deploy_script})
 endif ()

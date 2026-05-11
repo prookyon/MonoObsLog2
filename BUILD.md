@@ -35,8 +35,15 @@ Point CMake at that build with:
 `-DQWT_ROOT=C:/path/to/qwt-6.3.0`
 
 # Building deployment package
-Install is only defined for **Release** build. It copies executable and some dependencies to `deploy` folder and then runs Qt6 `windeployqt` on the executable there.
-Result should be something that can run on a fresh installation of Windows 11 with only MS C Runtime installation needed:
-[Link to download](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170#latest-supported-redistributable-version)
-`windeployqt` seems to put the installer in the `deploy` folder also
+Build the **Release** configuration and install it to the default `deploy` folder:
+
+`cmake --install cmake-build-release-msvc --config Release`
+
+CLion's `Install` target runs the equivalent install script without a `--prefix` argument, so CMake defaults `CMAKE_INSTALL_PREFIX` to this repository's `deploy` folder.
+
+To install somewhere else from the command line, pass an explicit prefix:
+
+`cmake --install cmake-build-release-msvc --config Release --prefix "$PWD/deploy"`
+
+The install step copies the executable and linked runtime dependencies, then runs Qt6 deployment for Qt libraries, plugins, and compiler runtime files.
 
