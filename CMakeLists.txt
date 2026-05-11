@@ -25,12 +25,8 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(supernovas)
 
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
-set(CMAKE_AUTOUIC ON)
-set(CMAKE_AUTOUIC_SEARCH_PATHS uifiles)
-
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets Sql Network)
+qt_standard_project_setup()
 
 find_package(libzip CONFIG REQUIRED)
 find_package(OpenXLSX CONFIG REQUIRED)
@@ -113,7 +109,7 @@ set(PROJECT_UI
 set(app_icon_resource_windows "${CMAKE_CURRENT_SOURCE_DIR}/images/resources.rc")
 
 
-add_executable(${PROJECT_NAME}
+qt_add_executable(${PROJECT_NAME}
     ${PROJECT_SOURCES}
     ${PROJECT_HEADERS}
     ${PROJECT_UI}
@@ -123,20 +119,25 @@ add_executable(${PROJECT_NAME}
 
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_23)
 
+set_target_properties(${PROJECT_NAME} PROPERTIES
+        AUTOUIC_SEARCH_PATHS "${CMAKE_CURRENT_SOURCE_DIR}/uifiles"
+)
+
 target_include_directories(${PROJECT_NAME}
         PRIVATE
         "${CMAKE_CURRENT_SOURCE_DIR}/include"
 )
 
 target_link_libraries(${PROJECT_NAME}
-    Qt6::Core
-    Qt6::Widgets
-    Qt6::Sql
-    Qt6::Network
-    libzip::zip
-    supernovas::core
-    OpenXLSX::OpenXLSX
-    Qwt::Qwt
+    PRIVATE
+        Qt6::Core
+        Qt6::Widgets
+        Qt6::Sql
+        Qt6::Network
+        libzip::zip
+        supernovas::core
+        OpenXLSX::OpenXLSX
+        Qwt::Qwt
 )
 
 
