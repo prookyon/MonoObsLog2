@@ -104,8 +104,6 @@ set(PROJECT_UI
     uifiles/about_tab.ui
 )
 
-include_directories(include ${libzip_INCLUDE_DIRS} ${supernovas_INCLUDE_DIRS})
-
 set(app_icon_resource_windows "${CMAKE_CURRENT_SOURCE_DIR}/images/resources.rc")
 
 
@@ -115,6 +113,11 @@ add_executable(${PROJECT_NAME}
     ${PROJECT_UI}
     resources.qrc
     ${app_icon_resource_windows}
+)
+
+target_include_directories(${PROJECT_NAME}
+        PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}/include"
 )
 
 target_link_libraries(${PROJECT_NAME}
