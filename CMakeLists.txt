@@ -11,7 +11,7 @@ include(FetchContent)
 FetchContent_Declare(
         supernovas
         GIT_REPOSITORY https://github.com/Smithsonian/SuperNOVAS.git
-        GIT_TAG        v1.5.1
+        GIT_TAG        v1.6.0
         EXCLUDE_FROM_ALL
 )
 FetchContent_MakeAvailable(supernovas)
