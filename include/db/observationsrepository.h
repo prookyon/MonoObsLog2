@@ -31,7 +31,7 @@ struct ObservationData
     QString telescopeName;
     QString filterName;
     double moonIllumination;
-    double angularSeparation;
+    double angularSeparation = -1.0; // Unavailable when object or Moon coordinates are missing
 };
 
 class ObservationsRepository : public QObject
